@@ -9,27 +9,37 @@
   :root {
     --bg: #0f1419; --card: #171d26; --line: #263241; --fg: #e6edf3;
     --muted: #8b98a5; --accent: #4f9cff; --good: #2ecc71; --bad: #e74c3c;
+    --topbar: 128px;
   }
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
   body { margin: 0; background: var(--bg); color: var(--fg);
     font: 15px/1.55 -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 32px 18px 64px; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; border: 2px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: #3a4d63; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: var(--topbar) 18px 48px; }
+  .topbar { position: fixed; top: 0; left: 0; right: 0; max-width: 920px; margin: 0 auto; z-index: 10;
+    background: var(--bg); padding: 24px 18px 12px; }
   h1 { font-size: 1.8rem; margin: 0 0 4px; }
   h2 { font-size: 1.15rem; margin: 0 0 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  .updated { color: var(--muted); font-size: 0.85rem; }
+  .updated { color: var(--muted); font-size: 0.85rem; margin: 0; }
   .tagline { color: var(--muted); margin: 0 0 12px; }
 
-  .shell { display: flex; gap: 30px; margin-top: 26px; align-items: flex-start; }
-  .side { position: sticky; top: 24px; display: flex; flex-direction: column; gap: 13px; min-width: 172px; }
+  .shell { display: block; }
+  .chrome { position: fixed; inset: 0; max-width: 920px; margin: 0 auto; padding: 0 18px;
+    pointer-events: none; z-index: 5; }
+  .side { pointer-events: auto; width: 172px; margin-top: calc(var(--topbar) + 3px);
+    display: flex; flex-direction: column; gap: 13px; }
   .side a { cursor: pointer; font-size: 0.9rem; color: var(--muted);
-    padding-left: 14px; border-left: 2px solid transparent; margin-left: -1px; }
+    padding-left: 14px; border-left: 2px solid transparent; margin-left: 0; }
   .side a:hover { color: var(--fg); text-decoration: none; }
   .side a.on { color: var(--fg); border-left-color: var(--accent); }
-  .main { flex: 1; min-width: 0; }
-  .panel { scroll-margin-top: 24px; }
+  .main { margin-left: 202px; min-width: 0; }
+  .panel { scroll-margin-top: var(--topbar); }
   .panel + .panel { margin-top: 44px; }
 
   .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin: 24px 0 4px; }
@@ -59,29 +69,34 @@
   th { color: var(--muted); font-weight: 600; }
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   .hit { color: var(--good); } .miss { color: var(--bad); }
-  footer { margin-top: 48px; color: var(--muted); font-size: 0.85rem; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 0.85rem; }
   canvas { max-height: 380px; }
   .err { color: var(--bad); }
 
   @media (max-width: 560px) {
-    .shell { flex-direction: column; gap: 18px; }
-    .side { position: static; flex-direction: row; flex-wrap: wrap; gap: 16px; }
+    .wrap { padding-top: 0; }
+    .topbar { position: static; max-width: none; margin: 0; padding: 24px 0 8px; }
+    .chrome { position: static; max-width: none; margin: 0; padding: 0; }
+    .side { width: auto; margin-top: 0; flex-direction: row; flex-wrap: wrap; gap: 16px; }
     .side a { border-left: none; padding-left: 0; margin-left: 0; }
     .side a.on { border-bottom: 2px solid var(--accent); }
+    .main { margin-left: 0; }
     .stat .lbl { white-space: normal; }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1 id="top">World Cup Predictor</h1>
-  <p class="updated">Data updated <span id="updated">…</span> · Built with Java 17. Updated daily by a GitHub Action that re-fits the model, locks new
-    predictions, and re-runs 10,000 tournament simulations. Methodology and full backtests in the
-    <a id="repo" href="https://github.com/qnicondavid/World-Cup-Predictor">repository</a>.</p>
+  <div class="topbar">
+    <h1 id="top">World Cup Predictor</h1>
+    <p class="updated">Data updated <span id="updated">…</span> · Built with Java 17. Updated daily by a GitHub Action that re-fits the model, locks new
+      predictions, and re-runs 10,000 tournament simulations. Methodology and full backtests in the
+      <a id="repo" href="https://github.com/qnicondavid/World-Cup-Predictor">repository</a>.</p>
+  </div>
 
-  <div class="shell">
+  <div class="chrome">
     <nav class="side" id="side" aria-label="Sections">
-      <a href="#top" data-spy="model" class="on">Model</a>
+      <a href="#model" class="on">Model</a>
       <a href="#champ">Championship odds</a>
       <a href="#traj">Title odds over time</a>
       <a href="#record">Live record</a>
@@ -89,7 +104,9 @@
       <a href="#past">Past World Cups</a>
       <a href="#closing">Closing line</a>
     </nav>
+  </div>
 
+  <div class="shell">
     <div class="main">
       <section class="panel" id="model">
         <h2>How it works</h2>
@@ -282,15 +299,23 @@ document.querySelectorAll("#side a").forEach(a => {
   const key = a.getAttribute("data-spy") || a.getAttribute("href").slice(1);
   navLinks[key] = a;
 });
-const spy = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      Object.values(navLinks).forEach(a => a.classList.remove("on"));
-      if (navLinks[e.target.id]) navLinks[e.target.id].classList.add("on");
-    }
-  });
-}, { rootMargin: "-15% 0px -75% 0px", threshold: 0 });
-document.querySelectorAll(".panel").forEach(p => spy.observe(p));
+const panels = [...document.querySelectorAll(".panel")];
+function syncNav() {
+  const line = 150;  // a panel becomes current once its top scrolls above this (just below the fixed header)
+  let current = panels.length ? panels[0].id : null;
+  for (const p of panels) {
+    if (p.getBoundingClientRect().top <= line) current = p.id;
+  }
+  // near the bottom the last (short) panel can't reach the line, so force it
+  if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) {
+    current = panels[panels.length - 1].id;
+  }
+  Object.values(navLinks).forEach(a => a.classList.remove("on"));
+  if (current && navLinks[current]) navLinks[current].classList.add("on");
+}
+window.addEventListener("scroll", syncNav, { passive: true });
+window.addEventListener("resize", syncNav);
+syncNav();
 </script>
 </body>
 </html>
