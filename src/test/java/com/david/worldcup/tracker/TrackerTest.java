@@ -142,7 +142,7 @@ class TrackerTest {
     }
 
     @Test
-    void earlyMatchesRenderRetrospectivelyAndAreExcluded() {
+    void earlyMatchesRenderRetrospectivelyAndAreCounted() {
         List<Prediction> preds = List.of(new Prediction(
                 LocalDate.of(2026, 6, 11), "X", "Y", true,
                 0.60, 0.25, 0.15, 1.8, 0.9, LocalDate.of(2026, 6, 11)));
@@ -152,7 +152,7 @@ class TrackerTest {
         String md = Tracker.renderEarlyMatches(Tracker.score(preds, results), TODAY);
 
         assertTrue(md.contains("retrospective"));
-        assertTrue(md.contains("not counted"));
+        assertTrue(md.contains("counted in the"));
         assertTrue(md.contains("X vs Y"));
         assertTrue(md.contains("2-0")); // actual result shown
     }

@@ -197,8 +197,10 @@ public final class Tracker {
 
     /**
      * Renders matches played before the model existed, in the same format as the
-     * locked table. These are retrospective (trained only on data before each
-     * match) and explicitly excluded from the record.
+     * locked table. These are retrospective: each is trained only on data from
+     * before the match, but was not locked ahead of kickoff the way live
+     * predictions are. Main.runTracker merges them into the scored record, so they
+     * do count toward it. This standalone section renderer is currently unused.
      */
     public static String renderEarlyMatches(List<ScoredPrediction> early, LocalDate today) {
         StringBuilder md = new StringBuilder();
@@ -208,7 +210,7 @@ public final class Tracker {
         }
         md.append("These matches were played before the model existed, so they were never ")
           .append("locked. Each is a retrospective prediction, trained only on data from ")
-          .append("before the match (never peeking at the result), and is not counted in the ")
+          .append("before the match (never peeking at the result), and is counted in the ")
           .append("record above. Shown for a complete tournament picture.\n\n");
         md.append(RESOLVED_HEADER);
         for (ScoredPrediction s : early) {
