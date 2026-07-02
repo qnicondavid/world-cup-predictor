@@ -324,7 +324,11 @@ Scored on 320 World Cup matches (2006-2022), train-before-each-tournament:
 
 The goal models edge the Elo baseline modestly. The edge is uneven across
 tournaments, so an **Elo + Dixon-Coles ensemble** (averaging the two probability
-vectors) is also wired into `--goals`. The fitter itself is validated against
+vectors) is also wired into `--goals`. This fixed average is a different
+construction from the learned blend banked as dead above, where
+leave-one-tournament-out drove the weight toward near-pure Elo; the average lands
+inside the noise floor of plain Dixon-Coles, so read it as a reference, not a win.
+The fitter itself is validated against
 `research/goal_models.py`: on data from a known Dixon-Coles process it recovers
 team attack strengths at correlation 0.99.
 

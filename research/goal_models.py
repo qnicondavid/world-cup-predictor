@@ -78,7 +78,7 @@ class DixonColes:
         self.mu=p[0]; self.att=p[1:1+n]-p[1:1+n].mean(); self.dfn=p[1+n:1+2*n]-p[1+n:1+2*n].mean()
         self.gamma=p[1+2*n]; self.rho=float(np.clip(p[2+2*n],-0.18,0.18))
         if biv:
-            # fit a single covariance term by 1-D search on held training tail
+            # fixed covariance term (constant 0.10; not fitted)
             self.l3=0.10
         return self
     def _rates(self,home,away,neutral):

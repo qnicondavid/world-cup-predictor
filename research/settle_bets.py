@@ -79,7 +79,7 @@ def main():
     for b in csv.DictReader(open(bets_path, encoding="utf-8")):
         key = (b["match_date"], canon(b["home_team"]), canon(b["away_team"]))
         o, price, stake = b["outcome"], float(b["offered_odds"]), float(b["stake"])
-        # CLV: your decimal odds vs the closing avg for that outcome.
+        # CLV: your decimal odds vs the closing best for that outcome.
         clv = ""
         c = closing.get(key)
         if c and c.get(o):

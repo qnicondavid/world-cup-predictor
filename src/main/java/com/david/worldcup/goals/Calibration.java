@@ -150,7 +150,7 @@ public final class Calibration {
      * Fraction of the draw probability that Dixon-Coles over-produces and that
      * {@link #transferDraw} moves onto the favoured win side. Fit
      * leave-one-tournament-out across the five World Cups (stable at ~0.20-0.24);
-     * the transfer lifts held-out multiclass Brier from ~0.5506 to ~0.5445,
+     * the transfer lifts held-out multiclass Brier from ~0.5506 to 0.5441,
      * improving 4/5 tournaments, entirely by correcting draw reliability.
      */
     public static final double DRAW_TRANSFER = 0.21;
