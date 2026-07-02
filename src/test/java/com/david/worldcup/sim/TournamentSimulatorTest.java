@@ -66,6 +66,28 @@ class TournamentSimulatorTest {
     }
 
     @Test
+    void knockoutPhaseCreditsSemifinalistsForOddField() {
+        // Six single-elimination fixtures (no carried winners) = 12 alive teams,
+        // not a power of two. Every run must still produce exactly 1 champion,
+        // 2 finalists and 4 semifinalists. The bug being fixed halved from an
+        // odd field with a trailing bye and credited zero semifinalists.
+        EloRatingSystem elo = new EloRatingSystem();
+        List<Fixture> bracket = List.of(
+                fx("T1", "T2"), fx("T3", "T4"), fx("T5", "T6"),
+                fx("T7", "T8"), fx("T9", "T10"), fx("T11", "T12"));
+
+        List<TournamentSimulator.TeamOdds> odds =
+                new TournamentSimulator(elo).simulate(List.of(), bracket, 1000, 5L);
+
+        double semis = odds.stream().mapToDouble(TournamentSimulator.TeamOdds::semiShare).sum();
+        double finals = odds.stream().mapToDouble(TournamentSimulator.TeamOdds::finalShare).sum();
+        double titles = odds.stream().mapToDouble(TournamentSimulator.TeamOdds::titleShare).sum();
+        assertEquals(4.0, semis, 1e-9, "each run has exactly four semifinalists");
+        assertEquals(2.0, finals, 1e-9, "each run has exactly two finalists");
+        assertEquals(1.0, titles, 1e-9, "each run crowns exactly one champion");
+    }
+
+    @Test
     void playedResultsAreRespected() {
         // A4 already beat everyone: with no remaining fixtures it must win the group.
         EloRatingSystem elo = new EloRatingSystem();

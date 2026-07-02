@@ -41,10 +41,14 @@ import java.util.TreeSet;
  *       (teams that play each other form a group) rather than hard-coded.</li>
  *   <li>Tie-breaks (group-stage mode) use points, then current Elo rating,
  *       instead of goal difference (outcomes are simulated, not scorelines).</li>
- *   <li>The knockout bracket tree is built by pairing matches in schedule order
- *       (the dataset only contains the current round, not the full tree), which
- *       approximates FIFA's fixed bracket paths. A match already played in the
- *       current round carries its real winner into the next round.</li>
+ *   <li>The knockout bracket tree is built by pairing the remaining fixtures and
+ *       carried winners in schedule order (the dataset holds only the live
+ *       frontier, not the full tree), which approximates FIFA's fixed bracket
+ *       paths. A match already played carries its real winner forward. The
+ *       frontier can straddle more than one bracket round, so it is flattened;
+ *       when it is not a power of two it is reduced to one in a single play-in
+ *       round so the field then passes cleanly through the semifinal (4) and
+ *       final (2) stages.</li>
  *   <li>Knockout matches are treated as neutral-venue with no draws: the Elo
  *       expected score is used directly as the win probability, which folds
  *       extra time and penalties into a single number.</li>
@@ -215,6 +219,27 @@ public final class TournamentSimulator {
         for (String[] s : slots) {
             round.add(s.length == 1 ? s[0] : play(s[0], s[1], random));
         }
+        if (round.isEmpty()) {
+            return;
+        }
+        // If the field is not a power of two, resolve the surplus in a single
+        // play-in round so it collapses to the nearest power of two at once.
+        // Every later round then halves cleanly and passes through exactly four
+        // (semifinalists) and two (finalists). Halving from an odd count with a
+        // trailing bye — the previous behaviour — could step 11 -> 6 -> 3 -> 2 -> 1
+        // and skip 4 entirely, which is why the semifinal tally stayed at zero.
+        int pow2 = Integer.highestOneBit(round.size());
+        if (pow2 < round.size()) {
+            int playIn = 2 * (round.size() - pow2); // leading teams contest the extra round
+            List<String> next = new ArrayList<>();
+            for (int i = 0; i + 1 < playIn; i += 2) {
+                next.add(play(round.get(i), round.get(i + 1), random));
+            }
+            for (int i = playIn; i < round.size(); i++) {
+                next.add(round.get(i)); // seeded bye into the clean bracket
+            }
+            round = next;
+        }
         while (round.size() > 1) {
             if (round.size() == 4) {
                 round.forEach(t -> tally.get(t)[2]++);
@@ -225,9 +250,6 @@ public final class TournamentSimulator {
             List<String> next = new ArrayList<>();
             for (int i = 0; i + 1 < round.size(); i += 2) {
                 next.add(play(round.get(i), round.get(i + 1), random));
-            }
-            if (round.size() % 2 == 1) {
-                next.add(round.get(round.size() - 1)); // odd field: last team gets a bye
             }
             round = next;
         }
