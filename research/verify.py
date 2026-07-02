@@ -2,8 +2,10 @@
 research/verify.py  -  Verification harness for the football-forecasting project.
 
 Imports from goal_models.py without modifying it.
-Run:  python3 research/verify.py            (uses data/results.csv by default)
-      python3 research/verify.py <path>     (explicit CSV path)
+Run:  python3 research/verify.py                     (uses data/results.csv by default)
+      python3 research/verify.py <path>              (explicit CSV path)
+      python3 research/verify.py --score EXPORT.csv  (score one Java export)
+      python3 research/verify.py --paired A.csv B.csv (paired A-vs-B Brier gate)
 """
 
 import sys, os, math
@@ -503,12 +505,14 @@ def expected_calibration_error(records, bins=10):
     return ece
 
 
-def score_export(csv_path):
+def load_export(csv_path):
     """
-    Load a CSV written by the Java --verify-export bridge and print Brier metrics.
+    Load a CSV written by the Java --verify-export bridge into record dicts.
 
     Expected columns: tournament,home,away,date,p_home,p_draw,p_away,actual
     actual in {home, draw, away}  ->  mapped to y in {0, 1, 2}.
+    Returns a list of record dicts {tournament, home, away, date, p:[pH,pD,pA], y}
+    in the CSV's row order.
     """
     import csv as csv_mod
     actual_map = {"home": 0, "draw": 1, "away": 2}
@@ -527,6 +531,17 @@ def score_export(csv_path):
                 p=[float(row["p_home"]), float(row["p_draw"]), float(row["p_away"])],
                 y=actual_map[y_str],
             ))
+    return records
+
+
+def score_export(csv_path):
+    """
+    Load a CSV written by the Java --verify-export bridge and print Brier metrics.
+
+    Expected columns: tournament,home,away,date,p_home,p_draw,p_away,actual
+    actual in {home, draw, away}  ->  mapped to y in {0, 1, 2}.
+    """
+    records = load_export(csv_path)
     print(f"Loaded {len(records)} records from {csv_path}")
     if not records:
         print("No records; nothing to score.")
@@ -557,9 +572,126 @@ def score_export(csv_path):
     print(f"  ECE: {expected_calibration_error(records, 10):.4f}")
 
 
+# ---------------------------------------------------------------------------
+# 11. run_paired  (paired per-match Brier delta: the project's gate)
+# ---------------------------------------------------------------------------
+def run_paired(baseline_csv, variant_csv):
+    """
+    Paired comparison of two model exports (the gate the project uses).
+
+    Loads baseline and variant, aligns them on the match key
+    (tournament, home, away, date) -- reordering the variant to the
+    baseline's order -- then calls the existing paired_delta().
+
+    paired_delta(baseline, variant) computes, per match,
+        delta = mcb(baseline.p, y) - mcb(variant.p, y)
+    mcb is a Brier-type LOSS (lower = better), so:
+        positive delta  ->  baseline loss > variant loss  ->  variant IMPROVES
+        negative delta  ->  variant regresses
+
+    GATE (PASS) requires BOTH:
+      * the block-bootstrap 95% CI lies entirely above zero (improving side), AND
+      * no single tournament reverses sign (all per-tournament deltas > 0).
+    """
+    baseline = load_export(baseline_csv)
+    variant  = load_export(variant_csv)
+    print(f"Loaded {len(baseline)} baseline records from {baseline_csv}")
+    print(f"Loaded {len(variant)} variant  records from {variant_csv}")
+
+    # ---- Align on match key (tournament, home, away, date) ----
+    base_keys = [_record_key(r) for r in baseline]
+    var_by_key = {_record_key(r): r for r in variant}
+    base_key_set = set(base_keys)
+    var_key_set = set(var_by_key)
+
+    if len(var_by_key) != len(variant):
+        print("ERROR: variant export contains duplicate match keys "
+              f"({len(variant)} rows, {len(var_by_key)} distinct keys).",
+              file=sys.stderr)
+        sys.exit(1)
+
+    only_baseline = base_key_set - var_key_set
+    only_variant  = var_key_set - base_key_set
+    if only_baseline or only_variant or len(baseline) != len(variant):
+        print("ERROR: baseline and variant exports do not cover the same matches.",
+              file=sys.stderr)
+        print(f"  baseline rows={len(baseline)}  variant rows={len(variant)}",
+              file=sys.stderr)
+        print(f"  in baseline only: {len(only_baseline)}   "
+              f"in variant only: {len(only_variant)}", file=sys.stderr)
+        for k in list(sorted(only_baseline))[:2]:
+            print(f"    baseline-only key: {k}", file=sys.stderr)
+        for k in list(sorted(only_variant))[:2]:
+            print(f"    variant-only  key: {k}", file=sys.stderr)
+        sys.exit(1)
+
+    # Reorder variant to baseline's order so the two lists are index-aligned.
+    variant_aligned = [var_by_key[k] for k in base_keys]
+
+    # ---- Compute paired delta via the existing machinery ----
+    res = paired_delta(baseline, variant_aligned)
+    mean_delta = res["mean_delta"]
+    ci_lo, ci_hi = res["ci_lo"], res["ci_hi"]
+    per_t = res["per_tournament"]
+
+    base_brier = brier(baseline)
+    var_brier  = brier(variant_aligned)
+
+    print(f"\n--- Combined Brier ---")
+    print(f"  Baseline ({len(baseline)} matches): {base_brier:.4f}")
+    print(f"  Variant  ({len(variant_aligned)} matches): {var_brier:.4f}")
+
+    print("\n--- Paired per-match Brier delta ---")
+    print("  delta = baseline - variant ;  positive = variant improves, "
+          "negative = variant regresses")
+    print(f"  Mean paired delta: {mean_delta:+.4f}")
+    print(f"  Block-bootstrap 95% CI: [{ci_lo:+.4f}, {ci_hi:+.4f}]")
+
+    print("\n--- Per-tournament breakdown ---")
+    print(f"  {'tournament':<10} {'baseline':>9} {'variant':>9} "
+          f"{'delta':>9}  result")
+    base_ptb = per_tournament_brier(baseline)
+    var_ptb  = per_tournament_brier(variant_aligned)
+    n_improved = n_regressed = 0
+    for t in sorted(per_t.keys()):
+        d = per_t[t]
+        if d > 0:
+            result = "improved"; n_improved += 1
+        elif d < 0:
+            result = "regressed"; n_regressed += 1
+        else:
+            result = "unchanged"
+        print(f"  {t:<10} {base_ptb[t]:>9.4f} {var_ptb[t]:>9.4f} "
+              f"{d:>+9.4f}  {result}")
+
+    n_tournaments = len(per_t)
+    n_changed = sum(1 for d in per_t.values() if d != 0.0)
+
+    # ---- Apply the project gate ----
+    ci_clears = ci_lo > 0.0                       # CI entirely on improving side
+    no_reversal = all(d > 0 for d in per_t.values())
+    print("\n--- VERDICT ---")
+    print(f"  tournaments changed: {n_changed}/{n_tournaments}  "
+          f"(improved={n_improved}, regressed={n_regressed})")
+    if ci_clears and no_reversal:
+        print("  VERDICT: PASS  (95% CI entirely above zero AND every "
+              "tournament improved)")
+    else:
+        reasons = []
+        if not ci_clears:
+            reasons.append(f"95% CI [{ci_lo:+.4f}, {ci_hi:+.4f}] is not entirely "
+                           "above zero")
+        if not no_reversal:
+            reasons.append(f"{n_regressed} tournament(s) reversed sign "
+                           "(regressed or unchanged)")
+        print(f"  VERDICT: does not clear the gate  ({'; '.join(reasons)})")
+
+
 if __name__ == "__main__":
     if len(sys.argv) >= 3 and sys.argv[1] == "--score":
         score_export(sys.argv[2])
+    elif len(sys.argv) >= 4 and sys.argv[1] == "--paired":
+        run_paired(sys.argv[2], sys.argv[3])
     else:
         path = sys.argv[1] if len(sys.argv) > 1 else None
         main(path)
