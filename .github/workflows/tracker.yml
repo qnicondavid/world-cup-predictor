@@ -8,6 +8,12 @@ on:
 permissions:
   contents: write
 
+# Queue overlapping runs (cron + manual dispatch) instead of racing them.
+# cancel-in-progress: false lets the first run finish and pushes serialize.
+concurrency:
+  group: tracker
+  cancel-in-progress: false
+
 jobs:
   track:
     runs-on: ubuntu-latest
@@ -22,8 +28,51 @@ jobs:
 
       - name: Refresh match dataset
         run: |
-          curl -fsSL -o data/results.csv \
+          set -eu
+          curl -fsSL --retry 3 --max-time 120 -o data/results.csv.new \
             https://raw.githubusercontent.com/martj42/international_results/master/results.csv
+
+          new=data/results.csv.new
+          cur=data/results.csv
+
+          # (iii) new file must be non-trivial (guards against truncated/empty downloads)
+          new_size=$(wc -c < "$new")
+          if [ "$new_size" -lt 3000000 ]; then
+            echo "ERROR: downloaded file is only $new_size bytes (< 3MB); refusing to overwrite" >&2
+            rm -f "$new"
+            exit 1
+          fi
+
+          if [ -f "$cur" ]; then
+            # (i) header row must match the current file's header exactly
+            new_header=$(head -n 1 "$new")
+            cur_header=$(head -n 1 "$cur")
+            if [ "$new_header" != "$cur_header" ]; then
+              echo "ERROR: header changed" >&2
+              echo "  current: $cur_header" >&2
+              echo "  new:     $new_header" >&2
+              rm -f "$new"
+              exit 1
+            fi
+
+            # (ii) row count must be within ~2% of the current row count
+            new_rows=$(wc -l < "$new")
+            cur_rows=$(wc -l < "$cur")
+            # tolerance = 2% of current (integer, floored); require at least 1
+            tol=$(( cur_rows / 50 ))
+            if [ "$tol" -lt 1 ]; then tol=1; fi
+            diff=$(( new_rows - cur_rows ))
+            if [ "$diff" -lt 0 ]; then diff=$(( -diff )); fi
+            if [ "$diff" -gt "$tol" ]; then
+              echo "ERROR: row count $new_rows differs from current $cur_rows by more than 2% (tol=$tol)" >&2
+              rm -f "$new"
+              exit 1
+            fi
+          else
+            echo "No existing $cur (first run); accepting downloaded file after size check."
+          fi
+
+          mv "$new" "$cur"
 
       - name: Lock new predictions and score completed ones
         run: mvn -B -q compile exec:java -Dexec.args="--track"
@@ -50,4 +99,16 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/results.csv predictions/predictions.csv README.md docs/data/tracker.json docs/data/odds_history.json
           git diff --cached --quiet || git commit -m "Tracker: lock predictions / update results $(date -u +%F)"
-          git push
+          # Self-heal lost races: rebase onto latest, then push, retrying a few times.
+          n=0
+          until [ "$n" -ge 3 ]; do
+            git pull --rebase origin "${GITHUB_REF_NAME:-main}"
+            if git push origin HEAD; then
+              exit 0
+            fi
+            n=$(( n + 1 ))
+            echo "push failed (attempt $n); refetching and retrying..." >&2
+            sleep 3
+          done
+          echo "ERROR: git push failed after 3 attempts" >&2
+          exit 1
