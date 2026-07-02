@@ -478,6 +478,31 @@ def main(csv_path=None):
 # ---------------------------------------------------------------------------
 # 10. score_export  (bridge consumer for Java --verify-export CSV)
 # ---------------------------------------------------------------------------
+def expected_calibration_error(records, bins=10):
+    """Count-weighted gap between predicted probability and observed frequency,
+    pooling all three outcomes one-vs-rest into ``bins`` equal-width buckets.
+    Same definition as the Java Calibration.expectedCalibrationError, applied to
+    the final (form + draw-transfer) predictions in the export."""
+    sum_pred = [0.0] * bins
+    sum_hit = [0.0] * bins
+    count = [0] * bins
+    for r in records:
+        for i, p in enumerate(r["p"]):
+            b = min(bins - 1, int(p * bins))
+            sum_pred[b] += p
+            sum_hit[b] += 1.0 if i == r["y"] else 0.0
+            count[b] += 1
+    total = sum(count)
+    if total == 0:
+        return 0.0
+    ece = 0.0
+    for b in range(bins):
+        if count[b] == 0:
+            continue
+        ece += count[b] / total * abs(sum_pred[b] / count[b] - sum_hit[b] / count[b])
+    return ece
+
+
 def score_export(csv_path):
     """
     Load a CSV written by the Java --verify-export bridge and print Brier metrics.
@@ -527,6 +552,9 @@ def score_export(csv_path):
     print("\n--- Block-bootstrap 95% CI on combined Brier ---")
     pt, lo, hi = block_bootstrap(records, brier)
     print(f"  Point: {pt:.4f}  95% CI: [{lo:.4f}, {hi:.4f}]")
+
+    print("\n--- Expected calibration error (10 bins, one-vs-rest) ---")
+    print(f"  ECE: {expected_calibration_error(records, 10):.4f}")
 
 
 if __name__ == "__main__":

@@ -127,9 +127,9 @@
           (rest-day edges, dynamic ratings, lineup-weighted squad value) were tried and dropped. They
           stay documented in the repository, which is what lets the rest be trusted.</p>
         <div class="stats">
-          <div class="stat"><div class="num">57%</div><div class="lbl">pick accuracy on 5 held-out World Cups (2006 to 2022)</div></div>
+          <div class="stat"><div class="num">59%</div><div class="lbl">pick accuracy on 5 held-out World Cups (2006 to 2022)</div></div>
           <div class="stat"><div class="num">0.544</div><div class="lbl">multiclass Brier (uniform = 0.667)</div></div>
-          <div class="stat"><div class="num">0.06</div><div class="lbl">expected calibration error</div></div>
+          <div class="stat"><div class="num">0.026</div><div class="lbl">expected calibration error</div></div>
         </div>
       </section>
 
@@ -167,13 +167,13 @@
           tournament the model trains only on matches played before it, then predicts every match in
           it, the same information regime as predicting live.</p>
         <div class="wcgrid">
-          <div class="wccard"><div class="yr">2006</div><div class="acc">64%</div><div class="k">accuracy</div><div class="bri">0.453</div><div class="k">Brier</div></div>
-          <div class="wccard"><div class="yr">2010</div><div class="acc">55%</div><div class="k">accuracy</div><div class="bri">0.586</div><div class="k">Brier</div></div>
-          <div class="wccard"><div class="yr">2014</div><div class="acc">61%</div><div class="k">accuracy</div><div class="bri">0.550</div><div class="k">Brier</div></div>
-          <div class="wccard"><div class="yr">2018</div><div class="acc">58%</div><div class="k">accuracy</div><div class="bri">0.542</div><div class="k">Brier</div></div>
-          <div class="wccard"><div class="yr">2022</div><div class="acc">50%</div><div class="k">accuracy</div><div class="bri">0.589</div><div class="k">Brier</div></div>
+          <div class="wccard"><div class="yr">2006</div><div class="acc">69%</div><div class="k">accuracy</div><div class="bri">0.453</div><div class="k">Brier</div></div>
+          <div class="wccard"><div class="yr">2010</div><div class="acc">53%</div><div class="k">accuracy</div><div class="bri">0.586</div><div class="k">Brier</div></div>
+          <div class="wccard"><div class="yr">2014</div><div class="acc">59%</div><div class="k">accuracy</div><div class="bri">0.550</div><div class="k">Brier</div></div>
+          <div class="wccard"><div class="yr">2018</div><div class="acc">59%</div><div class="k">accuracy</div><div class="bri">0.542</div><div class="k">Brier</div></div>
+          <div class="wccard"><div class="yr">2022</div><div class="acc">56%</div><div class="k">accuracy</div><div class="bri">0.589</div><div class="k">Brier</div></div>
         </div>
-        <p class="wcsum">Combined across all 320 matches: <strong>57.5%</strong> accuracy, multiclass Brier <strong>0.544</strong> (uniform guess = 0.667), beating both the baseline and a coin flip. The scores climb from 2006 to 2022 because the field has genuinely tightened.</p>
+        <p class="wcsum">Combined across all 320 matches: <strong>59.4%</strong> accuracy, multiclass Brier <strong>0.544</strong> (uniform guess = 0.667), beating both the baseline and a coin flip. The model reads the earlier tournaments best; the tighter recent fields are harder.</p>
       </section>
 
       <section class="panel" id="closing">

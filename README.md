@@ -158,6 +158,12 @@ Before predicting 2026, the model is validated on five World Cups it never saw
 during training. For each tournament it trains only on matches played before it,
 then predicts every match in it, the same information regime as predicting live.
 
+The table below scores the **Elo win-probability engine** (its tuned configuration
+against the untuned baseline) with a two-outcome Brier that counts a draw as half a
+win. That is a coarser, different metric from the three-class **multiclass Brier**
+(around 0.54) reported for the production Dixon-Coles model elsewhere here: the two
+sit on scales roughly four times apart and are not directly comparable.
+
 | Tournament | Tuned model | Baseline |
 |---|---|---|
 | World Cup 2022 | 32/64 (50.0%), Brier 0.183 | 34/64 (53.1%), Brier 0.181 |
@@ -169,8 +175,8 @@ then predicts every match in it, the same information regime as predicting live.
 | Coin-flip reference | 50%, Brier 0.250 | n/a |
 
 The tuned model beats both the baseline and a coin flip across the combined 320
-matches. One pattern stands out: **World Cups are getting harder to predict.**
-Brier rises almost monotonically from 0.119 (2006) to 0.183 (2022); the field
+matches. One pattern stands out: **World Cups are getting harder to predict.** The
+binary Brier rises almost monotonically from 0.119 (2006) to 0.183 (2022); the field
 has genuinely tightened.
 
 ## How it works
