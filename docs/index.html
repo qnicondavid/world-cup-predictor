@@ -184,7 +184,8 @@ function render(d) {
     : `<p style="margin:0">No locked predictions have been resolved yet.</p>`;
 
   const rb = document.querySelector("#resolvedTable tbody");
-  (d.resolved || []).slice().reverse().forEach(m => {
+  const md = s => new Date(s + " 2026");  // "Jun 11" -> sortable date (tournament year)
+  (d.resolved || []).slice().sort((a, b) => md(b.date) - md(a.date)).forEach(m => {
     rb.insertAdjacentHTML("beforeend",
       `<tr><td>${esc(m.date)}</td><td>${esc(m.home)} v ${esc(m.away)}</td><td>${esc(m.pick)}</td>
        <td class="num">${hda(m)}</td><td>${esc(m.predScore)}</td><td>${esc(m.result)}</td>
