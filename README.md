@@ -359,8 +359,9 @@ combined Brier from 0.5717 to 0.5566, with the gain split between better
 calibration (reliability 0.0226 to 0.0136) and sharper separation (resolution
 0.0914 to 0.0957). Caveats kept in view: four of five tournaments improve while
 2010 is marginally worse, and the sparse-team lever still earns nothing. The
-shipped `market_values.csv` is a small **illustrative** sample; replace it with
-real data (see Data below).
+shipped `market_values.csv` is the real, full Transfermarkt-derived table (933
+rows, 182 teams), rebuildable byte-for-byte from the dumps in `data/transfermarkt/`
+via `research/build_market_values.py`.
 
 ### Recent form
 
@@ -499,7 +500,9 @@ API exists, so download where you have network access, not from CI):
 - [dcaribou/transfermarkt-datasets](https://github.com/dcaribou/transfermarkt-datasets):
   the best fit, a `player_valuations` table with dated market values plus
   national-team data, refreshed weekly. Aggregate player valuations to a squad
-  total per national team per date to build `market_values.csv`.
+  total per national team per date to build `market_values.csv`. That is exactly
+  what `research/build_market_values.py` does; the committed `data/market_values.csv`
+  is its output and rebuilds byte-for-byte.
 - [salimt/football-datasets](https://github.com/salimt/football-datasets) and the
   Kaggle mirror [davidcariboo/player-scores](https://www.kaggle.com/datasets/davidcariboo/player-scores)
   are alternatives.

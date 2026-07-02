@@ -25,9 +25,10 @@ THEN RUN (from the repo root):
 
     python research/build_market_values.py
 
-It writes data/market_values.csv, overwriting the illustrative sample. After
-that, `mvn compile exec:java "-Dexec.args=--values"` can actually compare the
-value-adjusted model against plain Dixon-Coles on the held-out World Cups.
+It writes data/market_values.csv. The committed file is exactly this output, so
+re-running reproduces it byte-for-byte. With it in place, `mvn compile exec:java
+"-Dexec.args=--values"` compares the value-adjusted model against plain
+Dixon-Coles on the held-out World Cups.
 
 HOW IT APPROXIMATES A SQUAD
 ---------------------------
