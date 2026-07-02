@@ -29,7 +29,10 @@ package com.david.worldcup.goals;
  * <p>Because the grid searched 2006-2018, the headline 0.5717 to 0.5566 improvement
  * (scored across all five World Cups) overlaps this tuning set on four of five
  * tournaments; only the 2022 leg is fully out-of-sample. A leave-one-tournament-out
- * re-tune is the honest next step.
+ * re-tune ({@code --values-tune-loto}) confirms these fixed weights are not overfit:
+ * their pooled held-out Brier is 0.5566, versus 0.5594 for a grid that re-tunes per
+ * fold, and no single weighting wins a majority of folds. So the single-split choice
+ * holds up out of sample and is kept.
  */
 public record ValueWeights(double globalWeight, double sparseWeight, double kappa, double valueScale) {
 

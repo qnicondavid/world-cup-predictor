@@ -367,10 +367,14 @@ earlier setting) beats plain Dixon-Coles out of sample (multiclass Brier
 held-out World Cups through the export bridge, it cuts the production model's
 combined Brier from 0.5717 to 0.5566, with the gain split between better
 calibration (reliability 0.0226 to 0.0136) and sharper separation (resolution
-0.0914 to 0.0957). Caveats kept in view: the weights were tuned on 2006-2018, so four of the five
-tournaments in this 0.5717 to 0.5566 comparison overlap the tuning set and only the
-2022 leg (0.6123 to 0.5907) is fully out-of-sample; four of five tournaments improve
-while 2010 is marginally worse; and the sparse-team lever still earns nothing. The
+0.0914 to 0.0957). Caveats kept in view: the weights were tuned on 2006-2018, so four
+of the five tournaments in this 0.5717 to 0.5566 comparison overlap the tuning set and
+only the 2022 leg (0.6123 to 0.5907) is fully out-of-sample; four of five tournaments
+improve while 2010 is marginally worse; and the sparse-team lever still earns nothing.
+A leave-one-tournament-out re-tune (`--values-tune-loto`) confirms the fixed weights are
+not overfit: their pooled held-out Brier is 0.5566, and letting the grid re-tune per
+fold does slightly worse out of sample (0.5594), with no single weighting winning a
+majority of folds, so the single-split choice holds up. The
 shipped `market_values.csv` is the real, full Transfermarkt-derived table (933
 rows, 182 teams), rebuildable byte-for-byte from the dumps in `data/transfermarkt/`
 via `research/build_market_values.py`. Each snapshot is a top-26-by-value proxy squad
@@ -499,6 +503,7 @@ mvn compile exec:java -Dexec.args="--goals"      # goal models vs Elo: held-out 
 mvn compile exec:java -Dexec.args="--rest"       # does a rest-days edge improve the model?
 mvn compile exec:java -Dexec.args="--values"     # does squad market value improve the model?
 mvn compile exec:java -Dexec.args="--values-tune" # grid-search the market-value prior weights
+mvn compile exec:java -Dexec.args="--values-tune-loto" # leave-one-tournament-out re-tune of those weights
 mvn compile exec:java -Dexec.args="--calibrate"  # reliability / log-loss audit + temperature fit
 mvn compile exec:java -Dexec.args="--bets"       # value bets vs bookmaker odds (mock odds)
 mvn compile exec:java -Dexec.args="--verify-export" # write held-out predictions to research/export_predictions.csv

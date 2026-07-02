@@ -61,6 +61,14 @@ import java.io.FileWriter;
  *       pipeline with fixed match-importance tier weights (friendlies 0.5, World Cup finals
  *       1.25; a-priori, not tuned) and write {@code research/export_predictions_importance.csv}
  *       for a paired-Brier gate against the {@code --verify-export} baseline</li>
+ *   <li>{@code -Dexec.args="--values-tune-loto"} — finding "A3c": leave-one-tournament-out
+ *       re-tune of {@link ValueWeights}. The current {@code DEFAULT} came from a single
+ *       train-2006/18, validate-2022 split; this cross-validates the tuning procedure by
+ *       picking the best grid candidate on the other four World Cups per fold and scoring it
+ *       on the held-out one, then pooling. Prints per-fold winners, the pooled honest LOTO
+ *       Brier of the tuning procedure, {@code DEFAULT}'s pooled held-out Brier for comparison,
+ *       the modal winner, and a plain-English adopt/keep recommendation. Read-only: does not
+ *       change {@code DEFAULT} (a human makes that call after seeing the output)</li>
  * </ul>
  */
 public final class Main {
@@ -102,6 +110,8 @@ public final class Main {
             runImportanceExport(matches);
         } else if (arguments.contains("--values-tune")) {
             runValuesTune(matches);
+        } else if (arguments.contains("--values-tune-loto")) {
+            runValuesTuneLoto(matches);
         } else if (arguments.contains("--values")) {
             runValues(matches);
         } else if (arguments.stream().anyMatch(a -> a.startsWith("--predict="))) {
@@ -359,6 +369,200 @@ public final class Main {
             System.out.println("Verdict: even tuned, the value prior does not beat plain Dixon-Coles "
                     + "out of sample. Treat as a negative finding.");
         }
+    }
+
+    /**
+     * Finding "A3c": leave-one-tournament-out re-tune of {@link ValueWeights}.
+     *
+     * <p>{@code ValueWeights.DEFAULT} was chosen by a single split ({@code --values-tune}
+     * grid-searches 2006-2018, validates once on 2022). The project's gate demands LOTO for
+     * tunables, so here we cross-validate the whole tuning procedure: for each held-out World
+     * Cup we pick the grid winner on the other four, score it on the held-out one, and pool
+     * match-weighted across the five folds. That pooled number is the honest out-of-sample
+     * Brier of "run the value-weight grid search". We also break out the current {@code DEFAULT}
+     * the same way for comparison, and recommend adopting a new default only if a single
+     * weighting wins a majority of folds and its pooled held-out Brier beats {@code DEFAULT}.
+     *
+     * <p>Read-only w.r.t. models: reuses {@link ValueTuner#prepareAll}, {@link ValueTuner#score}
+     * and {@link ValueTuner#defaultGrid} unchanged and does not touch {@code DEFAULT}.
+     */
+    private static void runValuesTuneLoto(List<Match> matches) throws IOException {
+        MarketValueTable values = MarketValueTable.load(Path.of("data/market_values.csv"));
+        System.out.println("=== A3c: leave-one-tournament-out re-tune of the market-value prior ===");
+        if (values.isEmpty()) {
+            System.out.println("No data/market_values.csv found — see the README for how to build it.");
+            return;
+        }
+
+        // Default (1.0/1.0) tier weights: this is the value-weight tune, independent of the A1
+        // importance weights. Fit the five World Cup windows once; scoring many weightings is cheap.
+        ValueTuner tuner = new ValueTuner(12, values);
+        List<ValueTuner.Prepared> prepared = tuner.prepareAll(matches, Backtest.WORLD_CUPS);
+        List<ValueWeights> grid = ValueTuner.defaultGrid();
+        int folds = Backtest.WORLD_CUPS.size();
+
+        // Per-fold held-out results for the tuning procedure (winner picked on the other four).
+        List<ValueTuner.Scored> foldWinnerHeldOut = new ArrayList<>();
+        List<ValueWeights> foldWinnerWeights = new ArrayList<>();
+        // Per-fold held-out results for the current DEFAULT.
+        List<ValueTuner.Scored> defaultHeldOut = new ArrayList<>();
+
+        for (int h = 0; h < folds; h++) {
+            List<ValueTuner.Prepared> tuning = new ArrayList<>();
+            for (int i = 0; i < folds; i++) {
+                if (i != h) {
+                    tuning.add(prepared.get(i));
+                }
+            }
+            // Pick the grid winner on the four tuning folds; deterministic, lowest index on ties.
+            ValueTuner.Scored best = null;
+            for (ValueWeights w : grid) {
+                ValueTuner.Scored s = tuner.score(tuning, w);
+                if (best == null || s.brier() < best.brier()) {
+                    best = s;
+                }
+            }
+            ValueWeights winner = best.weights();
+            foldWinnerWeights.add(winner);
+            List<ValueTuner.Prepared> held = List.of(prepared.get(h));
+            foldWinnerHeldOut.add(tuner.score(held, winner));
+            defaultHeldOut.add(tuner.score(held, ValueWeights.DEFAULT));
+        }
+
+        // Per-fold table for the tuning procedure's winners.
+        System.out.println();
+        System.out.println("Per-fold tuning winners (winner tuned on the other four World Cups):");
+        System.out.printf(Locale.ROOT, "  %-16s | %-30s | %-11s | %s%n",
+                "Held-out fold", "winning weights", "held Brier", "held accuracy");
+        for (int h = 0; h < folds; h++) {
+            ValueWeights w = foldWinnerWeights.get(h);
+            ValueTuner.Scored s = foldWinnerHeldOut.get(h);
+            System.out.printf(Locale.ROOT,
+                    "  %-16s | global %.2f sparse %.2f scale %.2f | %-11.4f | %d/%d (%.1f%%)%n",
+                    Backtest.WORLD_CUPS.get(h).label(),
+                    w.globalWeight(), w.sparseWeight(), w.valueScale(),
+                    s.brier(), s.correct(), s.evaluated(),
+                    s.evaluated() == 0 ? 0.0 : 100.0 * s.correct() / s.evaluated());
+        }
+
+        // Pooled (match-weighted) held-out numbers for the tuning procedure.
+        double procBrierSum = 0.0;
+        int procEval = 0;
+        int procCorrect = 0;
+        for (ValueTuner.Scored s : foldWinnerHeldOut) {
+            procBrierSum += s.brier() * s.evaluated();
+            procEval += s.evaluated();
+            procCorrect += s.correct();
+        }
+        double procBrier = procEval == 0 ? 0.0 : procBrierSum / procEval;
+        double procAcc = procEval == 0 ? 0.0 : 100.0 * procCorrect / procEval;
+
+        System.out.println();
+        System.out.printf(Locale.ROOT,
+                "POOLED held-out (honest LOTO-CV of the tuning procedure): Brier %.4f, %d/%d correct (%.1f%%)%n",
+                procBrier, procCorrect, procEval, procAcc);
+
+        // Current DEFAULT, per fold + pooled, for comparison.
+        System.out.println();
+        System.out.printf(Locale.ROOT, "Current DEFAULT = (global %.2f, sparse %.2f, kappa %.2f, scale %.2f) held out per fold:%n",
+                ValueWeights.DEFAULT.globalWeight(), ValueWeights.DEFAULT.sparseWeight(),
+                ValueWeights.DEFAULT.kappa(), ValueWeights.DEFAULT.valueScale());
+        double defBrierSum = 0.0;
+        int defEval = 0;
+        int defCorrect = 0;
+        for (int h = 0; h < folds; h++) {
+            ValueTuner.Scored s = defaultHeldOut.get(h);
+            System.out.printf(Locale.ROOT, "  %-16s | Brier %.4f | %d/%d (%.1f%%)%n",
+                    Backtest.WORLD_CUPS.get(h).label(), s.brier(), s.correct(), s.evaluated(),
+                    s.evaluated() == 0 ? 0.0 : 100.0 * s.correct() / s.evaluated());
+            defBrierSum += s.brier() * s.evaluated();
+            defEval += s.evaluated();
+            defCorrect += s.correct();
+        }
+        double defBrier = defEval == 0 ? 0.0 : defBrierSum / defEval;
+        double defAcc = defEval == 0 ? 0.0 : 100.0 * defCorrect / defEval;
+        System.out.printf(Locale.ROOT,
+                "POOLED held-out DEFAULT: Brier %.4f, %d/%d correct (%.1f%%)%n",
+                defBrier, defCorrect, defEval, defAcc);
+
+        // Modal winner: the single weighting that won the most folds (deterministic).
+        List<ValueWeights> distinct = new ArrayList<>();
+        List<Integer> distinctCount = new ArrayList<>();
+        for (ValueWeights w : foldWinnerWeights) {
+            int idx = -1;
+            for (int i = 0; i < distinct.size(); i++) {
+                if (valueWeightsEqual(distinct.get(i), w)) {
+                    idx = i;
+                    break;
+                }
+            }
+            if (idx < 0) {
+                distinct.add(w);
+                distinctCount.add(1);
+            } else {
+                distinctCount.set(idx, distinctCount.get(idx) + 1);
+            }
+        }
+        int modalIdx = 0;
+        for (int i = 1; i < distinct.size(); i++) {
+            if (distinctCount.get(i) > distinctCount.get(modalIdx)) {
+                modalIdx = i;
+            }
+        }
+        ValueWeights modal = distinct.get(modalIdx);
+        int modalCount = distinctCount.get(modalIdx);
+        System.out.println();
+        System.out.printf(Locale.ROOT,
+                "Modal winner: global %.2f sparse %.2f kappa %.2f scale %.2f won %d/%d folds.%n",
+                modal.globalWeight(), modal.sparseWeight(), modal.kappa(), modal.valueScale(),
+                modalCount, folds);
+
+        // Recommendation: adopt only if a single weighting wins a majority of folds AND its
+        // pooled held-out Brier is no worse than DEFAULT's. Compute the modal winner's own pooled
+        // held-out Brier (over every fold, so it is comparable to DEFAULT's pooled number).
+        double modalBrierSum = 0.0;
+        int modalEval = 0;
+        int modalCorrect = 0;
+        for (int h = 0; h < folds; h++) {
+            ValueTuner.Scored s = tuner.score(List.of(prepared.get(h)), modal);
+            modalBrierSum += s.brier() * s.evaluated();
+            modalEval += s.evaluated();
+            modalCorrect += s.correct();
+        }
+        double modalBrier = modalEval == 0 ? 0.0 : modalBrierSum / modalEval;
+
+        System.out.println();
+        boolean majority = modalCount >= 3;
+        boolean beatsDefault = modalBrier <= defBrier;
+        if (majority && beatsDefault) {
+            System.out.printf(Locale.ROOT,
+                    "RECOMMENDATION: ADOPT. The modal weighting wins %d/5 folds and its pooled held-out "
+                            + "Brier %.4f <= DEFAULT's %.4f. Set:%n", modalCount, modalBrier, defBrier);
+            System.out.printf(Locale.ROOT,
+                    "  new ValueWeights(%.2f, %.2f, %.1f, %.2f)%n",
+                    modal.globalWeight(), modal.sparseWeight(), modal.kappa(), modal.valueScale());
+        } else {
+            System.out.print("RECOMMENDATION: KEEP DEFAULT. ");
+            if (!majority) {
+                System.out.printf(Locale.ROOT,
+                        "No single weighting wins a majority (modal only %d/5). ", modalCount);
+            } else {
+                System.out.printf(Locale.ROOT,
+                        "Modal weighting's pooled held-out Brier %.4f does not beat DEFAULT's %.4f. ",
+                        modalBrier, defBrier);
+            }
+            System.out.printf(Locale.ROOT,
+                    "Honest LOTO-CV Brier of the tuning procedure is %.4f (vs DEFAULT %.4f).%n",
+                    procBrier, defBrier);
+        }
+    }
+
+    /** Exact-field equality for {@link ValueWeights} (a record; grid values are shared literals). */
+    private static boolean valueWeightsEqual(ValueWeights a, ValueWeights b) {
+        return a.globalWeight() == b.globalWeight()
+                && a.sparseWeight() == b.sparseWeight()
+                && a.kappa() == b.kappa()
+                && a.valueScale() == b.valueScale();
     }
 
     private static void runValues(List<Match> matches) throws IOException {
