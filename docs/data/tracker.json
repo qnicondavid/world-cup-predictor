@@ -100,21 +100,21 @@
     {"date": "Jul 6", "home": "United States", "away": "Belgium", "pick": "Belgium", "pHome": 0.3005, "pDraw": 0.2057, "pAway": 0.4938, "predScore": "1-1"}
   ],
   "titleOdds": [
-    {"team": "Argentina", "title": 20.2200, "final": 28.4100, "semis": 0.0000},
-    {"team": "France", "title": 15.9500, "final": 23.0200, "semis": 0.0000},
-    {"team": "Spain", "title": 15.9300, "final": 23.4800, "semis": 0.0000},
-    {"team": "Brazil", "title": 11.2400, "final": 24.8000, "semis": 0.0000},
-    {"team": "England", "title": 8.5200, "final": 20.0900, "semis": 0.0000},
-    {"team": "Belgium", "title": 7.7300, "final": 25.1500, "semis": 0.0000},
-    {"team": "Mexico", "title": 4.1200, "final": 11.4100, "semis": 0.0000},
-    {"team": "Colombia", "title": 3.8000, "final": 7.1400, "semis": 0.0000},
-    {"team": "Portugal", "title": 2.8900, "final": 5.6200, "semis": 0.0000},
-    {"team": "Norway", "title": 2.4300, "final": 7.5900, "semis": 0.0000},
-    {"team": "United States", "title": 2.2100, "final": 10.9600, "semis": 0.0000},
-    {"team": "Morocco", "title": 1.8400, "final": 3.7100, "semis": 0.0000},
-    {"team": "Switzerland", "title": 1.4200, "final": 3.5200, "semis": 0.0000},
-    {"team": "Croatia", "title": 0.7300, "final": 1.5300, "semis": 0.0000},
-    {"team": "Algeria", "title": 0.3000, "final": 0.9900, "semis": 0.0000},
-    {"team": "Austria", "title": 0.2300, "final": 0.6500, "semis": 0.0000}
+    {"team": "France", "title": 22.8100, "final": 39.2700, "semis": 55.8500},
+    {"team": "Argentina", "title": 22.7600, "final": 35.9600, "semis": 52.1600},
+    {"team": "Spain", "title": 14.4000, "final": 25.6000, "semis": 45.7600},
+    {"team": "Brazil", "title": 8.5500, "final": 17.7000, "semis": 29.3500},
+    {"team": "England", "title": 7.6300, "final": 17.2700, "semis": 38.1000},
+    {"team": "Colombia", "title": 4.3400, "final": 9.7300, "semis": 19.3500},
+    {"team": "Morocco", "title": 4.2300, "final": 10.1500, "semis": 22.4500},
+    {"team": "Mexico", "title": 3.8900, "final": 9.4900, "semis": 25.4800},
+    {"team": "Belgium", "title": 2.8500, "final": 7.9700, "semis": 24.7800},
+    {"team": "Portugal", "title": 2.6600, "final": 6.5300, "semis": 16.2200},
+    {"team": "Norway", "title": 1.5600, "final": 4.6300, "semis": 10.8400},
+    {"team": "Switzerland", "title": 1.4400, "final": 4.2400, "semis": 13.7800},
+    {"team": "Croatia", "title": 0.6100, "final": 2.0300, "semis": 6.3200},
+    {"team": "United States", "title": 0.6000, "final": 2.6000, "semis": 11.6400},
+    {"team": "Canada", "title": 0.3900, "final": 1.7100, "semis": 5.8100},
+    {"team": "Australia", "title": 0.3700, "final": 1.5000, "semis": 6.3700}
   ]
 }
