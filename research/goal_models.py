@@ -120,6 +120,9 @@ class EloPoisson:
         s=((rh+(0 if neutral else self.home_adv))-ra)/100.0
         return wdl_independent(math.exp(self.c0+self.c1*s), math.exp(self.c0-self.c2*s))
 
+# DUPLICATED literal — must stay identical to DrawModel.DRAW_RATE_BY_GAP
+# (src/main/java/.../elo/DrawModel.java). Regenerate/verify both from data with
+# the Java CLI: `mvn compile exec:java -Dexec.args="--draw-curve"`.
 DRAW_RATE=[0.299,0.289,0.270,0.252,0.243,0.200,0.181,0.150,0.125,0.102,0.076,0.041,0.022]
 def draw_prob(gap):
     g=abs(gap); m=(len(DRAW_RATE)-1)*50.0
@@ -167,12 +170,16 @@ def synthetic_test():
 
 def real_test(path):
     data=load(path); print(f"loaded {len(data):,} matches {data[0].date} .. {data[-1].date}")
-    WC={f"WC{y}":(y*372+5*31+20, y*372+7*31+20) for y in (2006,2010,2014,2018,2022)}
+    # Windows MUST match research/verify.py::WINDOWS and elo/Backtest.WORLD_CUPS exactly:
+    # Jun1-Jul31 for every tournament, Nov1-Dec31 for the winter 2022 World Cup. (finding L6)
+    def _win(y):
+        return (y*372+11*31+1, y*372+12*31+31) if y==2022 else (y*372+6*31+1, y*372+7*31+31)
+    WC={f"WC{y}":_win(y) for y in (2006,2010,2014,2018,2022)}
     def run(fac):
         H=N=0; bn=0.0
         for label,(s,e) in WC.items():
             train=[m for m in data if m.date<s and m.date>=s-12*372]
-            test=[m for m in data if s<=m.date<e and m.tournament.lower()=="fifa world cup"]
+            test=[m for m in data if s<=m.date<=e and m.tournament.lower()=="fifa world cup"]
             if not test: continue
             mdl=fac()
             mdl.fit(train, asof=s) if isinstance(mdl,DixonColes) else mdl.fit(train)
