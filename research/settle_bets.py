@@ -21,18 +21,15 @@ ledger has a near-closing snapshot to measure CLV against).
 """
 import csv
 import os
-import unicodedata
+import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _DATA = os.path.join(_HERE, "..", "data")
 
-ALIASES = {"korea republic": "South Korea", "usa": "United States",
-           "ir iran": "Iran", "cote d'ivoire": "Ivory Coast", "turkiye": "Turkey"}
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
 
-
-def canon(team):
-    t = unicodedata.normalize("NFKD", team).encode("ascii", "ignore").decode().strip()
-    return ALIASES.get(t.lower(), t)
+from aliases import ALIASES, canon  # single source of truth for team-name canonicalization
 
 
 def load_results():

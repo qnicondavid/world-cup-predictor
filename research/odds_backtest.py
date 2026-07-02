@@ -19,29 +19,21 @@ probabilities, and reports:
   * model multiclass Brier vs the market (de-vigged closing-line) Brier on the
     SAME matches - the board's actual question: are we sharper than the price?
   * value bets the policy would flag (5% edge floor, quarter-Kelly) and their ROI
-  * mean closing-line value (model prob minus market prob on the bet side)
+  * mean model-vs-market edge on the flagged bets (model prob minus market prob;
+    positive by selection, NOT closing-line value - real CLV is in settle_bets.py)
 """
 import csv
 import math
 import os
-import unicodedata
+import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _DATA = os.path.join(_HERE, "..", "data")
 
-# odds-source team name -> data/results.csv name (extend as the report flags gaps)
-ALIASES = {
-    "korea republic": "South Korea", "south korea": "South Korea",
-    "ir iran": "Iran", "iran": "Iran",
-    "usa": "United States", "united states of america": "United States",
-    "cote d'ivoire": "Ivory Coast", "ivory coast": "Ivory Coast",
-    "czechia": "Czech Republic", "turkiye": "Turkey",
-}
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
 
-
-def canon(team):
-    t = unicodedata.normalize("NFKD", team).encode("ascii", "ignore").decode().lower().strip()
-    return ALIASES.get(t, team.strip())
+from aliases import ALIASES, canon  # single source of truth for team-name canonicalization
 
 
 def devig(o_home, o_draw, o_away):
@@ -147,7 +139,7 @@ def main():
     print("  (model sharper than the price only if diff is clearly negative)")
 
     # value bets: stake quarter-Kelly when model EV over an outcome clears the floor
-    bankroll_units, staked, pnl, clv = 0.0, 0.0, 0.0, []
+    bankroll_units, staked, pnl, sel_edge = 0.0, 0.0, 0.0, []
     bets = 0
     for _, model, market, o, y in joined:
         for i in range(3):
@@ -159,10 +151,15 @@ def main():
             bets += 1
             staked += stake
             pnl += stake * (o[i] - 1.0) if y == i else -stake
-            clv.append(model[i] - market[i])
+            # model-minus-market probability on a bet already selected for edge:
+            # positive by construction (selection bias), NOT closing-line value.
+            # Real CLV (entry price vs the closing best) is graded in settle_bets.py.
+            sel_edge.append(model[i] - market[i])
     roi = (pnl / staked * 100) if staked else 0.0
     print(f"value bets flagged: {bets}   ROI {roi:+.1f}% of staked   "
-          f"mean CLV {sum(clv)/len(clv):+.4f}" if clv else f"value bets flagged: {bets}")
+          f"mean model-vs-market edge {sum(sel_edge)/len(sel_edge):+.4f} "
+          f"(flagged bets; positive by selection, not CLV - real CLV in settle_bets.py)"
+          if sel_edge else f"value bets flagged: {bets}")
 
 
 if __name__ == "__main__":

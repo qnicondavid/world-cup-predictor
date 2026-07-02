@@ -20,24 +20,15 @@ import ast
 import csv
 import os
 import sys
-import unicodedata
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.join(_HERE, "..")
 _DATA = os.path.join(_ROOT, "data")
 
-ALIASES = {  # odds-source name -> data/results.csv name; extend as the report flags
-    "korea republic": "South Korea", "south korea": "South Korea",
-    "ir iran": "Iran", "usa": "United States",
-    "united states of america": "United States", "cote d'ivoire": "Ivory Coast",
-    "czechia": "Czech Republic", "turkiye": "Turkey",
-    "bosnia & herzegovina": "Bosnia and Herzegovina",
-}
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
 
-
-def canon(team):
-    t = unicodedata.normalize("NFKD", team).encode("ascii", "ignore").decode().strip()
-    return ALIASES.get(t.lower(), t)
+from aliases import ALIASES, canon  # single source of truth for team-name canonicalization
 
 
 def pick(cols, *, want, avoid=()):

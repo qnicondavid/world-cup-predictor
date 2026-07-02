@@ -29,23 +29,23 @@ import json
 import os
 import sys
 import time
-import unicodedata
 import urllib.parse
 import urllib.request
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.join(_HERE, "..")
+
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
+
+from aliases import ALIASES, canon  # single source of truth for team-name canonicalization
+
 BASE = "https://api.the-odds-api.com/v4"
 EDGE_FLOOR, KELLY, STAKE_CAP = 0.05, 0.25, 0.05
 # A genuine edge shows up across books, not in one stray line. Skip an outcome
 # when the best price is an outlier vs the cross-book average - that is an
 # illiquid/erroneous line, and "value" against it is noise, not signal.
 OUTLIER_MULT = 1.5
-
-ALIASES = {  # The Odds API name -> predictions.csv name; extend as needed
-    "korea republic": "South Korea", "usa": "United States",
-    "ir iran": "Iran", "cote d'ivoire": "Ivory Coast", "turkiye": "Turkey",
-}
 
 
 def read_key():
@@ -67,11 +67,6 @@ def api_get(path, key, **params):
         remaining = r.headers.get("x-requests-remaining")
         data = json.load(r)
     return data, remaining
-
-
-def canon(team):
-    t = unicodedata.normalize("NFKD", team).encode("ascii", "ignore").decode().strip()
-    return ALIASES.get(t.lower(), t)
 
 
 def list_soccer(key):
