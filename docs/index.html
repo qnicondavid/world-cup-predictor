@@ -91,7 +91,7 @@
     <h1 id="top">World Cup Predictor</h1>
     <p class="updated">Data updated <span id="updated">…</span> · Built with Java 17. Updated daily by a GitHub Action that re-fits the model, locks new
       predictions, and re-runs 10,000 tournament simulations. Methodology and full backtests in the
-      <a id="repo" href="https://github.com/qnicondavid/World-Cup-Predictor">repository</a>.</p>
+      <a id="repo" href="https://github.com/qnicondavid/world-cup-predictor">repository</a>.</p>
   </div>
 
   <div class="chrome">
@@ -116,7 +116,7 @@
           it builds a full scoreline distribution, then reads off win/draw/loss probabilities and the
           modal score. Two calibration steps follow: a recent-form nudge, and a draw transfer that
           shifts surplus draw probability onto the favoured side, both checked out of sample.</p>
-        <p>The model trains on 49,495 international matches stretching back to the first official fixture
+        <p>The model trains on 49,000+ international matches stretching back to the first official fixture
           in 1872, a dataset maintained by
           <a href="https://github.com/martj42/international_results">martj42</a> and refreshed daily.
           Squad strength comes from
@@ -141,6 +141,7 @@
       <section class="panel" id="traj">
         <h2>Title odds over time</h2>
         <canvas id="trajChart" aria-label="Title odds over time line chart"></canvas>
+        <p id="trajEmpty" class="tagline" hidden>No title-odds history yet. It builds up as the daily tracker run records each day's simulation.</p>
       </section>
 
       <section class="panel" id="record">
@@ -204,7 +205,7 @@
 <script>
 const pct = x => (x * 100).toFixed(0) + "%";
 const hda = r => `${pct(r.pHome)}/${pct(r.pDraw)}/${pct(r.pAway)}`;
-const esc = s => String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 fetch("data/tracker.json", { cache: "no-store" })
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
@@ -226,7 +227,8 @@ function render(d) {
     : `<p style="margin:0">No locked predictions have been resolved yet.</p>`;
 
   const rb = document.querySelector("#resolvedTable tbody");
-  const md = s => new Date(s + " 2026");  // "Jun 11" -> sortable date (tournament year)
+  // "Jun 11" -> sortable month*100+day key; no Date parsing, no hard-coded year
+  const md = s => { const p = String(s).split(" "); return (MON.indexOf(p[0]) + 1) * 100 + (+p[1] || 0); };
   (d.resolved || []).slice().sort((a, b) => md(b.date) - md(a.date)).forEach(m => {
     rb.insertAdjacentHTML("beforeend",
       `<tr><td>${esc(m.date)}</td><td>${esc(m.home)} v ${esc(m.away)}</td><td>${esc(m.pick)}</td>
@@ -260,10 +262,17 @@ const PALETTE = ["#4f9cff","#2ecc71","#e74c3c","#f1c40f","#9b59b6","#1abc9c","#e
 fetch("data/odds_history.json", { cache: "no-store" })
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(renderTrajectory)
-  .catch(() => { /* no history yet — leave the section empty */ });
+  .catch(showTrajEmpty);
+
+function showTrajEmpty() {
+  const el = document.getElementById("trajEmpty");
+  const cv = document.getElementById("trajChart");
+  if (el) el.hidden = false;
+  if (cv) cv.style.display = "none";
+}
 
 function renderTrajectory(series) {
-  if (!Array.isArray(series) || series.length === 0) return;
+  if (!Array.isArray(series) || series.length === 0) { showTrajEmpty(); return; }
   const labels = series.map(s => fmtDay(s.date));
   const latest = series[series.length - 1].odds || {};
   const teams = Object.keys(latest).sort((a, b) => latest[b] - latest[a]).slice(0, 6);
@@ -300,21 +309,33 @@ document.querySelectorAll("#side a").forEach(a => {
   navLinks[key] = a;
 });
 const panels = [...document.querySelectorAll(".panel")];
+// keep the reserved header space in sync with the fixed topbar's real height,
+// so a taller wrapped header at mid widths can't overlap the nav or first panel
+function measureTopbar() {
+  const tb = document.querySelector(".topbar");
+  if (tb && getComputedStyle(tb).position === "fixed") {
+    document.documentElement.style.setProperty("--topbar", tb.offsetHeight + "px");
+  }
+}
 function syncNav() {
-  const line = 150;  // a panel becomes current once its top scrolls above this (just below the fixed header)
+  const tbh = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--topbar")) || 128;
+  const line = tbh + 22;  // a panel becomes current once its top scrolls just below the fixed header
   let current = panels.length ? panels[0].id : null;
   for (const p of panels) {
     if (p.getBoundingClientRect().top <= line) current = p.id;
   }
-  // near the bottom the last (short) panel can't reach the line, so force it
-  if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) {
+  // near the bottom the last (short) panel can't reach the line, so force it — but only when the page can actually scroll
+  const doc = document.documentElement;
+  if (doc.scrollHeight > window.innerHeight + 4 && window.scrollY + window.innerHeight >= doc.scrollHeight - 2) {
     current = panels[panels.length - 1].id;
   }
   Object.values(navLinks).forEach(a => a.classList.remove("on"));
   if (current && navLinks[current]) navLinks[current].classList.add("on");
 }
 window.addEventListener("scroll", syncNav, { passive: true });
-window.addEventListener("resize", syncNav);
+window.addEventListener("resize", () => { measureTopbar(); syncNav(); });
+window.addEventListener("load", () => { measureTopbar(); syncNav(); });
+measureTopbar();
 syncNav();
 </script>
 </body>
