@@ -25,6 +25,11 @@ package com.david.worldcup.goals;
  * {@code sparseWeight = 0}: at World Cup level no team is data-starved, so the
  * sparse-team prior does nothing and it is the uniform {@code globalWeight}
  * blend that helps.
+ *
+ * <p>Because the grid searched 2006-2018, the headline 0.5717 to 0.5566 improvement
+ * (scored across all five World Cups) overlaps this tuning set on four of five
+ * tournaments; only the 2022 leg is fully out-of-sample. A leave-one-tournament-out
+ * re-tune is the honest next step.
  */
 public record ValueWeights(double globalWeight, double sparseWeight, double kappa, double valueScale) {
 

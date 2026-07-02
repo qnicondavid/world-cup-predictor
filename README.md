@@ -357,8 +357,10 @@ earlier setting) beats plain Dixon-Coles out of sample (multiclass Brier
 held-out World Cups through the export bridge, it cuts the production model's
 combined Brier from 0.5717 to 0.5566, with the gain split between better
 calibration (reliability 0.0226 to 0.0136) and sharper separation (resolution
-0.0914 to 0.0957). Caveats kept in view: four of five tournaments improve while
-2010 is marginally worse, and the sparse-team lever still earns nothing. The
+0.0914 to 0.0957). Caveats kept in view: the weights were tuned on 2006-2018, so four of the five
+tournaments in this 0.5717 to 0.5566 comparison overlap the tuning set and only the
+2022 leg (0.6123 to 0.5907) is fully out-of-sample; four of five tournaments improve
+while 2010 is marginally worse; and the sparse-team lever still earns nothing. The
 shipped `market_values.csv` is the real, full Transfermarkt-derived table (933
 rows, 182 teams), rebuildable byte-for-byte from the dumps in `data/transfermarkt/`
 via `research/build_market_values.py`. Each snapshot is a top-26-by-value proxy squad
@@ -374,8 +376,10 @@ defensive form, the mean goals conceded over its last 5 matches before kickoff
 model's held-out predictions through the export bridge, a conservative
 coefficient cuts the combined Brier from 0.5566 to 0.5506, with the gain almost
 entirely in resolution (sharper separation, the component the model was losing
-to) and improving in all five tournaments. It is shipped and wired into the live
-tracker, so daily predictions carry it. One caveat: the nudge moves the
+to) and improving in all five tournaments. The coefficient (0.20) was set by judgment
+inside a hand-checked range rather than a committed leave-one-tournament-out sweep, so
+unlike the draw-transfer below it is measured but not formally gated. It is shipped and
+wired into the live tracker, so daily predictions carry it. One caveat: the nudge moves the
 probabilities, not the expected goals, so the most-likely-score column still
 comes from the raw model.
 

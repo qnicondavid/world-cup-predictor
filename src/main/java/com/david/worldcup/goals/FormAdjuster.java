@@ -27,7 +27,9 @@ import java.util.Map;
  * probability is left untouched and the three outcomes are renormalised. The
  * feature uses only matches strictly before the prediction date, so it is
  * leakage-safe. {@link #LAMBDA} is a deliberately conservative coefficient
- * (interior to the tested range, not the data-greedy edge).
+ * (interior to the tested range, not the data-greedy edge). It was set by judgment
+ * within that hand-checked range, not by a committed leave-one-tournament-out sweep,
+ * so unlike the draw-transfer calibration it is measured but not gate-selected.
  */
 public final class FormAdjuster {
 
