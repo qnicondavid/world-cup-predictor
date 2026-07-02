@@ -418,22 +418,20 @@ fractional Kelly, on a conservative default policy (a 5% edge floor, quarter-Kel
 capped at 5% of bankroll) because the calibration wobbles between tournaments.
 
 The hard part was getting real closing odds to test against, which international
-football mostly lacks. Two sources filled the gap: an OddsPortal aggregate for the
-2006, 2010 and 2014 World Cups, and a scrape of 2018 and 2022. The model's held-out
-predictions were then scored against the de-vigged closing line on the same
-matches, which is the only fair comparison. Across 272 matches:
+football mostly lacks. A scrape of the 2018 and 2022 World Cups filled the gap. The
+model's held-out predictions were then scored against the de-vigged closing line on
+the same matches, which is the only fair comparison. Across 99 matches:
 
 | World Cups | Matches | Model Brier | Market Brier | Difference |
 |---|---|---|---|---|
-| 2006, 2010, 2014 | 173 | 0.5291 | 0.5363 | -0.0072 |
 | 2018, 2022 | 99 | 0.5643 | 0.5684 | -0.0042 |
 
-The model edges the line on both sets, but each margin sits inside one standard
-error and the block-bootstrap intervals over the tournaments span zero. The honest
-read is parity: after the draw-transfer calibration the model is level with the
-sharpest line available, leaning very slightly favourable, without a gap wide
-enough to call an edge. For a model built on public data, reaching the closing
-line is already near the ceiling.
+The model edges the line by a hair, but the margin sits inside one standard error
+and the block-bootstrap interval over the tournaments spans zero. The honest read
+is parity: after the draw-transfer calibration the model is level with the sharpest
+line available, leaning very slightly favourable, without a gap wide enough to call
+an edge. For a model built on public data, reaching the closing line is already near
+the ceiling.
 
 The paper ROI made the same point from the other side. A naive run of the value
 policy showed a positive return, but almost all of it came from a few longshots
