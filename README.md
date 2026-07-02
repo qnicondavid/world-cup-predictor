@@ -5,7 +5,7 @@ international football results (49,000+ matches, 1872 to today). Predictions are
 served from a **Dixon-Coles goal model** with a squad market-value prior, locked
 before kickoff, and scored against real results as the tournament unfolds. The
 harder question behind the project was whether the probabilities are sharp enough
-to beat a bookmaker's closing line. Tested against real closing odds from four
+to beat a bookmaker's closing line. Tested against real closing odds from two
 past World Cups, the model comes out level with the line: a small edge after
 calibration, but well inside the margin of error, so not a demonstrated one. How
 it gets there, and where it stops, is the rest of this README.
@@ -361,7 +361,9 @@ calibration (reliability 0.0226 to 0.0136) and sharper separation (resolution
 2010 is marginally worse, and the sparse-team lever still earns nothing. The
 shipped `market_values.csv` is the real, full Transfermarkt-derived table (933
 rows, 182 teams), rebuildable byte-for-byte from the dumps in `data/transfermarkt/`
-via `research/build_market_values.py`.
+via `research/build_market_values.py`. Each snapshot is a top-26-by-value proxy squad
+(players of a nationality valued within two years of the date), not a published
+23/26-man roster.
 
 ### Recent form
 
@@ -407,10 +409,12 @@ is applied in the export and the live tracker, so daily predictions carry it.
 
 `--calibrate` audits the production model on the held-out World Cups: reliability
 bins, log-loss, multiclass Brier and expected calibration error (ECE), plus a
-temperature fit. The finding: the model is mildly **under-confident** (ECE ≈
-0.06), but the calibration direction is not stable across tournaments, so no
-temperature is applied and the raw probabilities ship as-is. The practical
-consequence for any betting layer is to demand a margin of safety and size
+temperature fit. The finding: the value-stage model is mildly **under-confident** (ECE ≈ 0.06), but
+the calibration direction is not stable across tournaments, so no temperature is
+applied and the raw probabilities ship as-is. After the recent-form and draw-transfer
+steps the shipped model is better calibrated, ECE 0.026 on the same held-out matches
+(`python research/verify.py --score research/export_predictions_form.csv`). The
+practical consequence for any betting layer is to demand a margin of safety and size
 conservatively.
 
 ### Against the closing line
