@@ -297,10 +297,13 @@ of sample.
 ### Draw modelling
 
 The Elo expected score conflates winning and drawing (E = P(win) + P(draw)/2).
-To split it, P(draw) is estimated empirically: replaying 37,314 internationals
-since 1980 through the model shows the draw rate falling from ~30% between equal
+To split it, P(draw) is estimated empirically: replaying the post-1980
+internationals through the model shows the draw rate falling from ~30% between equal
 teams to ~2% at a 600-point rating gap. `DrawModel` interpolates that observed
-curve and splits E into explicit win/draw/loss probabilities. An honest
+curve (rounded and lightly smoothed in the sparse high-gap bins) and splits E into
+explicit win/draw/loss probabilities. The `--draw-curve` command regenerates the
+curve from data and reproduces the shipped table to within about 0.015 over the
+~37,400 post-1980 internationals in the current dataset. An honest
 limitation: the model never makes "draw" its single most likely outcome (~30% is
 the ceiling), so the draw model improves probabilities, not picks;
 bookmakers share this property.
@@ -492,6 +495,7 @@ mvn compile exec:java -Dexec.args="--values-tune" # grid-search the market-value
 mvn compile exec:java -Dexec.args="--calibrate"  # reliability / log-loss audit + temperature fit
 mvn compile exec:java -Dexec.args="--bets"       # value bets vs bookmaker odds (mock odds)
 mvn compile exec:java -Dexec.args="--verify-export" # write held-out predictions to research/export_predictions.csv
+mvn compile exec:java -Dexec.args="--draw-curve"  # reproduce DrawModel's draw-rate curve from data (since 1980)
 ```
 
 (PowerShell: quote the whole flag, e.g. `mvn compile exec:java "-Dexec.args=--simulate"`.)

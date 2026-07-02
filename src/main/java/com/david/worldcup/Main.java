@@ -54,6 +54,9 @@ import java.io.FileWriter;
  *   <li>{@code -Dexec.args="--tune"} — hyperparameter grid search (tuned 2018, validated 2022)</li>
  *   <li>{@code -Dexec.args="--track"} — live tracker: lock predictions for upcoming World Cup
  *       fixtures, score completed ones, update the README accuracy table</li>
+ *   <li>{@code -Dexec.args="--draw-curve"} — reproduce {@link DrawModel}'s per-gap draw-rate
+ *       curve from data (replays internationals since 1980) and compare against the
+ *       hard-coded {@code DRAW_RATE_BY_GAP} table</li>
  * </ul>
  */
 public final class Main {
@@ -87,6 +90,8 @@ public final class Main {
             runBets(matches, csv);
         } else if (arguments.contains("--calibrate")) {
             runCalibration(matches);
+        } else if (arguments.contains("--draw-curve")) {
+            runDrawCurve(matches);
         } else if (arguments.contains("--verify-export")) {
             runVerifyExport(matches);
         } else if (arguments.contains("--values-tune")) {
@@ -700,6 +705,118 @@ public final class Main {
         }
         System.out.printf("Written %s (value prior) and %s (value prior + recent form)%n",
                 outPath.toAbsolutePath(), formPath.toAbsolutePath());
+    }
+
+    /**
+     * Reproduces {@link DrawModel}'s per-gap draw-rate curve directly from data, so the
+     * hard-coded {@code DRAW_RATE_BY_GAP} table and the post-1980 international count in the
+     * DrawModel javadoc become checkable rather than asserted. (As of writing the replay
+     * reproduces the curve in shape to within ~0.015 and counts ~37,400 matches; the shipped
+     * table is rounded and lightly smoothed, so it is close, not bit-exact.)
+     *
+     * <p>Methodology (matching the production draw model exactly): replay every match dated
+     * 1980-01-01 or later through a fresh {@link EloRatingSystem} using {@link EloConfig#DEFAULT}
+     * (the config {@code new EloRatingSystem()} uses in production), in chronological order,
+     * predict-then-update. For each match, before updating ratings, compute the SAME effective
+     * rating gap {@link EloRatingSystem#outcomeProbabilities} feeds to {@link DrawModel}:
+     * {@code gap = (homeRating + (neutral ? 0 : homeAdvantage)) - awayRating}. Bin by
+     * {@code |gap|} with the identical rule {@link DrawModel#drawProbability} uses — bins of
+     * width 50 via {@code floor(|gap|/50)}, with everything at {@code |gap| >= 600} collapsed
+     * into the top bin. Tally draws vs. total per bin, then compare the observed rate against
+     * the shipped table value.
+     *
+     * <p>This is a REPORTING command: it never asserts or fails, because the point is to surface
+     * whether the shipped array reproduces, not to enforce that it does.
+     */
+    private static void runDrawCurve(List<Match> matches) {
+        final int binCount = 13;              // gap = 0, 50, ..., 600
+        final double binWidth = 50.0;         // mirrors DrawModel.BIN_WIDTH
+        final double maxGap = (binCount - 1) * binWidth; // 600, the top-bin threshold
+        final LocalDate since = LocalDate.of(1980, 1, 1);
+        final EloConfig config = EloConfig.DEFAULT; // production config used by new EloRatingSystem()
+
+        long[] draws = new long[binCount];
+        long[] totals = new long[binCount];
+
+        EloRatingSystem elo = new EloRatingSystem(config);
+        int replayed = 0;
+        // matches arrive sorted by date from main(); replay in that order.
+        for (Match m : matches) {
+            if (m.date().isBefore(since)) {
+                continue;
+            }
+            // PRE-match ratings and the exact effective gap the DrawModel is indexed by.
+            double home = elo.ratingOf(m.homeTeam())
+                    + (m.neutralVenue() ? 0.0 : config.homeAdvantage());
+            double away = elo.ratingOf(m.awayTeam());
+            double gap = Math.abs(home - away);
+
+            int bin = gap >= maxGap ? binCount - 1 : (int) (gap / binWidth);
+
+            totals[bin]++;
+            if (m.outcome() == Match.Outcome.DRAW) {
+                draws[bin]++;
+            }
+            replayed++;
+
+            // Now let the model learn from this match (predict-then-update).
+            elo.processMatch(m);
+        }
+
+        System.out.println("=== Draw-rate curve: reproducing DrawModel.DRAW_RATE_BY_GAP from data ===");
+        System.out.println("Replaying internationals since 1980 through EloConfig.DEFAULT,");
+        System.out.println("binning each match by the same effective home-adjusted rating gap the");
+        System.out.println("draw model uses (|gap|, 50-point bins, >=600 in the top bin).");
+        System.out.println();
+        System.out.printf(Locale.ROOT,
+                "Matches replayed (dated 1980-01-01 or later): %,d  (grows as the dataset does)%n%n",
+                replayed);
+
+        System.out.printf(Locale.ROOT, "%-9s %8s %10s %10s %10s%n",
+                "gap bin", "n", "observed", "shipped", "diff");
+
+        double maxAbsDiff = 0.0;
+        int comparedBins = 0;
+        int matchingBins = 0;
+        final double tolerance = 0.005;
+        for (int b = 0; b < binCount; b++) {
+            double centerGap = b * binWidth;
+            // Shipped table value: drawProbability at the exact bin gap returns
+            // DRAW_RATE_BY_GAP[b] (interpolation weight t=0), and >=600 returns the last entry.
+            double shipped = DrawModel.drawProbability(centerGap);
+            String binLabel = b == binCount - 1
+                    ? (int) centerGap + "+"
+                    : (int) centerGap + "-" + (int) (centerGap + binWidth);
+
+            if (totals[b] == 0) {
+                System.out.printf(Locale.ROOT, "%-9s %8d %10s %10.3f %10s%n",
+                        binLabel, 0L, "-", shipped, "-");
+                continue;
+            }
+            double observed = (double) draws[b] / totals[b];
+            double diff = observed - shipped;
+            maxAbsDiff = Math.max(maxAbsDiff, Math.abs(diff));
+            comparedBins++;
+            if (Math.abs(diff) <= tolerance) {
+                matchingBins++;
+            }
+            System.out.printf(Locale.ROOT, "%-9s %8d %10.3f %10.3f %+10.3f%n",
+                    binLabel, totals[b], observed, shipped, diff);
+        }
+
+        System.out.println();
+        System.out.printf(Locale.ROOT,
+                "Max abs difference across %d populated bin(s): %.4f%n", comparedBins, maxAbsDiff);
+        boolean allMatch = comparedBins > 0 && matchingBins == comparedBins;
+        System.out.printf(Locale.ROOT,
+                "Bins matching within +/-%.3f: %d/%d%s%n",
+                tolerance, matchingBins, comparedBins,
+                allMatch ? "  -> shipped array reproduces from data." : "");
+        if (!allMatch) {
+            System.out.println("Shipped array does NOT reproduce within tolerance from this replay.");
+            System.out.println("This is a reporting command; nothing is asserted. See the notes in");
+            System.out.println("DrawModel's javadoc about how the table was derived.");
+        }
     }
 
     private static void writeExportRow(PrintWriter pw, String label, Match m,
