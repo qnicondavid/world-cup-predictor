@@ -1,11 +1,14 @@
 # World Cup Predictor
 
 A prediction model for FIFA World Cup matches, trained on 150+ years of
-international football results (49,000+ matches, 1872–present). Predictions are
+international football results (49,000+ matches, 1872 to today). Predictions are
 served from a **Dixon-Coles goal model** with a squad market-value prior, locked
 before kickoff, and scored against real results as the tournament unfolds. The
-longer-term aim is the hard one: probabilities good enough to **beat the
-bookmaker's closing line**.
+harder question behind the project was whether the probabilities are sharp enough
+to beat a bookmaker's closing line. Tested against real closing odds from four
+past World Cups, the model comes out level with the line: a small edge after
+calibration, but well inside the margin of error, so not a demonstrated one. How
+it gets there, and where it stops, is the rest of this README.
 
 **Live demo: [qnicondavid.github.io/world-cup-predictor](https://qnicondavid.github.io/world-cup-predictor/)**
 
@@ -228,11 +231,15 @@ and did not clear the bar:
   drove the learned weight to near-pure Elo in every fold. The blend scored
   +0.0007 worse than plain Elo on the held-out set (95% CI [0.0000, +0.0019]);
   the confidence interval never favors the blend. Dead.
-- **Draw recalibration**: a multiplicative draw-probability scaling factor k
-  was tuned via LOTO-CV; it reverted to k=1.0 (no-op) every time, and
-  held-out Brier was unchanged. The model already over-weights draws
-  (mean predicted draw 0.283 vs observed base rate 0.225), so no
-  recalibration surface exists to exploit. Dead.
+- **Symmetric draw scaling**: a single multiplicative factor k on the draw
+  probability, tuned via LOTO-CV, reverted to k=1.0 (no-op) every time, and
+  held-out Brier did not move. Scaling every draw up or down uniformly changes
+  nothing, because the freed probability flows back to both sides in proportion.
+  That reads like a dead end, and for the symmetric version it is. The mistake was
+  assuming the fix had to be symmetric: the model does over-produce draws (mean
+  predicted 0.283 vs a 0.225 base rate), but the surplus belongs on the favourite,
+  not split evenly. The asymmetric version of this idea, the draw-transfer under
+  Methodology, is the one calibration change that later cleared the gate.
 - **Half-life retune**: longer decay half-lives (~3 years) lean slightly
   better; pooled held-out Brier improved by roughly -0.003 (0.595 vs 0.598).
   That delta is inside the approximately plus-or-minus 0.015 to 0.020 noise
@@ -269,11 +276,15 @@ harder 2006-2014 backfill was not pursued; the collectors live in
 research/fetch_lineups.py and research/lineup_value.py as a record of the
 attempt.
 
-Across the campaign the two changes that survived this gate were the
-strengthened value prior and the recent-form nudge, together moving the held-out
-Brier from 0.5717 to 0.5506. The decomposition explains the pattern: the
-remaining loss is resolution, not calibration, so recalibration-style fixes keep
-washing out, and only changes that add genuine new signal hold up out of sample.
+Across the campaign three changes survived this gate: the strengthened value
+prior, the recent-form nudge, and a draw-transfer calibration, together moving the
+held-out Brier from 0.5717 to 0.5441. The first two mostly bought resolution,
+sharper separation between outcomes. The third went back for a calibration defect
+the earlier symmetric tests had written off, once the decomposition made clear the
+leftover error was draws landing on the wrong side rather than too much draw mass
+overall. Everything else, the recalibration maps and the extra rating machinery,
+kept washing out. Only changes that add real signal or fix a real bias held up out
+of sample.
 
 ## Methodology in depth
 
@@ -355,6 +366,32 @@ tracker, so daily predictions carry it. One caveat: the nudge moves the
 probabilities, not the expected goals, so the most-likely-score column still
 comes from the raw model.
 
+### Draw-transfer calibration
+
+The model over-produces draws. Averaged over the five held-out World Cups it puts
+about 0.283 on the draw where the real rate is 0.225, a bias Dixon-Coles inherits
+from its low-score correction. The obvious fix, scaling the draw probability down,
+does nothing out of sample (see the symmetric-scaling note under negative
+findings), so for a while this looked settled.
+
+What the symmetric test missed showed up in the closing-line backtest. Split by
+match type, the model lost most to the market on moderate favourites, matches
+priced around 45 to 65 percent for one side. A Murphy decomposition put that loss
+in reliability rather than resolution and traced it to the home and draw
+probabilities. The draw mass was not simply too large; it was sitting between the
+two teams when it belonged on the favourite.
+
+The fix moves a fixed fraction of each match's draw probability onto whichever side
+the model already favours, then renormalises. The fraction, about 0.21, is fit
+leave-one-tournament-out and stays stable across folds. Scored the same way as
+every other change, it cuts the held-out Brier from 0.5506 to 0.5441, improves
+four of the five tournaments (2010 is flat), and the block-bootstrap interval on
+the gain clears zero. The whole improvement is reliability, the exact component
+the decomposition flagged. Direction is what makes it work: a band-restricted
+version and a symmetric split both failed the gate, and only the global,
+favourite-directed transfer passed it. It ships as `Calibration.transferDraw` and
+is applied in the export and the live tracker, so daily predictions carry it.
+
 ### Calibration
 
 `--calibrate` audits the production model on the held-out World Cups: reliability
@@ -365,20 +402,50 @@ temperature is applied and the raw probabilities ship as-is. The practical
 consequence for any betting layer is to demand a margin of safety and size
 conservatively.
 
-### Value betting (toward beating the book)
+### Against the closing line
 
-A well-calibrated model only has value if it disagrees with the market.
-`--bets` closes that loop: it reads bookmaker odds from `data/odds_sample.csv`,
-strips the overround to fair probabilities, and for each upcoming fixture
-compares the model's win/draw/loss probabilities to the price. When an outcome's
-expected value clears a threshold it is flagged and sized by fractional Kelly.
-The default policy is deliberately conservative (a 5% edge floor, quarter-Kelly,
-capped at 5% of bankroll) because calibration wobbles between tournaments.
+This is the question the project was built around, so it earns a real answer
+rather than a mock one.
 
-The shipped odds file is **mock** data. Historical international closing odds
-barely exist, so the credible path is forward-testing: wire a live feed (e.g.
-The Odds API free tier), lock each flagged bet at its pre-kickoff price, and
-track ROI forward with the same never-edited discipline as the predictions.
+The value-betting loop is simple. `--bets` reads bookmaker odds, strips the
+overround to fair probabilities, and compares them to the model for each fixture.
+When an outcome's expected value clears a threshold it is flagged and sized by
+fractional Kelly, on a conservative default policy (a 5% edge floor, quarter-Kelly,
+capped at 5% of bankroll) because the calibration wobbles between tournaments.
+
+The hard part was getting real closing odds to test against, which international
+football mostly lacks. Two sources filled the gap: an OddsPortal aggregate for the
+2006, 2010 and 2014 World Cups, and a scrape of 2018 and 2022. The model's held-out
+predictions were then scored against the de-vigged closing line on the same
+matches, which is the only fair comparison. Across 272 matches:
+
+| World Cups | Matches | Model Brier | Market Brier | Difference |
+|---|---|---|---|---|
+| 2006, 2010, 2014 | 173 | 0.5291 | 0.5363 | -0.0072 |
+| 2018, 2022 | 99 | 0.5643 | 0.5684 | -0.0042 |
+
+The model edges the line on both sets, but each margin sits inside one standard
+error and the block-bootstrap intervals over the tournaments span zero. The honest
+read is parity: after the draw-transfer calibration the model is level with the
+sharpest line available, leaning very slightly favourable, without a gap wide
+enough to call an edge. For a model built on public data, reaching the closing
+line is already near the ceiling.
+
+The paper ROI made the same point from the other side. A naive run of the value
+policy showed a positive return, but almost all of it came from a few longshots
+that happened to land, and one of those was a data bug: neutral-venue matches label
+home and away differently across sources, and a position-wise join once paid a
+favourite's win at the underdog's price. Joining on the unordered team pair removed
+the phantom, and what remains is what the Brier numbers imply, small disagreements
+with the market that carry no reliable edge.
+
+The live test runs forward. `research/fetch_odds_live.py` captures pre-kickoff
+prices, flags value bets under the same policy, and appends them to a never-edited
+ledger; `research/settle_bets.py` grades them and measures closing-line value. A
+verdict there needs a few hundred settled bets, so it is a long-run instrument, not
+a result yet. The early returns match the backtest: the first settled bets, all
+contrarian draw-or-underdog flags, lost, while the model's straight match picks
+came in.
 
 ### Rest-days differential (experimental)
 
