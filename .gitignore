@@ -6,6 +6,8 @@ target/
 __pycache__/
 *.pyc
 research/export_predictions.csv
+research/export_predictions_importance.csv
+research/export_predictions_importance_value.csv
 data/lineups.csv
 data/lineup_values.csv
 research/.odds_api_key

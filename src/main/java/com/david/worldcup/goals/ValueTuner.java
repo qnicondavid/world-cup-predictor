@@ -42,10 +42,22 @@ public final class ValueTuner {
 
     private final int trainingYears;
     private final MarketValueTable values;
+    // Match-importance tier weights forwarded to the internal PoissonRatingsFitter.
+    // Both default to 1.0 so every existing caller keeps the decay-only fit unchanged;
+    // only an explicit opt-in path passes non-default values.
+    private final double wFriendly;
+    private final double wFinals;
 
     public ValueTuner(int trainingYears, MarketValueTable values) {
+        this(trainingYears, values, 1.0, 1.0);
+    }
+
+    public ValueTuner(int trainingYears, MarketValueTable values,
+                      double wFriendly, double wFinals) {
         this.trainingYears = trainingYears;
         this.values = values;
+        this.wFriendly = wFriendly;
+        this.wFinals = wFinals;
     }
 
     /**
@@ -73,7 +85,10 @@ public final class ValueTuner {
                 .filter(m -> m.date().isBefore(start) && !m.date().isBefore(trainStart))
                 .sorted(Comparator.comparing(Match::date))
                 .toList();
-        TeamStrength base = new PoissonRatingsFitter().fit(training, start);
+        TeamStrength base = new PoissonRatingsFitter()
+                .wFriendly(wFriendly)
+                .wFinals(wFinals)
+                .fit(training, start);
         Map<String, Integer> counts = new HashMap<>();
         for (Match m : training) {
             counts.merge(m.homeTeam(), 1, Integer::sum);

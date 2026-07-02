@@ -230,7 +230,7 @@ small, tuned squad-value prior.
 
 ### More negative findings from goal-model research
 
-Three more ideas were tested on the five held-out World Cups (320 matches, 2006-2022)
+Four more ideas were tested on the five held-out World Cups (320 matches, 2006-2022)
 and did not clear the bar:
 
 - **Elo + Dixon-Coles ensemble blend**: leave-one-tournament-out cross-validation
@@ -251,8 +251,15 @@ and did not clear the bar:
   That delta is inside the approximately plus-or-minus 0.015 to 0.020 noise
   floor implied by block-bootstrap CIs over five tournaments, so the change
   is not adopted as a standalone improvement.
+- **Match-importance weighting**: down-weighting friendlies (0.5) and up-weighting
+  World Cup finals (1.25) in the Poisson ratings fit, as fixed a-priori weights.
+  The variant scored 0.5454 against the baseline 0.5441, a mean paired delta of
+  -0.0013 with a 95% CI of [-0.0041, +0.0015] that spans zero, and only two of the
+  five tournaments improved. Resolution fell rather than rose, the opposite of the
+  intended effect. Reproduce with `--importance-export`, then `verify.py --paired
+  export_predictions_form.csv export_predictions_importance.csv`. Not adopted.
 
-A fourth idea showed real structure but was absorbed by the value prior. A
+A fifth idea showed real structure but was absorbed by the value prior. A
 cross-confederation strength correction estimates a per-confederation-pair
 goal-difference residual from training data and applies it to
 inter-confederation matchups. On the Python Dixon-Coles baseline (no value

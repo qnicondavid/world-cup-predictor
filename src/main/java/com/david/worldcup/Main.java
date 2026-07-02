@@ -57,6 +57,10 @@ import java.io.FileWriter;
  *   <li>{@code -Dexec.args="--draw-curve"} — reproduce {@link DrawModel}'s per-gap draw-rate
  *       curve from data (replays internationals since 1980) and compare against the
  *       hard-coded {@code DRAW_RATE_BY_GAP} table</li>
+ *   <li>{@code -Dexec.args="--importance-export"} — finding "A1": re-run the verify-export
+ *       pipeline with fixed match-importance tier weights (friendlies 0.5, World Cup finals
+ *       1.25; a-priori, not tuned) and write {@code research/export_predictions_importance.csv}
+ *       for a paired-Brier gate against the {@code --verify-export} baseline</li>
  * </ul>
  */
 public final class Main {
@@ -94,6 +98,8 @@ public final class Main {
             runDrawCurve(matches);
         } else if (arguments.contains("--verify-export")) {
             runVerifyExport(matches);
+        } else if (arguments.contains("--importance-export")) {
+            runImportanceExport(matches);
         } else if (arguments.contains("--values-tune")) {
             runValuesTune(matches);
         } else if (arguments.contains("--values")) {
@@ -671,12 +677,42 @@ public final class Main {
 
     private static void runVerifyExport(List<Match> matches) throws IOException {
         System.out.println("=== Verify export: writing held-out per-match predictions ===");
-        MarketValueTable values = MarketValueTable.load(Path.of("data/market_values.csv"));
-        ValueTuner tuner = new ValueTuner(12, values);
-        FormAdjuster form = new FormAdjuster(matches);
+        // Default weights 1.0/1.0: this is the committed baseline. The tier weighting is
+        // a pure no-op here, so research/export_predictions_form.csv reproduces unchanged.
+        ValueTuner tuner = new ValueTuner(12, MarketValueTable.load(Path.of("data/market_values.csv")));
+        writeExportCsvs(matches, tuner,
+                Path.of("research/export_predictions.csv"),
+                Path.of("research/export_predictions_form.csv"));
+    }
 
-        Path outPath = Path.of("research/export_predictions.csv");
-        Path formPath = Path.of("research/export_predictions_form.csv");
+    /**
+     * Same pipeline as {@link #runVerifyExport} but with fixed match-importance tier
+     * weights (finding "A1"): friendlies down-weighted to 0.5, World Cup finals
+     * up-weighted to 1.25 in the Poisson ratings fit. These are FIXED prior-belief
+     * hyperparameters — deliberately NOT grid-searched — so the variant carries no
+     * tuning-overfit. Writes to a separate file; the default export is untouched.
+     */
+    private static void runImportanceExport(List<Match> matches) throws IOException {
+        System.out.println("=== Importance export: tier-weighted per-match predictions (A1) ===");
+        // 0.5 (friendly) and 1.25 (finals) are a-priori judgment values, NOT tuned.
+        ValueTuner tuner = new ValueTuner(12,
+                MarketValueTable.load(Path.of("data/market_values.csv")), 0.5, 1.25);
+        writeExportCsvs(matches, tuner,
+                Path.of("research/export_predictions_importance_value.csv"),
+                Path.of("research/export_predictions_importance.csv"));
+    }
+
+    /**
+     * Shared export pipeline: per-window ValueTuner.prepare -> ValueAdjuster ->
+     * DixonColesModel, then FormAdjuster + Calibration.transferDraw for the form
+     * output. The value-prior CSV goes to {@code outPath}, the form-adjusted CSV to
+     * {@code formPath}. Behaviour depends only on the supplied {@code tuner}, so the
+     * default caller (1.0/1.0 weights) reproduces the committed baseline byte-for-byte.
+     */
+    private static void writeExportCsvs(List<Match> matches, ValueTuner tuner,
+                                        Path outPath, Path formPath) throws IOException {
+        MarketValueTable values = MarketValueTable.load(Path.of("data/market_values.csv"));
+        FormAdjuster form = new FormAdjuster(matches);
         try (PrintWriter pw = new PrintWriter(new FileWriter(outPath.toFile()));
              PrintWriter fw = new PrintWriter(new FileWriter(formPath.toFile()))) {
             pw.println("tournament,home,away,date,p_home,p_draw,p_away,actual");

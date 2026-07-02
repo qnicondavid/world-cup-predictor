@@ -37,6 +37,11 @@ public final class PoissonRatingsFitter {
     private double halfLifeYears = 2.0;
     private int iterations = 200;
     private double shrinkage = 1.0; // pseudo-goals pulling each team toward average
+    // Match-importance tier weights. Both default to 1.0, which makes tierWeight()
+    // a pure no-op: the fit is byte-for-byte identical to a decay-only weighting.
+    // Only an explicit opt-in path (e.g. --importance-export) sets non-default values.
+    private double wFriendly = 1.0;
+    private double wFinals = 1.0;
     private static final double RHO_MIN = -0.18;
     private static final double RHO_MAX = 0.18;
 
@@ -53,6 +58,40 @@ public final class PoissonRatingsFitter {
     public PoissonRatingsFitter shrinkage(double v) {
         this.shrinkage = v;
         return this;
+    }
+
+    /** Weight applied to friendlies (default 1.0 = no-op). Set &lt;1 to down-weight. */
+    public PoissonRatingsFitter wFriendly(double v) {
+        this.wFriendly = v;
+        return this;
+    }
+
+    /** Weight applied to World Cup finals matches (default 1.0 = no-op). Set &gt;1 to up-weight. */
+    public PoissonRatingsFitter wFinals(double v) {
+        this.wFinals = v;
+        return this;
+    }
+
+    /**
+     * Match-importance multiplier by tournament tier, matching the project's
+     * existing classification (see {@code research/goal_models.py} and
+     * {@link Match#isWorldCupFinals()}): a friendly is any tournament whose name
+     * (lowercased) contains "friendly"; the finals tier is exactly
+     * "FIFA World Cup" (NOT "FIFA World Cup qualification" — qualifiers and every
+     * other competition are the 1.0 competitive anchor). With the default
+     * {@code wFriendly == wFinals == 1.0} this always returns 1.0.
+     */
+    private double tierWeight(String tournament) {
+        if (tournament == null) {
+            return 1.0;
+        }
+        if (tournament.toLowerCase(java.util.Locale.ROOT).contains("friendly")) {
+            return wFriendly;
+        }
+        if (tournament.equalsIgnoreCase("FIFA World Cup")) {
+            return wFinals;
+        }
+        return 1.0;
     }
 
     public TeamStrength fit(List<Match> matches, LocalDate asof) {
@@ -84,7 +123,7 @@ public final class PoissonRatingsFitter {
             ag[k] = mt.awayScore();
             neutral[k] = mt.neutralVenue();
             long age = Math.max(0, ChronoUnit.DAYS.between(mt.date(), asof));
-            w[k] = Math.exp(-xi * age);
+            w[k] = Math.exp(-xi * age) * tierWeight(mt.tournament());
         }
 
         // Multiplicative parameters: A=exp(attack), D=exp(defence), B=exp(baseline), H=exp(home).
