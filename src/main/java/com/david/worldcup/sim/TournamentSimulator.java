@@ -228,6 +228,9 @@ public final class TournamentSimulator {
         // (semifinalists) and two (finalists). Halving from an odd count with a
         // trailing bye — the previous behaviour — could step 11 -> 6 -> 3 -> 2 -> 1
         // and skip 4 entirely, which is why the semifinal tally stayed at zero.
+        // Byes go to the trailing slots, and slots are in schedule order rather than
+        // strength-seeded, so which teams sit out the play-in is arbitrary: a small,
+        // documented approximation in the same spirit as the schedule-order bracket.
         int pow2 = Integer.highestOneBit(round.size());
         if (pow2 < round.size()) {
             int playIn = 2 * (round.size() - pow2); // leading teams contest the extra round

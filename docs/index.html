@@ -226,7 +226,9 @@ function render(d) {
     : `<p style="margin:0">No locked predictions have been resolved yet.</p>`;
 
   const rb = document.querySelector("#resolvedTable tbody");
-  // "Jun 11" -> sortable month*100+day key; no Date parsing, no hard-coded year
+  // "Jun 11" -> sortable month*100+day key; no Date parsing, no hard-coded year.
+  // Uses MON (declared below); safe because md only runs inside render(), an async
+  // fetch callback that fires after this whole script body has finished executing.
   const md = s => { const p = String(s).split(" "); return (MON.indexOf(p[0]) + 1) * 100 + (+p[1] || 0); };
   (d.resolved || []).slice().sort((a, b) => md(b.date) - md(a.date)).forEach(m => {
     rb.insertAdjacentHTML("beforeend",
