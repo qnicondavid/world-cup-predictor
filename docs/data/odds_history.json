@@ -418,5 +418,26 @@
 "Algeria": 0.3,
 "Austria": 0.2
 }
+},
+{
+"date": "2026-07-03",
+"odds": {
+"France": 23.2,
+"Argentina": 21.5,
+"Spain": 18.2,
+"Brazil": 8.5,
+"England": 5.9,
+"Portugal": 4.2,
+"Colombia": 4.0,
+"Morocco": 3.7,
+"Switzerland": 2.9,
+"Mexico": 2.9,
+"Belgium": 2.2,
+"Norway": 1.5,
+"United States": 0.5,
+"Paraguay": 0.2,
+"Canada": 0.2,
+"Australia": 0.2
+}
 }
 ]
