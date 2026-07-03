@@ -8,6 +8,8 @@ __pycache__/
 research/export_predictions.csv
 research/export_predictions_importance.csv
 research/export_predictions_importance_value.csv
+research/export_predictions_formlambda.csv
+research/export_predictions_formlambda_value.csv
 data/lineups.csv
 data/lineup_values.csv
 research/.odds_api_key

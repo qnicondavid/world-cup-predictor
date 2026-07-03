@@ -230,7 +230,7 @@ small, tuned squad-value prior.
 
 ### More negative findings from goal-model research
 
-Four more ideas were tested on the five held-out World Cups (320 matches, 2006-2022)
+Five more ideas were tested on the five held-out World Cups (320 matches, 2006-2022)
 and did not clear the bar:
 
 - **Elo + Dixon-Coles ensemble blend**: leave-one-tournament-out cross-validation
@@ -258,8 +258,16 @@ and did not clear the bar:
   five tournaments improved. Resolution fell rather than rose, the opposite of the
   intended effect. Reproduce with `--importance-export`, then `verify.py --paired
   export_predictions_form.csv export_predictions_importance.csv`. Not adopted.
+- **Stronger recent-form nudge (lambda)**: a leave-one-tournament-out sweep
+  (`--form-tune-loto`) of the form coefficient found a clean interior optimum near
+  lambda 0.60, well above the shipped 0.20, lowering pooled held-out Brier from 0.5441
+  to 0.5393 and improving four of five tournaments. But the paired block-bootstrap CI
+  is [-0.0004, +0.0096], grazing zero, and 2022 regresses, so it just misses the gate.
+  The stronger nudge is left on the table and the conservative 0.20 kept. Reproduce
+  with `--form-tune-loto`, then `--form-export` and `verify.py --paired
+  export_predictions_form.csv export_predictions_formlambda.csv`. Not adopted.
 
-A fifth idea showed real structure but was absorbed by the value prior. A
+A sixth idea showed real structure but was absorbed by the value prior. A
 cross-confederation strength correction estimates a per-confederation-pair
 goal-difference residual from training data and applies it to
 inter-confederation matchups. On the Python Dixon-Coles baseline (no value
@@ -390,10 +398,12 @@ defensive form, the mean goals conceded over its last 5 matches before kickoff
 model's held-out predictions through the export bridge, a conservative
 coefficient cuts the combined Brier from 0.5566 to 0.5506, with the gain almost
 entirely in resolution (sharper separation, the component the model was losing
-to) and improving in all five tournaments. The coefficient (0.20) was set by judgment
-inside a hand-checked range rather than a committed leave-one-tournament-out sweep, so
-unlike the draw-transfer below it is measured but not formally gated. It is shipped and
-wired into the live tracker, so daily predictions carry it. One caveat: the nudge moves the
+to) and improving in all five tournaments. The coefficient (0.20) was set by judgment;
+a later leave-one-tournament-out sweep (`--form-tune-loto`) found a clean interior
+optimum near 0.60 that lowers pooled held-out Brier to 0.5393 and improves four of five
+tournaments, but its paired CI [-0.0004, +0.0096] grazes zero (2022 regresses), so the
+stronger nudge just misses the gate and the conservative 0.20 is kept (see negative
+findings). It is shipped and wired into the live tracker, so daily predictions carry it. One caveat: the nudge moves the
 probabilities, not the expected goals, so the most-likely-score column still
 comes from the raw model.
 

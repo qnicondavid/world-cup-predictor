@@ -17,6 +17,7 @@ import com.david.worldcup.goals.EloPoissonModel;
 import com.david.worldcup.goals.EnsembleModel;
 import com.david.worldcup.goals.GoalModel;
 import com.david.worldcup.goals.GoalModelBacktest;
+import com.david.worldcup.goals.TeamStrength;
 import com.david.worldcup.goals.ValueTuner;
 import com.david.worldcup.goals.ValueWeights;
 import com.david.worldcup.betting.BettingConfig;
@@ -61,6 +62,11 @@ import java.io.FileWriter;
  *       pipeline with fixed match-importance tier weights (friendlies 0.5, World Cup finals
  *       1.25; a-priori, not tuned) and write {@code research/export_predictions_importance.csv}
  *       for a paired-Brier gate against the {@code --verify-export} baseline</li>
+ *   <li>{@code -Dexec.args="--form-export"} — finding "A2": re-run the verify-export pipeline
+ *       with the recent-form nudge {@link FormAdjuster#LAMBDA} set to 0.60 (the LOTO-optimal
+ *       value under investigation, NOT shipped — {@code LAMBDA} stays 0.20) and write
+ *       {@code research/export_predictions_formlambda.csv} for a paired-Brier gate against the
+ *       {@code --verify-export} baseline. Opt-in and non-default; changes no shipped behaviour</li>
  *   <li>{@code -Dexec.args="--values-tune-loto"} — finding "A3c": leave-one-tournament-out
  *       re-tune of {@link ValueWeights}. The current {@code DEFAULT} came from a single
  *       train-2006/18, validate-2022 split; this cross-validates the tuning procedure by
@@ -69,6 +75,17 @@ import java.io.FileWriter;
  *       Brier of the tuning procedure, {@code DEFAULT}'s pooled held-out Brier for comparison,
  *       the modal winner, and a plain-English adopt/keep recommendation. Read-only: does not
  *       change {@code DEFAULT} (a human makes that call after seeing the output)</li>
+ *   <li>{@code -Dexec.args="--form-tune-loto"} — finding "A2": leave-one-tournament-out
+ *       sweep of {@link FormAdjuster#LAMBDA}, the recent-form nudge strength. The shipped
+ *       {@code 0.20} was set by judgment within a hand-checked range, never gate-selected;
+ *       this cross-validates the choice by picking the best lambda on the other four World
+ *       Cups per fold and scoring it on the held-out one, pooling match-weighted. Scores the
+ *       full shipped pipeline (value prior + form nudge + draw-transfer); scoring form without
+ *       the transfer lets lambda substitute for it and run to the grid edge. Prints per-fold
+ *       winners, the pooled honest LOTO Brier, the shipped {@code 0.20}'s pooled held-out Brier,
+ *       the form-off (lambda 0) floor, the modal winning lambda, and an adopt/keep
+ *       recommendation. Read-only: does not change
+ *       {@code FormAdjuster.LAMBDA} (a human makes that call after seeing the output)</li>
  * </ul>
  */
 public final class Main {
@@ -108,10 +125,14 @@ public final class Main {
             runVerifyExport(matches);
         } else if (arguments.contains("--importance-export")) {
             runImportanceExport(matches);
+        } else if (arguments.contains("--form-export")) {
+            runFormExport(matches);
         } else if (arguments.contains("--values-tune")) {
             runValuesTune(matches);
         } else if (arguments.contains("--values-tune-loto")) {
             runValuesTuneLoto(matches);
+        } else if (arguments.contains("--form-tune-loto")) {
+            runFormTuneLoto(matches);
         } else if (arguments.contains("--values")) {
             runValues(matches);
         } else if (arguments.stream().anyMatch(a -> a.startsWith("--predict="))) {
@@ -565,6 +586,273 @@ public final class Main {
                 && a.valueScale() == b.valueScale();
     }
 
+    /**
+     * Finding "A2": leave-one-tournament-out sweep of {@link FormAdjuster#LAMBDA}, the
+     * recent-form nudge strength.
+     *
+     * <p>{@code FormAdjuster.LAMBDA = 0.20} ships un-tuned — chosen by judgment inside a
+     * hand-checked range, never LOTO-gate-selected the way the draw-transfer calibration was.
+     * This mirrors {@link #runValuesTuneLoto} for lambda: for each held-out World Cup we pick
+     * the lambda minimizing pooled Brier on the other four, score it on the held-out one, and
+     * pool match-weighted across the five folds. That pooled number is the honest out-of-sample
+     * Brier of "sweep the form lambda". We break out the shipped {@code 0.20} the same way for
+     * comparison, and report the form-off (lambda 0) pooled Brier as a floor.
+     *
+     * <p>Scoring stage: we score the FULL shipped pipeline (value prior + form + draw-transfer),
+     * because that is what actually ships. Scoring value+form alone lets lambda stand in for the
+     * draw-transfer (both sharpen the favoured side), so the sweep runs to whatever the grid edge
+     * is; with the transfer applied, lambda is tuned against the real objective. Each window's
+     * base fit and value adjust ({@code ValueWeights.DEFAULT}) do not depend on lambda, so the
+     * per-window {@link DixonColesModel} is built once and cached; only the {@link FormAdjuster}
+     * varies per lambda (one built from all matches per lambda — leakage-safe, since
+     * {@code adjust} filters by date internally).
+     *
+     * <p>Read-only: reuses {@link ValueTuner#prepareAll}, {@link ValueAdjuster#adjust} and the
+     * existing {@link FormAdjuster} constructor unchanged; does not touch {@code LAMBDA}.
+     */
+    private static void runFormTuneLoto(List<Match> matches) throws IOException {
+        MarketValueTable values = MarketValueTable.load(Path.of("data/market_values.csv"));
+        System.out.println("=== A2: leave-one-tournament-out sweep of the recent-form lambda ===");
+        if (values.isEmpty()) {
+            System.out.println("No data/market_values.csv found — see the README for how to build it.");
+            return;
+        }
+
+        // Default (1.0/1.0) tier weights and ValueWeights.DEFAULT: this tunes the form lambda
+        // only, on top of the shipped value prior. Fit the five World Cup windows once, value-
+        // adjust once, and cache one DixonColesModel per window; scoring many lambdas is cheap.
+        ValueTuner tuner = new ValueTuner(12, values);
+        List<ValueTuner.Prepared> prepared = tuner.prepareAll(matches, Backtest.WORLD_CUPS);
+        int folds = Backtest.WORLD_CUPS.size();
+
+        List<DixonColesModel> models = new ArrayList<>();
+        for (ValueTuner.Prepared p : prepared) {
+            TeamStrength adj =
+                    ValueAdjuster.adjust(p.base(), p.counts(), values, p.asof(), ValueWeights.DEFAULT);
+            models.add(new DixonColesModel(adj));
+        }
+
+        // Grid: 0.0 is form-OFF (value + draw-transfer floor). One FormAdjuster per lambda, from all matches.
+        double[] grid = {0.0, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.50, 0.60, 0.80, 1.0, 1.5, 2.0};
+        List<FormAdjuster> adjusters = new ArrayList<>();
+        for (double lambda : grid) {
+            adjusters.add(new FormAdjuster(matches, lambda));
+        }
+
+        // Diagnostic: the full lambda -> pooled Brier curve (each lambda scored on all five World
+        // Cups, value+form+transfer). Not held-out for the lambda choice, but it reveals the shape
+        // and whether the optimum is interior or just runs to the grid edge.
+        System.out.println();
+        System.out.println("Full grid (each lambda scored on all five World Cups; value+form+transfer):");
+        System.out.printf(Locale.ROOT, "  %-8s | %-11s | %s%n", "lambda", "Brier", "accuracy");
+        for (int g = 0; g < grid.length; g++) {
+            Score s = Score.EMPTY;
+            for (int i = 0; i < folds; i++) {
+                s = s.plus(scoreWindow(models.get(i), adjusters.get(g), prepared.get(i)));
+            }
+            System.out.printf(Locale.ROOT, "  %-8.2f | %-11.4f | %d/%d (%.1f%%)%n",
+                    grid[g], s.brier(), s.correct(), s.evaluated(),
+                    s.evaluated() == 0 ? 0.0 : 100.0 * s.correct() / s.evaluated());
+        }
+
+        // Per-fold held-out results for the tuning procedure (lambda picked on the other four).
+        double[] foldWinnerLambda = new double[folds];
+        Score[] foldWinnerHeld = new Score[folds];
+
+        for (int h = 0; h < folds; h++) {
+            // Pick the lambda minimizing pooled Brier over the other four folds; deterministic,
+            // strict < with lowest-index / lowest-lambda tie-break (grid is ascending).
+            int bestIdx = -1;
+            double bestBrier = Double.POSITIVE_INFINITY;
+            for (int g = 0; g < grid.length; g++) {
+                Score s = Score.EMPTY;
+                for (int i = 0; i < folds; i++) {
+                    if (i != h) {
+                        s = s.plus(scoreWindow(models.get(i), adjusters.get(g), prepared.get(i)));
+                    }
+                }
+                if (s.brier() < bestBrier) {
+                    bestBrier = s.brier();
+                    bestIdx = g;
+                }
+            }
+            foldWinnerLambda[h] = grid[bestIdx];
+            foldWinnerHeld[h] = scoreWindow(models.get(h), adjusters.get(bestIdx), prepared.get(h));
+        }
+
+        // Per-fold table for the tuning procedure's winners.
+        System.out.println();
+        System.out.println("Per-fold tuning winners (lambda tuned on the other four World Cups):");
+        System.out.printf(Locale.ROOT, "  %-16s | %-13s | %-11s | %s%n",
+                "Held-out fold", "winning lambda", "held Brier", "held accuracy");
+        for (int h = 0; h < folds; h++) {
+            Score s = foldWinnerHeld[h];
+            System.out.printf(Locale.ROOT,
+                    "  %-16s | %-13.2f | %-11.4f | %d/%d (%.1f%%)%n",
+                    Backtest.WORLD_CUPS.get(h).label(), foldWinnerLambda[h],
+                    s.brier(), s.correct(), s.evaluated(),
+                    s.evaluated() == 0 ? 0.0 : 100.0 * s.correct() / s.evaluated());
+        }
+
+        // Pooled (match-weighted) held-out numbers for the tuning procedure.
+        Score proc = Score.EMPTY;
+        for (Score s : foldWinnerHeld) {
+            proc = proc.plus(s);
+        }
+        System.out.println();
+        System.out.printf(Locale.ROOT,
+                "POOLED held-out (honest LOTO-CV of the lambda sweep): Brier %.4f, %d/%d correct (%.1f%%)%n",
+                proc.brier(), proc.correct(), proc.evaluated(),
+                proc.evaluated() == 0 ? 0.0 : 100.0 * proc.correct() / proc.evaluated());
+
+        // Shipped LAMBDA (0.20), per fold + pooled, for comparison.
+        int shippedIdx = indexOf(grid, FormAdjuster.LAMBDA);
+        System.out.println();
+        System.out.printf(Locale.ROOT,
+                "Shipped FormAdjuster.LAMBDA = %.2f held out per fold:%n", FormAdjuster.LAMBDA);
+        Score shipped = Score.EMPTY;
+        for (int h = 0; h < folds; h++) {
+            Score s = scoreWindow(models.get(h), adjusters.get(shippedIdx), prepared.get(h));
+            System.out.printf(Locale.ROOT, "  %-16s | Brier %.4f | %d/%d (%.1f%%)%n",
+                    Backtest.WORLD_CUPS.get(h).label(), s.brier(), s.correct(), s.evaluated(),
+                    s.evaluated() == 0 ? 0.0 : 100.0 * s.correct() / s.evaluated());
+            shipped = shipped.plus(s);
+        }
+        System.out.printf(Locale.ROOT,
+                "POOLED held-out lambda=%.2f: Brier %.4f, %d/%d correct (%.1f%%)%n",
+                FormAdjuster.LAMBDA, shipped.brier(), shipped.correct(), shipped.evaluated(),
+                shipped.evaluated() == 0 ? 0.0 : 100.0 * shipped.correct() / shipped.evaluated());
+
+        // Value-only floor (lambda = 0.0), pooled over all folds.
+        int zeroIdx = indexOf(grid, 0.0);
+        Score valueOnly = Score.EMPTY;
+        for (int h = 0; h < folds; h++) {
+            valueOnly = valueOnly.plus(scoreWindow(models.get(h), adjusters.get(zeroIdx), prepared.get(h)));
+        }
+        System.out.println();
+        System.out.printf(Locale.ROOT,
+                "Form-off floor (lambda=0, value + draw-transfer) POOLED: Brier %.4f, %d/%d correct (%.1f%%)%n",
+                valueOnly.brier(), valueOnly.correct(), valueOnly.evaluated(),
+                valueOnly.evaluated() == 0 ? 0.0 : 100.0 * valueOnly.correct() / valueOnly.evaluated());
+
+        // Modal winning lambda: the single lambda that won the most folds (deterministic; on a
+        // tie in fold count, the lowest lambda wins because the grid is scanned ascending).
+        int modalIdx = -1;
+        int modalCount = -1;
+        for (int g = 0; g < grid.length; g++) {
+            int count = 0;
+            for (int h = 0; h < folds; h++) {
+                if (foldWinnerLambda[h] == grid[g]) {
+                    count++;
+                }
+            }
+            if (count > modalCount) {
+                modalCount = count;
+                modalIdx = g;
+            }
+        }
+        double modalLambda = grid[modalIdx];
+        System.out.println();
+        System.out.printf(Locale.ROOT,
+                "Modal winning lambda: %.2f won %d/%d folds.%n", modalLambda, modalCount, folds);
+
+        // Recommendation: keep 0.20 unless a single lambda wins a majority of folds AND its
+        // pooled held-out Brier (over every fold, comparable to shipped's) beats 0.20's.
+        Score modalScore = Score.EMPTY;
+        for (int h = 0; h < folds; h++) {
+            modalScore = modalScore.plus(scoreWindow(models.get(h), adjusters.get(modalIdx), prepared.get(h)));
+        }
+        System.out.println();
+        boolean majority = modalCount >= 3;
+        boolean beatsShipped = modalScore.brier() <= shipped.brier();
+        if (majority && beatsShipped && modalLambda != FormAdjuster.LAMBDA) {
+            System.out.printf(Locale.ROOT,
+                    "RECOMMENDATION: ADOPT lambda=%.2f. It wins %d/5 folds and its pooled held-out "
+                            + "Brier %.4f <= 0.20's %.4f. Set FormAdjuster.LAMBDA = %.2f.%n",
+                    modalLambda, modalCount, modalScore.brier(), shipped.brier(), modalLambda);
+        } else {
+            System.out.print("RECOMMENDATION: KEEP 0.20. ");
+            if (modalLambda == FormAdjuster.LAMBDA) {
+                System.out.printf(Locale.ROOT, "The modal winner is already 0.20 (%d/5 folds). ", modalCount);
+            } else if (!majority) {
+                System.out.printf(Locale.ROOT,
+                        "No single lambda wins a majority (modal %.2f only %d/5). ", modalLambda, modalCount);
+            } else {
+                System.out.printf(Locale.ROOT,
+                        "Modal lambda %.2f's pooled held-out Brier %.4f does not beat 0.20's %.4f. ",
+                        modalLambda, modalScore.brier(), shipped.brier());
+            }
+            System.out.printf(Locale.ROOT,
+                    "Honest LOTO-CV Brier of the sweep is %.4f (vs shipped 0.20 %.4f, value-only floor %.4f).%n",
+                    proc.brier(), shipped.brier(), valueOnly.brier());
+        }
+    }
+
+    /** Pooled (match-weighted) tally of a value+form scoring run: Brier sum, matches, hits. */
+    private record Score(double brierSum, int evaluated, int correct) {
+        static final Score EMPTY = new Score(0.0, 0, 0);
+
+        Score plus(Score o) {
+            return new Score(brierSum + o.brierSum, evaluated + o.evaluated, correct + o.correct);
+        }
+
+        double brier() {
+            return evaluated == 0 ? 0.0 : brierSum / evaluated;
+        }
+    }
+
+    /**
+     * Scores one prepared window's held-out matches at one lambda through the FULL shipped
+     * pipeline: the cached value-adjusted {@code model}, nudged by {@code form}, then the
+     * draw-transfer calibration. (Scoring form without the transfer lets lambda substitute for
+     * it, since both sharpen the favoured side, so the sweep runs to the grid edge.) Returns the
+     * Brier sum (not the mean), match count and argmax hits so callers pool match-weighted.
+     */
+    private static Score scoreWindow(DixonColesModel model, FormAdjuster form,
+                                     ValueTuner.Prepared p) {
+        double brierSum = 0.0;
+        int evaluated = 0;
+        int correct = 0;
+        for (Match m : p.test()) {
+            DrawModel.Probabilities pr =
+                    model.probabilities(m.homeTeam(), m.awayTeam(), m.neutralVenue());
+            DrawModel.Probabilities pr2 = form.adjust(m.homeTeam(), m.awayTeam(), m.date(), pr);
+            DrawModel.Probabilities pr3 = Calibration.transferDraw(pr2);
+            double[] probs = {pr3.homeWin(), pr3.draw(), pr3.awayWin()};
+            int actual = switch (m.outcome()) {
+                case HOME_WIN -> 0;
+                case DRAW -> 1;
+                case AWAY_WIN -> 2;
+            };
+            for (int i = 0; i < 3; i++) {
+                double target = i == actual ? 1.0 : 0.0;
+                brierSum += (probs[i] - target) * (probs[i] - target);
+            }
+            int pick = 0;
+            if (probs[1] > probs[pick]) {
+                pick = 1;
+            }
+            if (probs[2] > probs[pick]) {
+                pick = 2;
+            }
+            if (pick == actual) {
+                correct++;
+            }
+            evaluated++;
+        }
+        return new Score(brierSum, evaluated, correct);
+    }
+
+    /** Index of {@code target} in {@code grid} (exact match; grid literals are shared). */
+    private static int indexOf(double[] grid, double target) {
+        for (int i = 0; i < grid.length; i++) {
+            if (grid[i] == target) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     private static void runValues(List<Match> matches) throws IOException {
         MarketValueTable values = MarketValueTable.load(Path.of("data/market_values.csv"));
         System.out.println("=== Squad market value as a Dixon-Coles prior: held-out World Cups ===");
@@ -907,16 +1195,55 @@ public final class Main {
     }
 
     /**
+     * Same pipeline as {@link #runVerifyExport} but with the recent-form nudge set to
+     * lambda = 0.60 (finding "A2"): the leave-one-tournament-out sweep in
+     * {@link #runFormTuneLoto} put the interior optimum near there. This is the
+     * LOTO-optimal lambda UNDER INVESTIGATION, NOT a shipped value — {@code FormAdjuster.LAMBDA}
+     * stays 0.20 and no shipped behaviour changes. The export exists only to feed the paired
+     * Brier gate ({@code research/verify.py --paired}) against the committed 0.20 baseline
+     * ({@code --verify-export}). Default (1.0/1.0) tier weights and {@code ValueWeights.DEFAULT},
+     * identical to the baseline; only the form lambda differs. Writes to separate files so the
+     * committed exports are untouched.
+     */
+    private static void runFormExport(List<Match> matches) throws IOException {
+        System.out.println("=== Form export: value prior + recent form at lambda 0.60 (A2) ===");
+        // 0.60 is the LOTO-optimal lambda under investigation (finding A2), NOT a shipped value.
+        ValueTuner tuner = new ValueTuner(12, MarketValueTable.load(Path.of("data/market_values.csv")));
+        writeExportCsvs(matches, tuner, new FormAdjuster(matches, 0.60),
+                Path.of("research/export_predictions_formlambda_value.csv"),
+                Path.of("research/export_predictions_formlambda.csv"));
+    }
+
+    /**
      * Shared export pipeline: per-window ValueTuner.prepare -> ValueAdjuster ->
      * DixonColesModel, then FormAdjuster + Calibration.transferDraw for the form
      * output. The value-prior CSV goes to {@code outPath}, the form-adjusted CSV to
      * {@code formPath}. Behaviour depends only on the supplied {@code tuner}, so the
      * default caller (1.0/1.0 weights) reproduces the committed baseline byte-for-byte.
+     *
+     * <p>This 4-arg overload uses the shipped default form nudge
+     * ({@code new FormAdjuster(matches)} == {@code FormAdjuster.LAMBDA} == 0.20), so
+     * {@code --verify-export} and {@code --importance-export} keep producing exactly
+     * what they do now. The 5-arg overload below lets a caller supply a specific
+     * {@link FormAdjuster} (e.g. a different lambda) without changing any of that.
      */
     private static void writeExportCsvs(List<Match> matches, ValueTuner tuner,
                                         Path outPath, Path formPath) throws IOException {
+        // new FormAdjuster(matches) == new FormAdjuster(matches, FormAdjuster.LAMBDA) == lambda 0.20:
+        // routing the default callers through the parameterized version is behaviour-preserving.
+        writeExportCsvs(matches, tuner, new FormAdjuster(matches), outPath, formPath);
+    }
+
+    /**
+     * Form-parameterized variant of the shared export pipeline: identical to the 4-arg
+     * overload except the recent-form nudge is the supplied {@code form} rather than the
+     * shipped default. Everything else (ValueTuner, {@code ValueWeights.DEFAULT},
+     * {@code Calibration.transferDraw}, headers, row format) is the same, so a caller that
+     * passes {@code new FormAdjuster(matches)} reproduces the committed baseline byte-for-byte.
+     */
+    private static void writeExportCsvs(List<Match> matches, ValueTuner tuner, FormAdjuster form,
+                                        Path outPath, Path formPath) throws IOException {
         MarketValueTable values = MarketValueTable.load(Path.of("data/market_values.csv"));
-        FormAdjuster form = new FormAdjuster(matches);
         try (PrintWriter pw = new PrintWriter(new FileWriter(outPath.toFile()));
              PrintWriter fw = new PrintWriter(new FileWriter(formPath.toFile()))) {
             pw.println("tournament,home,away,date,p_home,p_draw,p_away,actual");

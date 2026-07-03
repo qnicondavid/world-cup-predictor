@@ -26,10 +26,12 @@ import java.util.Map;
  * <p>The shift is applied on the home-vs-away log-odds axis; the draw
  * probability is left untouched and the three outcomes are renormalised. The
  * feature uses only matches strictly before the prediction date, so it is
- * leakage-safe. {@link #LAMBDA} is a deliberately conservative coefficient
- * (interior to the tested range, not the data-greedy edge). It was set by judgment
- * within that hand-checked range, not by a committed leave-one-tournament-out sweep,
- * so unlike the draw-transfer calibration it is measured but not gate-selected.
+ * leakage-safe. {@link #LAMBDA} is a deliberately conservative coefficient. A
+ * leave-one-tournament-out sweep ({@code --form-tune-loto}) later found a clean
+ * interior optimum near 0.60 that lowers pooled held-out Brier (0.5441 to 0.5393,
+ * four of five tournaments), but its paired block-bootstrap CI grazes zero
+ * ([-0.0004, +0.0096]) with 2022 regressing, so it does not clear the gate; the
+ * conservative 0.20 is retained.
  */
 public final class FormAdjuster {
 
