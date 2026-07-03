@@ -427,7 +427,7 @@ The fix moves a fixed fraction of each match's draw probability onto whichever s
 the model already favours, then renormalises. The fraction, about 0.21, is fit
 leave-one-tournament-out and stays stable across folds. Scored the same way as
 every other change, it cuts the held-out Brier from 0.5506 to 0.5441, improves
-four of the five tournaments (2010 is flat), and the block-bootstrap interval on
+all five tournaments (2010 only marginally), and the block-bootstrap interval on
 the gain clears zero. The whole improvement is reliability, the exact component
 the decomposition flagged. Direction is what makes it work: a band-restricted
 version and a symmetric split both failed the gate, and only the global,

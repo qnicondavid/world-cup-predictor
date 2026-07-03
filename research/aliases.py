@@ -44,9 +44,12 @@ ALIASES = {
 def canon(team):
     """Canonicalize a team name to the results.csv spelling.
 
-    NFKD-strip to ASCII, then look the name up (case-insensitively) in ALIASES.
-    On a miss, return the NFKD-stripped form (NOT the raw input) so callers on
-    both sides of a join normalize identically.
+    Fold curly apostrophes to straight, NFKD-strip to ASCII, then look the name up
+    (case-insensitively) in ALIASES. On a miss, return the NFKD-stripped form (NOT
+    the raw input) so callers on both sides of a join normalize identically. The
+    apostrophe fold matters: a raw "Cote d'Ivoire" written with a curly U+2019 would
+    otherwise lose its apostrophe in the ASCII strip and miss the "cote d'ivoire" key.
     """
+    team = team.replace("’", "'").replace("‘", "'")
     t = unicodedata.normalize("NFKD", team).encode("ascii", "ignore").decode().strip()
     return ALIASES.get(t.lower(), t)
