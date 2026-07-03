@@ -1,4 +1,4 @@
-captured_at,match_date,home_team,away_team,avg_home,avg_draw,avg_away,best_home,best_draw,best_away
+captured_at,match_date,home_team,away_team,avg_home,avg_draw,avg_away,best_home,best_draw,best_away,commence_time
 2026-06-30T22:11:55Z,2026-06-30,France,Sweden,1.0633,15.8560,68.3427,1.1300,50.0000,270.0000
 2026-06-30T22:11:55Z,2026-07-01,Mexico,Ecuador,2.2108,2.8963,4.1338,2.2800,2.9900,4.4000
 2026-06-30T22:11:55Z,2026-07-01,England,DR Congo,1.2836,5.3877,13.5105,1.3100,5.7000,16.0000

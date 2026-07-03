@@ -21,8 +21,9 @@ What it does for a given sport key:
     clears the 5% floor, appends a never-edited row to data/forward_bets.csv
     (entry price, model prob, market prob, edge, quarter-Kelly stake, status=open)
 
-Run it at lock time and again near kickoff; the two snapshots let you compute
-closing-line value once results land.
+Run it at several offsets before kickoff (e.g. T-72h, T-48h, T-24h, T-1h). Each
+snapshot records the kickoff time (commence_time), so research/clv_by_offset.py can
+bucket closing-line value by how early each bet was entered (finding A5).
 """
 import csv
 import json
@@ -121,7 +122,7 @@ def main():
     joined = flagged = 0
     for ev in events:
         home, away = canon(ev["home_team"]), canon(ev["away_team"])
-        date = ev["commence_time"][:10]
+        date, commence = ev["commence_time"][:10], ev["commence_time"]
         buckets = {"home": [], "draw": [], "away": []}
         for bk in ev.get("bookmakers", []):
             for m in bk.get("markets", []):
@@ -136,7 +137,7 @@ def main():
         if None in (ah, ad, aa):
             continue
         snap_rows.append([captured, date, home, away, f"{ah:.4f}", f"{ad:.4f}", f"{aa:.4f}",
-                          f"{mh:.4f}", f"{md:.4f}", f"{ma:.4f}"])
+                          f"{mh:.4f}", f"{md:.4f}", f"{ma:.4f}", commence])
 
         pr = preds.get((date, home, away))
         if not pr:
@@ -163,7 +164,8 @@ def main():
 
     append_rows(os.path.join(_ROOT, "data", "odds_live.csv"),
                 ["captured_at", "match_date", "home_team", "away_team",
-                 "avg_home", "avg_draw", "avg_away", "best_home", "best_draw", "best_away"],
+                 "avg_home", "avg_draw", "avg_away", "best_home", "best_draw", "best_away",
+                 "commence_time"],
                 snap_rows)
     if bet_rows:
         append_rows(bets_path,
