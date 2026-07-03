@@ -90,3 +90,4 @@ match_date,home_team,away_team,neutral,p_home,p_draw,p_away,xg_home,xg_away,lock
 2026-07-05,Brazil,Norway,true,0.6209,0.1928,0.1863,1.6844,1.0052,2026-07-01
 2026-07-05,Mexico,England,false,0.2235,0.2222,0.5543,0.8585,1.4746,2026-07-02
 2026-07-06,United States,Belgium,false,0.3005,0.2057,0.4938,1.2966,1.5406,2026-07-02
+2026-07-06,Portugal,Spain,true,0.2886,0.2312,0.4802,1.0605,1.2695,2026-07-03
