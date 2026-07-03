@@ -99,16 +99,18 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/results.csv predictions/predictions.csv README.md docs/data/tracker.json docs/data/odds_history.json
           git diff --cached --quiet || git commit -m "Tracker: lock predictions / update results $(date -u +%F)"
-          # Self-heal lost races: rebase onto latest, then push, retrying a few times.
+          # Self-heal lost races: retry the whole pull --rebase + push a few times. Both are in
+          # the if-condition so a failed rebase does not trip `set -e`; abort any half-done rebase
+          # between attempts so the next pull --rebase starts clean.
           n=0
           until [ "$n" -ge 3 ]; do
-            git pull --rebase origin "${GITHUB_REF_NAME:-main}"
-            if git push origin HEAD; then
+            if git pull --rebase origin "${GITHUB_REF_NAME:-main}" && git push origin HEAD; then
               exit 0
             fi
+            git rebase --abort 2>/dev/null || true
             n=$(( n + 1 ))
-            echo "push failed (attempt $n); refetching and retrying..." >&2
+            echo "pull/push failed (attempt $n); refetching and retrying..." >&2
             sleep 3
           done
-          echo "ERROR: git push failed after 3 attempts" >&2
+          echo "ERROR: git pull/push failed after 3 attempts" >&2
           exit 1
