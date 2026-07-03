@@ -15,3 +15,9 @@ data/lineup_values.csv
 research/.odds_api_key
 data/wc*_links.txt
 data/wc*_books.csv
+# A3a real-squad experiment: raw Wikipedia squad pages (~13 MB) and temp gate exports.
+# data/wc_squads.csv (parsed) and data/market_values_realsquad.csv (built) are committed.
+data/wc_squads_html/
+research/export_predictions_realsquad.csv
+research/export_proxy_3wc.csv
+research/export_real_3wc.csv

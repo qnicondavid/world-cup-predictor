@@ -231,7 +231,7 @@ small, tuned squad-value prior.
 
 ### More negative findings from goal-model research
 
-Five more ideas were tested on the five held-out World Cups (320 matches, 2006-2022)
+Six more ideas were tested on the five held-out World Cups (320 matches, 2006-2022)
 and did not clear the bar:
 
 - **Elo + Dixon-Coles ensemble blend**: leave-one-tournament-out cross-validation
@@ -267,8 +267,22 @@ and did not clear the bar:
   The stronger nudge is left on the table and the conservative 0.20 kept. Reproduce
   with `--form-tune-loto`, then `--form-export` and `verify.py --paired
   export_predictions_form.csv export_predictions_formlambda.csv`. Not adopted.
+- **Real World Cup squads in place of the value proxy**: the shipped prior sums
+  the 26 most valuable players per nation; this used the actual squads (23
+  players, 26 in 2022) for all five tournaments, taken from Wikipedia and valued
+  through the same Transfermarkt lookup. Transfermarkt's player valuations run
+  too thin before 2014 to value those older squads fairly, so the gate ran on
+  2014, 2018 and 2022. The real squads did not beat the proxy: combined Brier
+  0.5605 for the proxy against 0.5631 for the real squads, a mean paired delta of
+  -0.0026 with a 95% CI of [-0.0070, +0.0017] that spans zero, and two of the
+  three tournaments worse. For a strong side the best players get called up
+  anyway, so the top-26 proxy and the actual 23 sum to nearly the same squad
+  value, and swapping one for the other barely moves the prior. The parsed squads
+  are in `data/wc_squads.csv` (3,775 players); `research/build_realsquad_values.py`
+  rebuilds the value table, and the gate swaps `data/market_values_realsquad.csv`
+  in for `market_values.csv` before `verify.py --paired`. Not adopted.
 
-A sixth idea showed real structure but was absorbed by the value prior. A
+A seventh idea showed real structure but was absorbed by the value prior. A
 cross-confederation strength correction estimates a per-confederation-pair
 goal-difference residual from training data and applies it to
 inter-confederation matchups. On the Python Dixon-Coles baseline (no value
