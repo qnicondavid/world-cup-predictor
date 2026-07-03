@@ -272,12 +272,17 @@ and did not clear the bar:
   players, 26 in 2022) for all five tournaments, taken from Wikipedia and valued
   through the same Transfermarkt lookup. Transfermarkt's player valuations run
   too thin before 2014 to value those older squads fairly, so the gate ran on
-  2014, 2018 and 2022. The real squads did not beat the proxy: combined Brier
-  0.5605 for the proxy against 0.5631 for the real squads, a mean paired delta of
-  -0.0026 with a 95% CI of [-0.0070, +0.0017] that spans zero, and two of the
-  three tournaments worse. For a strong side the best players get called up
-  anyway, so the top-26 proxy and the actual 23 sum to nearly the same squad
-  value, and swapping one for the other barely moves the prior. The parsed squads
+  2014, 2018 and 2022, where about 80 percent of each squad carries a valuation.
+  The real squads did not beat the proxy: combined Brier 0.5605 for the proxy
+  against 0.5631 for the real squads, a mean paired delta of -0.0026 with a 95% CI
+  of [-0.0070, +0.0017] that spans zero, and two of the three tournaments worse.
+  For a strong side the best players get called up anyway. In raw euros the proxy
+  runs about a quarter to a third above the real 23, partly because a fifth of
+  each real squad has no valuation, but the prior standardises the log of squad
+  value, where the two correlate about 0.99, so swapping one for the other barely
+  moves what the model sees. The unvalued players only pull the real totals down,
+  so if anything the test is stacked toward the real squads and still finds
+  nothing. The parsed squads
   are in `data/wc_squads.csv` (3,775 players); `research/build_realsquad_values.py`
   rebuilds the value table, and the gate swaps `data/market_values_realsquad.csv`
   in for `market_values.csv` before `verify.py --paired`. Not adopted.
