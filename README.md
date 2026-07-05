@@ -21,10 +21,12 @@ the tables below automatically.
 <!-- TRACKER:START -->
 Δ is the total goal difference from the actual result (🎯 = exact), and Brier is multiclass.
 
-**Record: 58/88 picks correct (65.9%), multiclass Brier 0.513, mean goal error 1.9** (uniform guess = 0.667)
+**Record: 60/90 picks correct (66.7%), multiclass Brier 0.509, mean goal error 1.9** (uniform guess = 0.667)
 
 | Date | Match | Winner | H/D/A % | Score (xG) | Result | Δ | Hit |
 |---|---|---|---|---|---|---|---|
+| Jul 4 | Canada vs Morocco | Morocco | 22/34/45% | 0-1 (0.7–1.1) | 0-3 | 2 | ✅ |
+| Jul 4 | Paraguay vs France | France | 13/19/68% | 0-1 (0.6–1.7) | 0-1 | 0 🎯 | ✅ |
 | Jul 3 | Australia vs Egypt | Australia | 36/35/30% | 0-0 (0.9–0.8) | 1-1 | 2 | ❌ |
 | Jul 3 | Argentina vs Cape Verde | Argentina | 77/18/5% | 2-0 (2.1–0.4) | 3-2 | 3 | ✅ |
 | Jul 3 | Colombia vs Ghana | Colombia | 64/24/12% | 1-0 (1.8–0.6) | 1-0 | 0 🎯 | ✅ |
@@ -118,40 +120,39 @@ the tables below automatically.
 
 | Date | Match | Winner | H/D/A % | Score (xG) |
 |---|---|---|---|---|
-| Jul 4 | Canada vs Morocco | Morocco | 22/34/45% | 0-1 (0.7–1.1) |
-| Jul 4 | Paraguay vs France | France | 13/19/68% | 0-1 (0.6–1.7) |
 | Jul 5 | Brazil vs Norway | Brazil | 62/19/19% | 1-1 (1.7–1.0) |
 | Jul 5 | Mexico vs England | England | 22/22/55% | 0-1 (0.9–1.5) |
 | Jul 6 | United States vs Belgium | Belgium | 30/21/49% | 1-1 (1.3–1.5) |
 | Jul 6 | Portugal vs Spain | Spain | 29/23/48% | 1-1 (1.1–1.3) |
 | Jul 6 | Argentina vs Egypt | Argentina | 71/19/10% | 1-0 (1.6–0.5) |
 | Jul 6 | Switzerland vs Colombia | Colombia | 27/23/50% | 1-1 (1.0–1.3) |
+| Jul 9 | France vs Morocco | France | 49/25/26% | 1-0 (1.1–0.9) |
 
 <!-- TRACKER:END -->
 
 ### Championship odds
 
 <!-- TITLE:START -->
-The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-07-04. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
+The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-07-05. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
 
 | # | Team | Title | Final | Semis |
 |---|---|---|---|---|
-| 1 | Argentina | 25.5% | 40.7% | 63.8% |
-| 2 | France | 22.9% | 41.6% | 64.1% |
-| 3 | Spain | 16.7% | 28.0% | 51.3% |
-| 4 | Brazil | 7.7% | 17.6% | 36.4% |
-| 5 | England | 5.9% | 14.0% | 30.2% |
-| 6 | Colombia | 5.0% | 10.4% | 21.7% |
-| 7 | Portugal | 3.7% | 8.7% | 21.5% |
-| 8 | Morocco | 3.7% | 10.9% | 24.8% |
-| 9 | Mexico | 2.8% | 8.2% | 19.4% |
-| 10 | Belgium | 1.9% | 5.5% | 18.9% |
-| 11 | Norway | 1.6% | 5.1% | 14.1% |
-| 12 | Switzerland | 1.6% | 4.6% | 12.3% |
-| 13 | Canada | 0.4% | 1.3% | 5.7% |
-| 14 | United States | 0.3% | 1.7% | 8.4% |
-| 15 | Paraguay | 0.2% | 1.4% | 5.5% |
-| 16 | Egypt | 0.1% | 0.5% | 2.2% |
+| 1 | France | 25.5% | 39.6% | 68.9% |
+| 2 | Argentina | 22.9% | 35.4% | 63.0% |
+| 3 | Spain | 17.1% | 32.9% | 51.1% |
+| 4 | Brazil | 7.9% | 19.1% | 36.3% |
+| 5 | England | 5.9% | 14.9% | 30.2% |
+| 6 | Morocco | 5.4% | 12.4% | 31.1% |
+| 7 | Portugal | 3.8% | 10.0% | 21.2% |
+| 8 | Colombia | 3.7% | 8.2% | 21.8% |
+| 9 | Mexico | 2.4% | 7.6% | 18.8% |
+| 10 | Belgium | 2.0% | 7.4% | 19.1% |
+| 11 | Switzerland | 1.5% | 4.0% | 12.8% |
+| 12 | Norway | 1.4% | 5.4% | 14.7% |
+| 13 | United States | 0.6% | 2.7% | 8.6% |
+| 14 | Egypt | 0.0% | 0.4% | 2.4% |
+| 15 | South Africa | 0.0% | 0.0% | 0.0% |
+| 16 | South Korea | 0.0% | 0.0% | 0.0% |
 
 <!-- TITLE:END -->
 
