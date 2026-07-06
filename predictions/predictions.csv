@@ -94,3 +94,4 @@ match_date,home_team,away_team,neutral,p_home,p_draw,p_away,xg_home,xg_away,lock
 2026-07-06,Argentina,Egypt,true,0.7051,0.1917,0.1032,1.6253,0.5350,2026-07-04
 2026-07-06,Switzerland,Colombia,true,0.2728,0.2294,0.4978,1.0410,1.2916,2026-07-04
 2026-07-09,France,Morocco,true,0.4914,0.2519,0.2567,1.1262,0.8562,2026-07-05
+2026-07-11,Norway,England,true,0.2162,0.2154,0.5684,0.9386,1.4742,2026-07-06
