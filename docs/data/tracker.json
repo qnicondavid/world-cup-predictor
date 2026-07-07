@@ -1,7 +1,7 @@
 {
-  "updated": "2026-07-06",
+  "updated": "2026-07-07",
   "model": "Dixon-Coles + market-value prior",
-  "record": {"correct": 61, "evaluated": 92, "brier": 0.5126},
+  "record": {"correct": 63, "evaluated": 94, "brier": 0.5102},
   "resolved": [
     {"date": "Jun 12", "home": "Canada", "away": "Bosnia and Herzegovina", "pick": "Canada", "pHome": 0.7508, "pDraw": 0.1841, "pAway": 0.0650, "predScore": "2-0", "result": "1-1", "hit": false},
     {"date": "Jun 12", "home": "United States", "away": "Paraguay", "pick": "United States", "pHome": 0.3595, "pDraw": 0.2978, "pAway": 0.3427, "predScore": "1-1", "result": "4-1", "hit": true},
@@ -91,35 +91,36 @@
     {"date": "Jul 3", "home": "Colombia", "away": "Ghana", "pick": "Colombia", "pHome": 0.6393, "pDraw": 0.2372, "pAway": 0.1235, "predScore": "1-0", "result": "1-0", "hit": true},
     {"date": "Jul 4", "home": "Canada", "away": "Morocco", "pick": "Morocco", "pHome": 0.2189, "pDraw": 0.3353, "pAway": 0.4458, "predScore": "0-1", "result": "0-3", "hit": true},
     {"date": "Jul 4", "home": "Paraguay", "away": "France", "pick": "France", "pHome": 0.1263, "pDraw": 0.1922, "pAway": 0.6815, "predScore": "0-1", "result": "0-1", "hit": true},
-    {"date": "Jul 5", "home": "Brazil", "away": "Norway", "pick": "Brazil", "pHome": 0.6209, "pDraw": 0.1928, "pAway": 0.1863, "predScore": "1-1", "result": "0-2", "hit": false},
+    {"date": "Jul 5", "home": "Brazil", "away": "Norway", "pick": "Brazil", "pHome": 0.6209, "pDraw": 0.1928, "pAway": 0.1863, "predScore": "1-1", "result": "1-2", "hit": false},
     {"date": "Jul 5", "home": "Mexico", "away": "England", "pick": "England", "pHome": 0.2235, "pDraw": 0.2222, "pAway": 0.5543, "predScore": "0-1", "result": "2-3", "hit": true},
+    {"date": "Jul 6", "home": "United States", "away": "Belgium", "pick": "Belgium", "pHome": 0.3005, "pDraw": 0.2057, "pAway": 0.4938, "predScore": "1-1", "result": "1-4", "hit": true},
+    {"date": "Jul 6", "home": "Portugal", "away": "Spain", "pick": "Spain", "pHome": 0.2886, "pDraw": 0.2312, "pAway": 0.4802, "predScore": "1-1", "result": "0-1", "hit": true},
     {"date": "Jun 11", "home": "Mexico", "away": "South Africa", "pick": "Mexico", "pHome": 0.7520, "pDraw": 0.1552, "pAway": 0.0928, "predScore": "2-0", "result": "2-0", "hit": true},
     {"date": "Jun 11", "home": "South Korea", "away": "Czech Republic", "pick": "South Korea", "pHome": 0.4375, "pDraw": 0.2288, "pAway": 0.3338, "predScore": "1-1", "result": "2-1", "hit": true}
   ],
   "upcoming": [
-    {"date": "Jul 6", "home": "United States", "away": "Belgium", "pick": "Belgium", "pHome": 0.3005, "pDraw": 0.2057, "pAway": 0.4938, "predScore": "1-1"},
-    {"date": "Jul 6", "home": "Portugal", "away": "Spain", "pick": "Spain", "pHome": 0.2886, "pDraw": 0.2312, "pAway": 0.4802, "predScore": "1-1"},
     {"date": "Jul 6", "home": "Argentina", "away": "Egypt", "pick": "Argentina", "pHome": 0.7051, "pDraw": 0.1917, "pAway": 0.1032, "predScore": "1-0"},
     {"date": "Jul 6", "home": "Switzerland", "away": "Colombia", "pick": "Colombia", "pHome": 0.2728, "pDraw": 0.2294, "pAway": 0.4978, "predScore": "1-1"},
     {"date": "Jul 9", "home": "France", "away": "Morocco", "pick": "France", "pHome": 0.4914, "pDraw": 0.2519, "pAway": 0.2567, "predScore": "1-0"},
+    {"date": "Jul 10", "home": "Spain", "away": "Belgium", "pick": "Spain", "pHome": 0.5738, "pDraw": 0.2137, "pAway": 0.2125, "predScore": "1-0"},
     {"date": "Jul 11", "home": "Norway", "away": "England", "pick": "England", "pHome": 0.2162, "pDraw": 0.2154, "pAway": 0.5684, "predScore": "0-1"}
   ],
   "titleOdds": [
-    {"team": "France", "title": 24.7900, "final": 43.8000, "semis": 68.3200},
-    {"team": "Argentina", "title": 23.8700, "final": 40.3600, "semis": 63.6100},
-    {"team": "Spain", "title": 16.3000, "final": 28.5200, "semis": 51.9800},
-    {"team": "England", "title": 12.4900, "final": 26.5300, "semis": 58.6500},
-    {"team": "Norway", "title": 5.9900, "final": 15.4100, "semis": 41.3500},
-    {"team": "Morocco", "title": 5.0000, "final": 14.2600, "semis": 31.6800},
-    {"team": "Colombia", "title": 4.0200, "final": 9.9500, "semis": 21.7200},
-    {"team": "Portugal", "title": 3.5900, "final": 8.3600, "semis": 20.9400},
-    {"team": "Belgium", "title": 1.8100, "final": 5.7400, "semis": 18.8000},
-    {"team": "Switzerland", "title": 1.5800, "final": 4.6600, "semis": 12.0000},
-    {"team": "United States", "title": 0.4700, "final": 1.9700, "semis": 8.2800},
-    {"team": "Egypt", "title": 0.0900, "final": 0.4400, "semis": 2.6700},
+    {"team": "Spain", "title": 25.9000, "final": 46.9600, "semis": 70.8600},
+    {"team": "France", "title": 22.1500, "final": 38.6100, "semis": 68.8100},
+    {"team": "Argentina", "title": 21.8800, "final": 36.6700, "semis": 63.0600},
+    {"team": "England", "title": 11.8800, "final": 27.5000, "semis": 61.7700},
+    {"team": "Morocco", "title": 4.5300, "final": 12.0800, "semis": 31.1900},
+    {"team": "Norway", "title": 4.3300, "final": 12.9100, "semis": 38.2300},
+    {"team": "Belgium", "title": 4.2900, "final": 12.6300, "semis": 29.1400},
+    {"team": "Colombia", "title": 3.6700, "final": 8.4200, "semis": 21.5300},
+    {"team": "Switzerland", "title": 1.3100, "final": 3.8400, "semis": 12.6400},
+    {"team": "Egypt", "title": 0.0600, "final": 0.3800, "semis": 2.7700},
     {"team": "Mexico", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
     {"team": "South Africa", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
     {"team": "South Korea", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
-    {"team": "Czech Republic", "title": 0.0000, "final": 0.0000, "semis": 0.0000}
+    {"team": "Czech Republic", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
+    {"team": "Canada", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
+    {"team": "Bosnia and Herzegovina", "title": 0.0000, "final": 0.0000, "semis": 0.0000}
   ]
 }
