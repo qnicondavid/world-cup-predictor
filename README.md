@@ -129,32 +129,33 @@ the tables below automatically.
 | Jul 9 | France vs Morocco | France | 49/25/26% | 1-0 (1.1–0.9) |
 | Jul 10 | Spain vs Belgium | Spain | 57/21/21% | 1-0 (1.5–1.0) |
 | Jul 11 | Norway vs England | England | 22/22/57% | 0-1 (0.9–1.5) |
+| Jul 11 | Argentina vs Switzerland | Argentina | 58/22/20% | 1-0 (1.5–0.8) |
 
 <!-- TRACKER:END -->
 
 ### Championship odds
 
 <!-- TITLE:START -->
-The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-07-07. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
+The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-07-08. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
 
 | # | Team | Title | Final | Semis |
 |---|---|---|---|---|
-| 1 | Spain | 25.9% | 47.0% | 70.9% |
-| 2 | France | 22.2% | 38.6% | 68.8% |
-| 3 | Argentina | 21.9% | 36.7% | 63.1% |
-| 4 | England | 11.9% | 27.5% | 61.8% |
-| 5 | Morocco | 4.5% | 12.1% | 31.2% |
-| 6 | Norway | 4.3% | 12.9% | 38.2% |
-| 7 | Belgium | 4.3% | 12.6% | 29.1% |
-| 8 | Colombia | 3.7% | 8.4% | 21.5% |
-| 9 | Switzerland | 1.3% | 3.8% | 12.6% |
-| 10 | Egypt | 0.1% | 0.4% | 2.8% |
-| 11 | Mexico | 0.0% | 0.0% | 0.0% |
-| 12 | South Africa | 0.0% | 0.0% | 0.0% |
-| 13 | South Korea | 0.0% | 0.0% | 0.0% |
-| 14 | Czech Republic | 0.0% | 0.0% | 0.0% |
-| 15 | Canada | 0.0% | 0.0% | 0.0% |
-| 16 | Bosnia and Herzegovina | 0.0% | 0.0% | 0.0% |
+| 1 | Argentina | 28.6% | 50.9% | 75.5% |
+| 2 | Spain | 24.0% | 41.4% | 71.8% |
+| 3 | France | 20.7% | 37.5% | 68.5% |
+| 4 | England | 11.8% | 27.8% | 62.4% |
+| 5 | Morocco | 4.3% | 11.0% | 31.5% |
+| 6 | Norway | 4.0% | 11.9% | 37.7% |
+| 7 | Belgium | 3.8% | 10.2% | 28.2% |
+| 8 | Switzerland | 2.7% | 9.4% | 24.5% |
+| 9 | Mexico | 0.0% | 0.0% | 0.0% |
+| 10 | South Africa | 0.0% | 0.0% | 0.0% |
+| 11 | South Korea | 0.0% | 0.0% | 0.0% |
+| 12 | Czech Republic | 0.0% | 0.0% | 0.0% |
+| 13 | Canada | 0.0% | 0.0% | 0.0% |
+| 14 | Bosnia and Herzegovina | 0.0% | 0.0% | 0.0% |
+| 15 | United States | 0.0% | 0.0% | 0.0% |
+| 16 | Paraguay | 0.0% | 0.0% | 0.0% |
 
 <!-- TITLE:END -->
 
