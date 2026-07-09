@@ -160,6 +160,17 @@
   .dh-axis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.66rem; color: var(--muted); }
   .dh-cap { color: var(--muted); font-size: 0.72rem; margin: 8px 0 0; }
 
+  .closing-note { margin-top: 22px; }
+  .cs-step { margin-bottom: 12px; }
+  .cs-lbl { font-size: 0.66rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .cs-body { font-size: 0.88rem; color: #cfd8e3; margin: 3px 0 0; }
+  .cs-bands { display: flex; gap: 10px; margin-top: 8px; }
+  .cs-band { flex: 1; border: 1px solid var(--line); border-radius: 6px; padding: 8px 11px; }
+  .cs-band.hot { border-color: var(--accent); }
+  .cs-band .bn { font-size: 1.15rem; font-variant-numeric: tabular-nums; color: var(--fg); }
+  .cs-band .br { font-size: 0.68rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+  .cs-chip { display: inline-block; font-size: 0.68rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 11px; }
+
   @media (max-width: 560px) {
     .wrap { padding-top: 0; }
     .topbar { position: static; max-width: none; margin: 0; padding: 24px 0 8px; }
@@ -177,6 +188,7 @@
     #hdTable td:nth-child(4), #hdTable th:nth-child(4) { display: none; }
     .calib { grid-template-columns: 1fr; }
     .draws { grid-template-columns: 1fr; }
+    .cs-bands { flex-direction: column; }
   }
 </style>
 </head>
@@ -260,7 +272,15 @@
 
       <section class="panel" id="traj">
         <h2>Title odds over time</h2>
+        <div class="hd-controls" id="trajControls" hidden>
+          <span class="hd-lbl">show</span>
+          <button class="hd-chip on" data-traj="top6">top 6</button>
+          <button class="hd-chip" data-traj="all">all teams</button>
+        </div>
         <canvas id="trajChart" aria-label="Title odds over time line chart"></canvas>
+        <p class="wcsum" style="margin-top:8px">The chart starts on 13 June, the tracker's first recorded
+          day, so any earlier moves are not shown. Switch to all teams to add the knocked-out sides as
+          thin grey lines that stop on the last day their title chance was above zero.</p>
         <p id="trajEmpty" class="tagline" hidden>No title-odds history yet. It builds up as the daily tracker run records each day's simulation.</p>
       </section>
 
@@ -390,6 +410,17 @@
         <p class="wcsum">The margin sits inside one standard error, so the honest read is parity with
           the sharpest line rather than a beat. A live ledger now captures pre-kickoff prices and
           tracks closing-line value forward, the only honest way to turn parity into a verdict.</p>
+        <div class="closing-note">
+          <p class="tagline">How the model reached parity, in three moves.</p>
+          <div class="cs-step"><span class="cs-lbl">diagnose</span><p class="cs-body" id="csDiagnose"></p></div>
+          <div class="cs-step"><span class="cs-lbl">locate</span>
+            <p class="cs-body">The gap sat on moderate favourites, the biggest and hardest band. Held-out
+              hit rate, split by how strongly the model favoured a side:</p>
+            <div class="cs-bands" id="csBands"></div>
+          </div>
+          <div class="cs-step"><span class="cs-lbl">fix</span><p class="cs-body" id="csFix"></p></div>
+          <p style="margin-top:6px"><span class="cs-chip" id="csChip"></span></p>
+        </div>
       </section>
     </div>
   </div>
@@ -498,28 +529,59 @@ function showTrajEmpty() {
   if (cv) cv.style.display = "none";
 }
 
+let trajChart = null, trajMode = "top6", trajSeries = null;
+
 function renderTrajectory(series) {
   if (!Array.isArray(series) || series.length === 0) { showTrajEmpty(); return; }
+  trajSeries = series;
+  const ctl = document.getElementById("trajControls");
+  if (ctl) {
+    ctl.hidden = false;
+    ctl.querySelectorAll("[data-traj]").forEach(b => b.addEventListener("click", () => {
+      trajMode = b.getAttribute("data-traj");
+      ctl.querySelectorAll("[data-traj]").forEach(x => x.classList.toggle("on", x === b));
+      drawTraj();
+    }));
+  }
+  drawTraj();
+}
+
+function drawTraj() {
+  const series = trajSeries;
   const labels = series.map(s => fmtDay(s.date));
   const latest = series[series.length - 1].odds || {};
-  const teams = Object.keys(latest).sort((a, b) => latest[b] - latest[a]).slice(0, 6);
-  const datasets = teams.map((team, i) => ({
-    label: team,
-    data: series.map(s => (s.odds && s.odds[team] != null) ? s.odds[team] : null),
-    borderColor: PALETTE[i % PALETTE.length],
-    backgroundColor: PALETTE[i % PALETTE.length],
-    tension: 0.25, spanGaps: true, pointRadius: 2, borderWidth: 2
-  }));
-  new Chart(document.getElementById("trajChart"), {
+  const survivors = Object.keys(latest).filter(t => latest[t] > 0).sort((a, b) => latest[b] - latest[a]);
+  const top6 = survivors.slice(0, 6);
+  // a team's line, cut to null once its odds hit zero (so eliminated lines stop at their last day)
+  const line = team => series.map(s => { const v = s.odds && s.odds[team]; return (v != null && v > 0) ? v : null; });
+  let datasets;
+  if (trajMode === "all") {
+    const all = new Set();
+    series.forEach(s => Object.keys(s.odds || {}).forEach(t => all.add(t)));
+    datasets = [...all].map(team => {
+      const alive = latest[team] > 0;
+      const i = survivors.indexOf(team);
+      return { label: team, data: line(team),
+        borderColor: alive ? PALETTE[i % PALETTE.length] : "#3a4d63",
+        backgroundColor: alive ? PALETTE[i % PALETTE.length] : "#3a4d63",
+        tension: 0.25, spanGaps: false, pointRadius: 0, borderWidth: alive ? 2 : 1, order: alive ? 0 : 1 };
+    });
+  } else {
+    datasets = top6.map((team, i) => ({ label: team, data: line(team),
+      borderColor: PALETTE[i % PALETTE.length], backgroundColor: PALETTE[i % PALETTE.length],
+      tension: 0.25, spanGaps: true, pointRadius: 2, borderWidth: 2 }));
+  }
+  if (trajChart) trajChart.destroy();
+  trajChart = new Chart(document.getElementById("trajChart"), {
     type: "line",
     data: { labels, datasets },
     options: {
       responsive: true,
       interaction: { mode: "index", intersect: false },
       plugins: {
-        legend: { labels: { color: "#e6edf3" } },
-        tooltip: { callbacks: {
-          label: c => ` ${c.dataset.label}: ${c.parsed.y == null ? "—" : c.parsed.y.toFixed(1) + "%"}` } }
+        legend: { labels: { color: "#e6edf3", filter: item => top6.includes(item.text) } },
+        tooltip: { filter: item => item.parsed.y != null,
+          callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y.toFixed(1)}%` } }
       },
       scales: {
         x: { ticks: { color: "#8b98a5" }, grid: { color: "#263241" } },
@@ -760,6 +822,25 @@ function renderDraws(d) {
     const max = Math.max(...d.hist.map(b => b.n), 1);
     bars.innerHTML = d.hist.map(b => `<div class="dh-bar" style="height:${(b.n / max * 100).toFixed(1)}%"></div>`).join("");
   }
+}
+
+fetch("data/closing_bands.json", { cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(renderClosing)
+  .catch(() => {});
+
+// The "diagnose, locate, fix" strip under the closing-line parity table.
+function renderClosing(d) {
+  const c = d.closing || {};
+  const dg = document.getElementById("csDiagnose");
+  if (dg) dg.textContent = `Across the ${c.matches} matches with closing odds, the model scored ${c.model} against the line's ${c.market}: level with the sharpest price in the market and inside one standard error.`;
+  const bands = document.getElementById("csBands");
+  if (bands) bands.innerHTML = (d.bands || []).map(b =>
+    `<div class="cs-band${/moderate/i.test(b.label) ? " hot" : ""}"><div class="bn">${b.hit}%</div><div class="br">${esc(b.label)}<br>${esc(b.range)} &middot; ${b.matches} games</div></div>`).join("");
+  const fx = document.getElementById("csFix");
+  if (fx) fx.textContent = `The global, favourite-directed draw-transfer (fraction ${d.transfer}, steady across the leave-one-tournament-out folds) corrected the calibration in that band and lifted all five held-out tournaments.`;
+  const chip = document.getElementById("csChip");
+  if (chip) chip.textContent = "result: parity with the line, confidence interval spans zero";
 }
 
 const navLinks = {};

@@ -1,0 +1,10 @@
+{
+  "note": "The 'diagnose, locate, fix' story behind the closing-line result. closing is the model against the de-vigged market Brier over the 99 matches with odds (2018 and 2022), a parity result whose confidence interval spans zero. bands is the held-out hit rate by the model's favourite strength on the 320 matches: the gap against the sharp line sat on moderate favourites, the largest and hardest slice. transfer is the favourite-directed draw-transfer fraction that corrected the calibration in that band. Bands recomputed from research/export_predictions_form.csv.",
+  "closing": {"matches": 99, "model": 0.5643, "market": 0.5684},
+  "bands": [
+    {"label": "toss-up / underdog", "range": "under 45%", "matches": 46, "hit": 34.8},
+    {"label": "moderate favourite", "range": "45 to 65%", "matches": 187, "hit": 58.3},
+    {"label": "strong favourite", "range": "65% or more", "matches": 87, "hit": 74.7}
+  ],
+  "transfer": 0.21
+}
