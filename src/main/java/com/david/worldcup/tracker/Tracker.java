@@ -12,6 +12,7 @@ import com.david.worldcup.tracker.PredictionLedger.Prediction;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -46,6 +47,9 @@ public final class Tracker {
 
     private static final DateTimeFormatter DAY =
             DateTimeFormatter.ofPattern("MMM d", Locale.ENGLISH);
+
+    /** How many days a fixture may shift after locking and still resolve to its result. */
+    private static final long RESCHEDULE_WINDOW_DAYS = 3;
 
     public record ScoredPrediction(Prediction prediction, Match result,
                                    boolean correct, double brier) {}
@@ -101,13 +105,19 @@ public final class Tracker {
     /** Matches each ledger entry against completed results; unplayed entries are omitted. */
     public static List<ScoredPrediction> score(List<Prediction> ledger, List<Match> completed) {
         Map<String, Match> results = new HashMap<>();
+        Map<String, List<Match>> byTeams = new HashMap<>();
         for (Match m : completed) {
             results.putIfAbsent(key(m.date(), m.homeTeam(), m.awayTeam()), m);
+            byTeams.computeIfAbsent(teamKey(m.homeTeam(), m.awayTeam()),
+                    k -> new ArrayList<>()).add(m);
         }
 
         List<ScoredPrediction> scored = new ArrayList<>();
         for (Prediction p : ledger) {
             Match result = results.get(key(p.matchDate(), p.homeTeam(), p.awayTeam()));
+            if (result == null) {
+                result = rescheduledResult(p, byTeams);
+            }
             if (result == null) {
                 continue;
             }
@@ -117,6 +127,21 @@ public final class Tracker {
                     multiclassBrier(p, actual)));
         }
         return scored;
+    }
+
+    /**
+     * Fallback for a fixture whose date changed after the prediction was locked: the same
+     * fixture (same teams and home/away order) whose result date is within
+     * {@link #RESCHEDULE_WINDOW_DAYS} of the locked date, closest date first. The tight
+     * window stops it from matching the same pairing in a different tournament years apart.
+     */
+    private static Match rescheduledResult(Prediction p, Map<String, List<Match>> byTeams) {
+        return byTeams.getOrDefault(teamKey(p.homeTeam(), p.awayTeam()), List.of()).stream()
+                .filter(m -> Math.abs(ChronoUnit.DAYS.between(p.matchDate(), m.date()))
+                        <= RESCHEDULE_WINDOW_DAYS)
+                .min(Comparator.comparingLong(
+                        m -> Math.abs(ChronoUnit.DAYS.between(p.matchDate(), m.date()))))
+                .orElse(null);
     }
 
     /**
@@ -378,6 +403,10 @@ public final class Tracker {
 
     private static String key(LocalDate date, String home, String away) {
         return date + "|" + home + "|" + away;
+    }
+
+    private static String teamKey(String home, String away) {
+        return home + "|" + away;
     }
 
     private Tracker() {

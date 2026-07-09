@@ -81,6 +81,28 @@ class TrackerTest {
     }
 
     @Test
+    void rescheduledFixtureResolvesWithinWindowButNotYearsApart() {
+        List<Prediction> ledger = List.of(
+                // locked for Jul 6; the fixture was moved and the result lands Jul 7
+                new Prediction(LocalDate.of(2026, 7, 6), "Argentina", "Egypt", true,
+                        0.7051, 0.1917, 0.1032, LocalDate.of(2026, 7, 4)),
+                // same pairing but the only result is decades away -> must NOT resolve
+                new Prediction(LocalDate.of(2026, 7, 6), "Brazil", "Sweden", true,
+                        0.6, 0.2, 0.2, LocalDate.of(2026, 7, 4)));
+
+        List<Match> results = List.of(
+                new Match(LocalDate.of(2026, 7, 7), "Argentina", "Egypt", 3, 2, "FIFA World Cup", true),
+                new Match(LocalDate.of(1958, 6, 29), "Brazil", "Sweden", 5, 2, "FIFA World Cup", false));
+
+        List<Tracker.ScoredPrediction> scored = Tracker.score(ledger, results);
+
+        assertEquals(1, scored.size()); // the year-apart pairing is not matched
+        assertEquals("Argentina", scored.get(0).prediction().homeTeam());
+        assertTrue(scored.get(0).correct()); // 3-2 is a home win and the pick was home
+        assertEquals(LocalDate.of(2026, 7, 7), scored.get(0).result().date());
+    }
+
+    @Test
     void replaceSectionSwapsContentBetweenMarkers() {
         String readme = "# Title\n" + Tracker.SECTION_START + "\nold\n"
                 + Tracker.SECTION_END + "\nfooter";
