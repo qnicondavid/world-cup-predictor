@@ -131,6 +131,15 @@
   .lad-val.dim { color: var(--muted); }
   .lad-val.ttl { color: var(--fg); }
 
+  .hd-controls { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin: 10px 0 14px; }
+  .hd-lbl { font-size: 0.66rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .hd-chip { font: inherit; font-size: 0.74rem; color: var(--muted); background: transparent;
+    border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; cursor: pointer; }
+  .hd-chip:hover { color: var(--fg); }
+  .hd-chip.on { color: var(--fg); border-color: var(--accent); }
+  .hd-sep { width: 1px; height: 15px; background: var(--line); margin: 0 3px; }
+  #hdTable td, #hdTable th { padding: 6px 10px; }
+
   @media (max-width: 560px) {
     .wrap { padding-top: 0; }
     .topbar { position: static; max-width: none; margin: 0; padding: 24px 0 8px; }
@@ -145,6 +154,7 @@
     .abl-row { grid-template-columns: 1fr auto; }
     .abl-label { grid-column: 1 / -1; margin-bottom: 2px; }
     .lad-head, .lad-row { grid-template-columns: 76px 1fr 44px 44px 44px; gap: 6px; }
+    #hdTable td:nth-child(4), #hdTable th:nth-child(4) { display: none; }
   }
 </style>
 </head>
@@ -165,6 +175,7 @@
       <a href="#record">Live record</a>
       <a href="#upcoming">Upcoming</a>
       <a href="#past">Past World Cups</a>
+      <a href="#heldout">The 320 matches</a>
       <a href="#rejected">Tested &amp; rejected</a>
       <a href="#closing">Closing line</a>
     </nav>
@@ -261,6 +272,33 @@
           <div class="wccard"><div class="yr">2022</div><div class="acc">56%</div><div class="k">accuracy</div><div class="bri">0.589</div><div class="k">Brier</div></div>
         </div>
         <p class="wcsum">Combined across all 320 matches: <strong>59.4%</strong> accuracy, multiclass Brier <strong>0.544</strong> (uniform guess = 0.667), beating both the baseline and a coin flip. The model reads the earlier tournaments best; the tighter recent fields are harder.</p>
+      </section>
+
+      <section class="panel" id="heldout">
+        <h2>The 320 matches</h2>
+        <p class="tagline">Held out leave-one-tournament-out: each World Cup is predicted by a model
+          trained only on matches played before it, the same information regime as a live prediction.
+          This is the full evidence base behind the headline, one row per match.</p>
+        <p class="wcsum" id="hdSummary" style="margin:0 0 2px"></p>
+        <div class="hd-controls" id="hdControls">
+          <span class="hd-lbl">year</span>
+          <button class="hd-chip on" data-year="All">all</button>
+          <button class="hd-chip" data-year="WC2006">2006</button>
+          <button class="hd-chip" data-year="WC2010">2010</button>
+          <button class="hd-chip" data-year="WC2014">2014</button>
+          <button class="hd-chip" data-year="WC2018">2018</button>
+          <button class="hd-chip" data-year="WC2022">2022</button>
+          <span class="hd-sep"></span>
+          <button class="hd-chip" data-toggle="misses">misses only</button>
+          <span class="hd-sep"></span>
+          <span class="hd-lbl">sort</span>
+          <button class="hd-chip on" data-sort="date">date</button>
+          <button class="hd-chip" data-sort="conf">confidence</button>
+        </div>
+        <table id="hdTable"><thead><tr>
+          <th>Date</th><th>Match</th><th class="num">H/D/A</th><th>Pick</th><th>Actual</th><th class="num">Hit</th>
+        </tr></thead><tbody></tbody></table>
+        <div style="margin-top:12px"><button class="hd-chip" id="hdMore">show more</button></div>
       </section>
 
       <section class="panel" id="rejected">
@@ -524,6 +562,74 @@ function renderAblation(d) {
   if (ghost) html += row(ghost.label, ghost.brier, "ghost", `${fmt(ghost.delta)} &middot; ${esc(ghost.note)}`, true);
   const el = document.getElementById("ablationRows");
   if (el) el.innerHTML = html;
+}
+
+let hdData = [], hdYear = "All", hdMisses = false, hdSort = "date", hdShow = 20;
+fetch("data/heldout.csv", { cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+  .then(parseHeldout)
+  .catch(() => {
+    const t = document.querySelector("#hdTable tbody");
+    if (t) t.innerHTML = `<tr><td colspan="6" style="color:var(--muted)">Could not load data/heldout.csv.</td></tr>`;
+  });
+
+// The 320 held-out predictions behind the headline, browsable. The summary line is recomputed from
+// these very rows, so the page derives its own accuracy and Brier from the shipped file.
+function parseHeldout(txt) {
+  hdData = txt.trim().split(/\r?\n/).slice(1).map(line => {
+    const f = line.split(",");
+    const pHome = +f[4], pDraw = +f[5], pAway = +f[6], actual = f[7];
+    const pick = (pHome >= pDraw && pHome >= pAway) ? "home" : (pDraw >= pAway ? "draw" : "away");
+    const oh = actual === "home" ? [1, 0, 0] : actual === "draw" ? [0, 1, 0] : [0, 0, 1];
+    const brier = (pHome - oh[0]) ** 2 + (pDraw - oh[1]) ** 2 + (pAway - oh[2]) ** 2;
+    return { tour: f[0], home: f[1], away: f[2], date: f[3], pHome, pDraw, pAway,
+             actual, pick, conf: Math.max(pHome, pDraw, pAway), brier, hit: pick === actual };
+  });
+  const n = hdData.length, hits = hdData.filter(r => r.hit).length;
+  const mb = hdData.reduce((s, r) => s + r.brier, 0) / n;
+  const sm = document.getElementById("hdSummary");
+  if (sm) sm.textContent = `n = ${n} · ${(100 * hits / n).toFixed(1)}% picks correct · multiclass Brier ${mb.toFixed(4)}`;
+  wireHeldout();
+  renderHeldout();
+}
+
+function hdSide(r, s) { return s === "draw" ? "Draw" : s === "home" ? r.home : r.away; }
+function hdDay(d) { return `${MON[+d.slice(5, 7) - 1]} ${+d.slice(8, 10)}, ${d.slice(0, 4)}`; }
+
+function renderHeldout() {
+  let rows = hdData.filter(r => (hdYear === "All" || r.tour === hdYear) && (!hdMisses || !r.hit));
+  rows.sort(hdSort === "conf"
+    ? (a, b) => b.conf - a.conf
+    : (a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  const body = document.querySelector("#hdTable tbody");
+  if (body) body.innerHTML = rows.slice(0, hdShow).map(r =>
+    `<tr><td>${hdDay(r.date)}</td><td>${esc(r.home)} v ${esc(r.away)}</td>
+      <td class="num">${(100 * r.pHome).toFixed(0)}/${(100 * r.pDraw).toFixed(0)}/${(100 * r.pAway).toFixed(0)}</td>
+      <td>${esc(hdSide(r, r.pick))}</td><td>${esc(hdSide(r, r.actual))}</td>
+      <td class="num ${r.hit ? "hit" : "miss"}">${r.hit ? "✓" : "✗"}</td></tr>`).join("")
+    || `<tr><td colspan="6" style="color:var(--muted)">no matches</td></tr>`;
+  const more = document.getElementById("hdMore");
+  if (more) more.style.display = rows.length > hdShow ? "inline-block" : "none";
+}
+
+function wireHeldout() {
+  const c = document.getElementById("hdControls");
+  if (c) {
+    c.querySelectorAll("[data-year]").forEach(b => b.addEventListener("click", () => {
+      hdYear = b.getAttribute("data-year"); hdShow = 20;
+      c.querySelectorAll("[data-year]").forEach(x => x.classList.toggle("on", x === b));
+      renderHeldout();
+    }));
+    c.querySelectorAll("[data-sort]").forEach(b => b.addEventListener("click", () => {
+      hdSort = b.getAttribute("data-sort"); hdShow = 20;
+      c.querySelectorAll("[data-sort]").forEach(x => x.classList.toggle("on", x === b));
+      renderHeldout();
+    }));
+    const mt = c.querySelector("[data-toggle=misses]");
+    if (mt) mt.addEventListener("click", () => { hdMisses = !hdMisses; hdShow = 20; mt.classList.toggle("on", hdMisses); renderHeldout(); });
+  }
+  const more = document.getElementById("hdMore");
+  if (more) more.addEventListener("click", () => { hdShow += 20; renderHeldout(); });
 }
 
 const navLinks = {};
