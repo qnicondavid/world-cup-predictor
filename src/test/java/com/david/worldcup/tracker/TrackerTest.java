@@ -4,6 +4,7 @@ import com.david.worldcup.elo.EloRatingSystem;
 import com.david.worldcup.goals.EloDrawBaselineModel;
 import com.david.worldcup.model.Fixture;
 import com.david.worldcup.model.Match;
+import com.david.worldcup.sim.TournamentSimulator;
 import com.david.worldcup.tracker.PredictionLedger.Prediction;
 import org.junit.jupiter.api.Test;
 
@@ -100,6 +101,18 @@ class TrackerTest {
         assertEquals("Argentina", scored.get(0).prediction().homeTeam());
         assertTrue(scored.get(0).correct()); // 3-2 is a home win and the pick was home
         assertEquals(LocalDate.of(2026, 7, 7), scored.get(0).result().date());
+    }
+
+    @Test
+    void titleOddsTableOmitsEliminatedTeams() {
+        List<TournamentSimulator.TeamOdds> odds = List.of(
+                new TournamentSimulator.TeamOdds("Argentina", 0.286, 0.509, 0.755),
+                new TournamentSimulator.TeamOdds("Switzerland", 0.027, 0.094, 0.245),
+                new TournamentSimulator.TeamOdds("Mexico", 0.0, 0.0, 0.0)); // eliminated
+        String md = Tracker.renderTitleOdds(odds, 16, TODAY, 10000);
+        assertTrue(md.contains("Argentina"));
+        assertTrue(md.contains("Switzerland"));
+        assertFalse(md.contains("Mexico")); // 0% title -> dropped, matching the site
     }
 
     @Test

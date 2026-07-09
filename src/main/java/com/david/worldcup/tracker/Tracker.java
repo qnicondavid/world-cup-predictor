@@ -283,9 +283,12 @@ public final class Tracker {
                         + "the model's view, not a hard forecast.%n%n", runs, today));
         md.append("| # | Team | Title | Final | Semis |\n");
         md.append("|---|---|---|---|---|\n");
-        int n = Math.min(topN, odds.size());
+        // Only teams still able to win: drop eliminated sides (0% title odds), matching the site.
+        List<TournamentSimulator.TeamOdds> alive = odds.stream()
+                .filter(o -> o.titleShare() > 0).toList();
+        int n = Math.min(topN, alive.size());
         for (int i = 0; i < n; i++) {
-            TournamentSimulator.TeamOdds o = odds.get(i);
+            TournamentSimulator.TeamOdds o = alive.get(i);
             md.append(String.format(Locale.ROOT, "| %d | %s | %.1f%% | %.1f%% | %.1f%% |%n",
                     i + 1, o.team(),
                     100 * o.titleShare(), 100 * o.finalShare(), 100 * o.semiShare()));
