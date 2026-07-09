@@ -122,7 +122,7 @@
   .lad-row { display: grid; grid-template-columns: 140px 1fr 52px 52px 52px; gap: 10px;
     align-items: center; margin-bottom: 7px; }
   .lad-team { font-size: 0.85rem; color: #cfd8e3; }
-  .lad-bar { position: relative; height: 18px; background: var(--card); border-radius: 3px; }
+  .lad-bar { position: relative; height: 18px; background: transparent; border-radius: 3px; }
   .lad-seg { position: absolute; left: 0; top: 0; height: 100%; border-radius: 3px; background: var(--accent); }
   .lad-seg.semis { opacity: 0.28; }
   .lad-seg.final { opacity: 0.55; }
@@ -149,6 +149,16 @@
   .calib-chart { position: relative; height: 280px; }
   .calib-stats { display: flex; flex-direction: column; gap: 16px; }
   .calib-stats .stat .lbl { white-space: normal; }
+  .calib-stats .stat + .stat { border-left: none; padding-left: 0; }
+
+  .draws { display: grid; grid-template-columns: 200px 1fr; gap: 22px; align-items: center; margin: 6px 0 4px; }
+  .draws-stats { display: flex; flex-direction: column; gap: 16px; }
+  .draws-stats .stat .lbl { white-space: normal; }
+  .draws-stats .stat + .stat { border-left: none; padding-left: 0; }
+  .dh-bars { display: flex; align-items: flex-end; gap: 4px; height: 120px; }
+  .dh-bar { flex: 1; background: var(--accent); border-radius: 2px 2px 0 0; min-height: 1px; }
+  .dh-axis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.66rem; color: var(--muted); }
+  .dh-cap { color: var(--muted); font-size: 0.72rem; margin: 8px 0 0; }
 
   @media (max-width: 560px) {
     .wrap { padding-top: 0; }
@@ -166,6 +176,7 @@
     .lad-head, .lad-row { grid-template-columns: 76px 1fr 44px 44px 44px; gap: 6px; }
     #hdTable td:nth-child(4), #hdTable th:nth-child(4) { display: none; }
     .calib { grid-template-columns: 1fr; }
+    .draws { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -185,6 +196,7 @@
       <a href="#traj">Title odds over time</a>
       <a href="#record">Live record</a>
       <a href="#upcoming">Upcoming</a>
+      <a href="#draws">Draws</a>
       <a href="#past">Past World Cups</a>
       <a href="#heldout">The 320 matches</a>
       <a href="#rejected">Tested &amp; rejected</a>
@@ -267,6 +279,26 @@
           <th>Date</th><th>Match</th><th>Pick</th><th class="num">Win</th>
           <th class="num">Draw</th><th class="num">Loss</th><th>Pred</th>
         </tr></thead><tbody></tbody></table>
+      </section>
+
+      <section class="panel" id="draws">
+        <h2>Why it never picks a draw</h2>
+        <p class="tagline">The model's most visible quirk, owned up front: it never makes a draw its
+          single most likely call. A draw only tops the list when two sides sit almost dead level, and
+          the model's draw probability never climbs that high.</p>
+        <div class="draws">
+          <div class="draws-stats" id="drawsStats"></div>
+          <div class="draws-hist">
+            <div class="dh-bars" id="dhBars"></div>
+            <div class="dh-axis"><span>0</span><span>0.1</span><span>0.2</span><span>0.3</span></div>
+            <p class="dh-cap">predicted draw probability across the 320 held-out matches (0.05 bins)</p>
+          </div>
+        </div>
+        <p class="wcsum" style="margin-top:10px">The favourite-directed draw-transfer pulled the mean
+          predicted draw from 0.283 to 0.214, against a 0.225 base rate. It shifts probability onto the
+          favoured side, so the model sharpens its draw estimates without ever picking a draw. Bookmakers
+          share the same ceiling.</p>
+        <p class="wcsum" id="drawsLive" hidden></p>
       </section>
 
       <section class="panel" id="past">
@@ -436,6 +468,17 @@ function render(d) {
          <div class="lad-val dim">${o.final.toFixed(1)}%</div>
          <div class="lad-val ttl">${o.title.toFixed(1)}%</div>
        </div>`).join("");
+  }
+
+  // Live draw tie-in: the model never picks a draw, so every drawn game is a miss.
+  const resolved = d.resolved || [];
+  const isDraw = r => { const p = String(r.result).split("-"); return p.length === 2 && +p[0] === +p[1]; };
+  const liveDraws = resolved.filter(isDraw).length;
+  const liveMisses = resolved.filter(r => !r.hit).length;
+  const dl = document.getElementById("drawsLive");
+  if (dl && liveDraws > 0) {
+    dl.hidden = false;
+    dl.textContent = `In the live 2026 tracker the same ceiling holds: all ${liveDraws} drawn games so far are misses, ${liveDraws} of the ${liveMisses} the model has got wrong.`;
   }
 }
 
@@ -698,6 +741,25 @@ function renderCalibration(d) {
       }
     }
   });
+}
+
+fetch("data/draws.json", { cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(renderDraws)
+  .catch(() => {});
+
+// "Why it never picks a draw": three stat cards + a histogram of the 320 held-out draw probabilities.
+function renderDraws(d) {
+  const stats = document.getElementById("drawsStats");
+  if (stats) stats.innerHTML =
+    `<div class="stat"><div class="num">${d.pickedDraws} / ${d.total}</div><div class="lbl">held-out matches where the model's top pick was a draw</div></div>
+     <div class="stat"><div class="num">${(100 * d.actualDraws / d.total).toFixed(1)}%</div><div class="lbl">of those 320 actually finished level (${d.actualDraws} matches)</div></div>
+     <div class="stat"><div class="num">${d.meanAfter.toFixed(2)}</div><div class="lbl">mean draw probability the model assigns, against a ${d.baseRate} base rate</div></div>`;
+  const bars = document.getElementById("dhBars");
+  if (bars) {
+    const max = Math.max(...d.hist.map(b => b.n), 1);
+    bars.innerHTML = d.hist.map(b => `<div class="dh-bar" style="height:${(b.n / max * 100).toFixed(1)}%"></div>`).join("");
+  }
 }
 
 const navLinks = {};

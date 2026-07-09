@@ -1,0 +1,19 @@
+{
+  "note": "The model never makes 'draw' its single most likely outcome. Across the 320 held-out matches the predicted draw probability never rose above about 0.28, so a draw was the top pick 0 times; a draw only tops the list when two sides sit almost dead level. 72 of the 320 (22.5%) actually finished level. The favourite-directed draw-transfer pulled the mean predicted draw from 0.283 to 0.214 against a 0.225 base rate, moving probability onto the favoured side rather than adding draw picks. hist is the 320 p_draw values in 0.05-wide bins.",
+  "pickedDraws": 0,
+  "total": 320,
+  "actualDraws": 72,
+  "meanAfter": 0.214,
+  "meanBefore": 0.283,
+  "baseRate": 0.225,
+  "maxDraw": 0.284,
+  "hist": [
+    {"lo": 0.00, "n": 1},
+    {"lo": 0.05, "n": 4},
+    {"lo": 0.10, "n": 22},
+    {"lo": 0.15, "n": 60},
+    {"lo": 0.20, "n": 193},
+    {"lo": 0.25, "n": 40},
+    {"lo": 0.30, "n": 0}
+  ]
+}
