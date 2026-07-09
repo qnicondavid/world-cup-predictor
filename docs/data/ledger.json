@@ -1,0 +1,110 @@
+{
+  "note": "Ideas tested leave-one-tournament-out and rejected. delta and ci_* are the change in combined held-out multiclass Brier vs the relevant baseline; NEGATIVE = lower Brier = would have helped. null = no single point estimate or no block-bootstrap CI published (a qualitative or noise-floor result). Curated by hand from the README negative-findings sections; A4 is from research/a4_probe.py.",
+  "items": [
+    {
+      "idea": "Cross-confederation strength correction",
+      "reason": "a per-confederation-pair goal-difference residual added to inter-confederation matchups",
+      "delta": -0.005, "ci_lo": -0.012, "ci_hi": 0.005,
+      "kind": "rejected", "verdict": "absorbed by the value prior",
+      "note": "Improved Brier by -0.016 on the bare goal model, but collapses to -0.005 (CI spans zero, one tournament reverses) on the production model. Rich squads already cluster in strong confederations, so the value prior absorbs about two-thirds of the effect."
+    },
+    {
+      "idea": "Favourite recalibration",
+      "reason": "a leave-one-tournament-out map that sharpens the favourite's probability",
+      "delta": null, "ci_lo": -0.013, "ci_hi": 0.001,
+      "kind": "rejected", "verdict": "not adopted",
+      "note": "Cut reliability but traded away resolution and reversed sign on one tournament; the 95% CI grazes zero. The temperature lesson a third time."
+    },
+    {
+      "idea": "Stronger recent-form nudge (lambda 0.60)",
+      "reason": "a form coefficient well above the shipped 0.20, found by a leave-one-tournament-out sweep",
+      "delta": -0.0048, "ci_lo": -0.0096, "ci_hi": 0.0004,
+      "kind": "near_miss", "verdict": "near miss - left on the table",
+      "note": "Lowers pooled held-out Brier from 0.5441 to 0.5393 and improves four of five World Cups, but 2022 regresses and the paired CI just grazes zero. Kept the conservative 0.20."
+    },
+    {
+      "idea": "Real published World Cup squads",
+      "reason": "the actual 23-man rosters valued in place of the top-26-by-value proxy",
+      "delta": 0.0026, "ci_lo": -0.0017, "ci_hi": 0.0070,
+      "kind": "rejected", "verdict": "not adopted",
+      "note": "Proxy 0.5605 vs real squads 0.5631 on the three tournaments with adequate valuation coverage (2014/18/22). The standardised log-value prior already tracks the real squad (correlation ~0.99), so the swap barely moves the model."
+    },
+    {
+      "idea": "Half-life retune (~3 years)",
+      "reason": "a longer time-decay half-life on the ratings fit",
+      "delta": -0.003, "ci_lo": null, "ci_hi": null,
+      "kind": "noise", "verdict": "inside the noise floor",
+      "note": "0.595 vs 0.598 pooled, inside the +-0.015 to 0.020 block-bootstrap noise floor over five tournaments."
+    },
+    {
+      "idea": "Match-importance weighting",
+      "reason": "down-weight friendlies and up-weight finals in the ratings fit",
+      "delta": 0.0013, "ci_lo": -0.0015, "ci_hi": 0.0041,
+      "kind": "rejected", "verdict": "not adopted",
+      "note": "0.5454 vs the 0.5441 baseline; only two of five tournaments improve and resolution fell rather than rose, the opposite of the intended effect."
+    },
+    {
+      "idea": "Bivariate covariance term",
+      "reason": "a shared Poisson component on top of Dixon-Coles",
+      "delta": -0.001, "ci_lo": null, "ci_hi": null,
+      "kind": "noise", "verdict": "adds nothing",
+      "note": "0.573 vs 0.574 on the plain goal model; a negligible move well inside noise."
+    },
+    {
+      "idea": "Elo + Dixon-Coles ensemble blend",
+      "reason": "a learned weight between the two engines",
+      "delta": 0.0007, "ci_lo": 0.0, "ci_hi": 0.0019,
+      "kind": "rejected", "verdict": "dead",
+      "note": "+0.0007 worse than plain Elo (baseline here is Elo). Leave-one-tournament-out drives the weight to near-pure Elo in every fold and the CI never favours the blend."
+    },
+    {
+      "idea": "Symmetric draw scaling",
+      "reason": "a single multiplier applied to every draw probability",
+      "delta": 0.0, "ci_lo": null, "ci_hi": null,
+      "kind": "noop", "verdict": "no-op",
+      "note": "The factor reverts to 1.0 every fold; scaling all draws uniformly just flows back to both sides. The asymmetric version of this idea became the shipped draw-transfer."
+    },
+    {
+      "idea": "Lineup-weighted squad value",
+      "reason": "the actual starting XI valued as-of kickoff (StatsBomb, 2018 and 2022)",
+      "delta": null, "ci_lo": null, "ci_hi": null,
+      "kind": "noise", "verdict": "no signal",
+      "note": "Only a weak residual correlation of 0.06 that did not transfer between tournaments and cost resolution out of sample."
+    },
+    {
+      "idea": "Dynamic / state-space ratings",
+      "reason": "a two-timescale strength blend",
+      "delta": null, "ci_lo": null, "ci_hi": null,
+      "kind": "noise", "verdict": "inside the noise floor",
+      "note": "At most a noise-floor Brier change, with no certifiable lift in resolution."
+    },
+    {
+      "idea": "Temperature scaling",
+      "reason": "a global confidence rescale of the probabilities",
+      "delta": null, "ci_lo": null, "ci_hi": null,
+      "kind": "rejected", "verdict": "not adopted",
+      "note": "Sharpened in-sample but made held-out 2022 worse on every metric; the calibration direction is not stable across tournaments, so none is applied."
+    },
+    {
+      "idea": "Rest-days advantage",
+      "reason": "days of rest between matches as a feature",
+      "delta": null, "ci_lo": null, "ci_hi": null,
+      "kind": "noise", "verdict": "no out-of-sample gain",
+      "note": "No held-out improvement."
+    },
+    {
+      "idea": "Annual regression to the mean",
+      "reason": "shrink every team's rating toward average each year",
+      "delta": null, "ci_lo": null, "ci_hi": null,
+      "kind": "noise", "verdict": "never helped",
+      "note": "Never helped at any strength; national-team strength is more persistent than folklore suggests."
+    },
+    {
+      "idea": "Injury / availability at kickoff",
+      "reason": "dock a team's value prior for players known unavailable before kickoff",
+      "delta": null, "ci_lo": null, "ci_hi": null,
+      "kind": "probe", "verdict": "no-go (feasibility probe)",
+      "note": "On the leakage-clean 2018 and 2022 absences the depleted teams overperformed the model (France lost Benzema, Pogba and Kante and still reached the final), so a cut points the wrong way: net -0.33 points across 21 depleted-team matches. Not pursued to a full gate."
+    }
+  ]
+}

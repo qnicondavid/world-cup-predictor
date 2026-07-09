@@ -73,6 +73,31 @@
   canvas { max-height: 380px; }
   .err { color: var(--bad); }
 
+  .ledger { margin-top: 6px; }
+  .ledger-head { display: grid; grid-template-columns: 1fr 210px; gap: 16px; margin: 2px 0 6px; }
+  .ledger-head .lh-axis { position: relative; color: var(--muted); font-size: 0.68rem; height: 1em; }
+  .ledger-head .lh-l { position: absolute; left: 0; }
+  .ledger-head .lh-r { position: absolute; right: 0; }
+  .ledger-row { display: grid; grid-template-columns: 1fr 210px; gap: 16px; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .ledger-idea { font-size: 0.92rem; color: var(--fg); }
+  .ledger-reason { font-size: 0.78rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .ledger-chip { display: inline-block; font-size: 0.68rem; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px; margin-top: 7px; }
+  .ledger-chip.near { color: #f1c40f; border-color: #f1c40f; }
+  .ledger-viz { position: relative; height: 22px; }
+  .ledger-viz .lz { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
+  .ledger-viz .lci { position: absolute; top: 50%; height: 3px; transform: translateY(-50%);
+    background: var(--line); border-radius: 2px; }
+  .ledger-viz .ldot { position: absolute; top: 50%; width: 9px; height: 9px; border-radius: 50%;
+    transform: translate(-50%, -50%); }
+  .ledger-viz .ldot.good { background: var(--good); }
+  .ledger-viz .ldot.bad { background: var(--bad); }
+  .ledger-viz .ldot.mut { background: var(--muted); }
+  .ledger-viz .ldot.near { background: #f1c40f; }
+  .ledger-viz .ltick { position: absolute; top: 50%; width: 7px; height: 7px; border-radius: 50%;
+    transform: translate(-50%, -50%); border: 1px solid var(--muted); }
+
   @media (max-width: 560px) {
     .wrap { padding-top: 0; }
     .topbar { position: static; max-width: none; margin: 0; padding: 24px 0 8px; }
@@ -82,6 +107,8 @@
     .side a.on { border-bottom: 2px solid var(--accent); }
     .main { margin-left: 0; }
     .stat .lbl { white-space: normal; }
+    .ledger-head { display: none; }
+    .ledger-row { grid-template-columns: 1fr; gap: 8px; }
   }
 </style>
 </head>
@@ -102,6 +129,7 @@
       <a href="#record">Live record</a>
       <a href="#upcoming">Upcoming</a>
       <a href="#past">Past World Cups</a>
+      <a href="#rejected">Tested &amp; rejected</a>
       <a href="#closing">Closing line</a>
     </nav>
   </div>
@@ -174,6 +202,25 @@
           <div class="wccard"><div class="yr">2022</div><div class="acc">56%</div><div class="k">accuracy</div><div class="bri">0.589</div><div class="k">Brier</div></div>
         </div>
         <p class="wcsum">Combined across all 320 matches: <strong>59.4%</strong> accuracy, multiclass Brier <strong>0.544</strong> (uniform guess = 0.667), beating both the baseline and a coin flip. The model reads the earlier tournaments best; the tighter recent fields are harder.</p>
+      </section>
+
+      <section class="panel" id="rejected">
+        <h2>Tested and rejected</h2>
+        <p class="tagline">The ideas that were built, measured leave-one-tournament-out, and did not
+          clear the bar. Each dot is the change in held-out Brier the idea would have made against its
+          baseline, with its 95% bootstrap interval; left of the centre line is lower Brier (it would
+          have helped), right is worse. The gate is strict: an idea ships only if the whole interval
+          clears zero on the better side. None of these did. Hover a row for the exact numbers.</p>
+        <div class="ledger-head">
+          <span></span>
+          <span class="lh-axis"><span class="lh-l">&larr; would have helped</span><span class="lh-r">worse &rarr;</span></span>
+        </div>
+        <div class="ledger" id="ledgerRows"></div>
+        <p class="wcsum" style="margin-top:14px">Negative results with intervals are the point: they
+          are why the three changes that did survive &mdash; the value prior, the recent-form nudge and
+          the draw-transfer &mdash; can be trusted. The amber row (form &lambda; = 0.60) is the one near
+          miss, left on the table because 2022 regresses and its interval grazes zero: rejected, not
+          pending.</p>
       </section>
 
       <section class="panel" id="closing">
@@ -310,6 +357,61 @@ function renderTrajectory(series) {
       }
     }
   });
+}
+
+fetch("data/ledger.json", { cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(renderLedger)
+  .catch(() => {
+    const el = document.getElementById("ledgerRows");
+    if (el) el.innerHTML = `<p class="tagline">Could not load data/ledger.json.</p>`;
+  });
+
+// Renders the "Tested and rejected" ledger: each idea's held-out Brier change and 95% CI on a
+// shared zero-centred axis (negative = lower Brier = would have helped, so left of centre).
+function renderLedger(d) {
+  const items = (d.items || []).slice();
+  let maxAbs = 0;
+  items.forEach(it => ["delta", "ci_lo", "ci_hi"].forEach(k => {
+    if (it[k] != null) maxAbs = Math.max(maxAbs, Math.abs(it[k]));
+  }));
+  maxAbs = (maxAbs || 0.01) * 1.08;
+  const posv = v => (0.5 + v / (2 * maxAbs)) * 100;   // value in [-maxAbs, maxAbs] -> 0..100%
+  const key = it => it.delta != null ? Math.abs(it.delta)
+    : (it.ci_lo != null ? Math.abs((it.ci_lo + it.ci_hi) / 2) : -1);
+  items.sort((a, b) => key(b) - key(a));
+  const fmt = v => (v > 0 ? "+" : "") + v.toFixed(4);
+  const rows = items.map(it => {
+    let viz = `<span class="lz" style="left:50%"></span>`;
+    if (it.ci_lo != null && it.ci_hi != null) {
+      const l = posv(it.ci_lo), r = posv(it.ci_hi);
+      viz += `<span class="lci" style="left:${l.toFixed(1)}%;width:${(r - l).toFixed(1)}%"></span>`;
+    }
+    let dotCls = "mut";                                 // interval crosses zero -> inconclusive
+    if (it.kind === "near_miss") dotCls = "near";
+    else if (it.ci_lo != null && it.ci_lo > 0) dotCls = "bad";    // whole CI worse
+    else if (it.ci_hi != null && it.ci_hi < 0) dotCls = "good";   // whole CI better
+    if (it.delta != null) {
+      viz += `<span class="ldot ${dotCls}" style="left:${posv(it.delta).toFixed(1)}%"></span>`;
+    } else if (it.ci_lo != null) {
+      viz += `<span class="ltick" style="left:${posv((it.ci_lo + it.ci_hi) / 2).toFixed(1)}%"></span>`;
+    }
+    const hov = it.verdict
+      + (it.delta != null ? ` - Brier change ${fmt(it.delta)}` : "")
+      + (it.ci_lo != null ? ` - 95% CI [${fmt(it.ci_lo)}, ${fmt(it.ci_hi)}]` : "")
+      + ` - ${it.note}`;
+    const chip = it.kind === "near_miss" ? "ledger-chip near" : "ledger-chip";
+    return `<div class="ledger-row" title="${esc(hov)}">
+      <div class="ledger-main">
+        <div class="ledger-idea">${esc(it.idea)}</div>
+        <div class="ledger-reason">${esc(it.reason)}</div>
+        <span class="${chip}">${esc(it.verdict)}</span>
+      </div>
+      <div class="ledger-viz">${viz}</div>
+    </div>`;
+  }).join("");
+  const el = document.getElementById("ledgerRows");
+  if (el) el.innerHTML = rows;
 }
 
 const navLinks = {};
