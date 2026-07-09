@@ -6,5 +6,25 @@
     {"label": "+ recent-form nudge", "brier": 0.5506, "delta": -0.0060, "bought": "resolution"},
     {"label": "+ draw-transfer", "brier": 0.5441, "delta": -0.0065, "bought": "reliability", "shipped": true}
   ],
-  "uniform": 0.667
+  "uniform": 0.667,
+  "shipped": 0.5441,
+  "baseline": 0.5717,
+  "valuePrior": {
+    "note": "The one data edge that shipped, the squad market-value prior, with its cleanest out-of-sample numbers. oos2022 is the 2022 leg alone, fully out of sample. fiveTourney pools all five held-out tournaments, of which four overlap the 2006-2018 tuning window, so it always carries that tag. lotoFixed vs lotoRetuned is the overfitting check: re-tuning the weights per fold does slightly worse than the fixed weights. proxyBrier vs realSquadBrier swaps published squads in for the value proxy and finds nothing.",
+    "oos2022": {"before": 0.6123, "after": 0.5907, "tag": "2022, fully out of sample"},
+    "fiveTourney": {"before": 0.5717, "after": 0.5566, "tag": "all five, four overlap the tuning window"},
+    "lotoFixed": 0.5566,
+    "lotoRetuned": 0.5594,
+    "proxyBrier": 0.5605,
+    "realSquadBrier": 0.5631
+  },
+  "engines": {
+    "note": "The README head-to-head of the raw goal engines on the same 320 held-out matches, all multiclass Brier. The four sit within 0.003 of each other; the shipped model at 0.5441 is pulled clear only by the gated calibration chain, measured from its own 0.5717 Dixon-Coles baseline. The engine table's 0.574 and the ablation baseline 0.5717 are separately-labelled configurations, not one comparison.",
+    "models": [
+      {"label": "Bivariate Poisson", "brier": 0.573},
+      {"label": "Dixon-Coles", "brier": 0.574},
+      {"label": "Elo-Poisson", "brier": 0.575},
+      {"label": "Elo + DrawModel", "brier": 0.576}
+    ]
+  }
 }

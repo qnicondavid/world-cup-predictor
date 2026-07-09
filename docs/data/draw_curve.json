@@ -1,0 +1,20 @@
+{
+  "note": "Observed draw rate versus effective Elo rating gap, from replaying post-1980 internationals through EloConfig.DEFAULT (the same replay the CLI --draw-curve prints). gap is the lower edge of each 50-point bin (600 is the top, open-ended bin). observed is the raw draw share in that bin, n its match count; shipped is DrawModel.DRAW_RATE_BY_GAP, the lightly smoothed table the Elo-side model actually uses. This is the Elo baseline and title simulator's draw component, not the production Dixon-Coles draw mechanism, which derives draws from the scoreline distribution.",
+  "replayed": 37406,
+  "maxAbsDiff": 0.0155,
+  "bins": [
+    {"gap": 0, "label": "0-50", "n": 7317, "observed": 0.293, "shipped": 0.299},
+    {"gap": 50, "label": "50-100", "n": 6713, "observed": 0.2874, "shipped": 0.289},
+    {"gap": 100, "label": "100-150", "n": 5744, "observed": 0.2603, "shipped": 0.27},
+    {"gap": 150, "label": "150-200", "n": 4661, "observed": 0.2547, "shipped": 0.252},
+    {"gap": 200, "label": "200-250", "n": 3617, "observed": 0.2275, "shipped": 0.243},
+    {"gap": 250, "label": "250-300", "n": 2796, "observed": 0.1949, "shipped": 0.2},
+    {"gap": 300, "label": "300-350", "n": 1990, "observed": 0.1754, "shipped": 0.181},
+    {"gap": 350, "label": "350-400", "n": 1400, "observed": 0.1464, "shipped": 0.15},
+    {"gap": 400, "label": "400-450", "n": 954, "observed": 0.1216, "shipped": 0.125},
+    {"gap": 450, "label": "450-500", "n": 708, "observed": 0.1017, "shipped": 0.102},
+    {"gap": 500, "label": "500-550", "n": 461, "observed": 0.0672, "shipped": 0.076},
+    {"gap": 550, "label": "550-600", "n": 360, "observed": 0.0389, "shipped": 0.041},
+    {"gap": 600, "label": "600+", "n": 685, "observed": 0.0234, "shipped": 0.022}
+  ]
+}

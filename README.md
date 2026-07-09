@@ -12,6 +12,23 @@ it gets there, and where it stops, is the rest of this README.
 
 **Live demo: [qnicondavid.github.io/world-cup-predictor](https://qnicondavid.github.io/world-cup-predictor/)**
 
+### At a glance
+
+Every headline claim maps to its number, where it is proven, and the honesty label it has to keep. The status words are fixed: held-out result, parity, in progress, no verdict, not adopted.
+
+| Claim | Number | Where proven | Status |
+|---|---|---|---|
+| Sharp enough to beat the closing line? | level: model 0.5643 vs market 0.5684 over 99 matches | [Against the closing line](#against-the-closing-line) | parity |
+| Production model on five held-out World Cups | 0.5441 multiclass Brier over 320 matches (from 0.5717) | [More negative findings](#more-negative-findings-from-goal-model-research) | held-out result |
+| Elo engine on the same 320 matches | 184/320 (57.5%), binary Brier 0.148 | [Track record on past World Cups](#track-record-on-past-world-cups) | held-out result |
+| Squad market-value prior lift | 0.6123 to 0.5907 on 2022, fully out of sample | [Squad market value](#squad-market-value) | held-out result |
+| Draw-transfer calibration | 0.5506 to 0.5441, all five held-out | [Draw-transfer calibration](#draw-transfer-calibration) | held-out result |
+| Ideas tested and rejected | 15 documented, none adopted | [More negative findings](#more-negative-findings-from-goal-model-research) | not adopted |
+| Live 2026 record (small sample) | tracked daily in the table below, still a small sample | [Live results](#live-results) | in progress |
+| Forward betting ledger | flags placed, none settled | [Against the closing line](#against-the-closing-line) | no verdict |
+
+The load-bearing figure is the held-out 0.5441. The live 2026 record is still a small sample, and the closing-line row is parity, not a win. Multiclass and binary Brier sit on scales about four times apart, so the two track-record rows are not directly comparable.
+
 ## Live results
 
 A GitHub Action runs daily: it pulls fresh results, locks predictions for
@@ -237,7 +254,27 @@ small, tuned squad-value prior.
 
 ### More negative findings from goal-model research
 
-Six more ideas were tested on the five held-out World Cups (320 matches, 2006-2022)
+Every banked idea in one place first, then the write-ups. Δ Brier is the change in combined held-out multiclass Brier against the relevant baseline, where negative means lower Brier, so it would have helped; a near miss stays rejected. This table is the source the site's rejected-ideas panel reads from, so the two cannot drift apart. Full detail for each row is in the linked section below.
+
+| Idea | Δ Brier | 95% CI | Verdict | Detail |
+|---|---|---|---|---|
+| Cross-confederation strength correction | -0.0050 | [-0.0120, +0.0050] | absorbed by the value prior | [detail](#more-negative-findings-from-goal-model-research) |
+| Favourite recalibration | not gated | [-0.0130, +0.0010] | not adopted | [detail](#more-negative-findings-from-goal-model-research) |
+| Stronger recent-form nudge (lambda 0.60) | -0.0048 | [-0.0096, +0.0004] | near miss, left on the table (2022 regresses) | [detail](#recent-form) |
+| Real published World Cup squads | +0.0026 | [-0.0017, +0.0070] | not adopted | [detail](#squad-market-value) |
+| Half-life retune (~3 years) | -0.0030 | n/a | inside the noise floor | [detail](#more-negative-findings-from-goal-model-research) |
+| Match-importance weighting | +0.0013 | [-0.0015, +0.0041] | not adopted | [detail](#more-negative-findings-from-goal-model-research) |
+| Bivariate covariance term | -0.0010 | n/a | adds nothing | [detail](#goal-models) |
+| Elo + Dixon-Coles ensemble blend | +0.0007 | [0.0000, +0.0019] | dead | [detail](#more-negative-findings-from-goal-model-research) |
+| Symmetric draw scaling | 0.0000 | n/a | no-op | [detail](#more-negative-findings-from-goal-model-research) |
+| Lineup-weighted squad value | not gated | n/a | no signal | [detail](#more-negative-findings-from-goal-model-research) |
+| Dynamic / state-space ratings | not gated | n/a | inside the noise floor | [detail](#more-negative-findings-from-goal-model-research) |
+| Temperature scaling | not gated | n/a | not adopted | [detail](#why-you-can-trust-it) |
+| Rest-days advantage | not gated | n/a | no out-of-sample gain | [detail](#rest-days-differential-experimental) |
+| Annual regression to the mean | not gated | n/a | never helped | [detail](#why-you-can-trust-it) |
+| Injury / availability at kickoff | not gated | n/a | no-go (feasibility probe) | repo probe |
+
+Six of these were tested on the five held-out World Cups (320 matches, 2006-2022)
 and did not clear the bar:
 
 - **Elo + Dixon-Coles ensemble blend**: leave-one-tournament-out cross-validation

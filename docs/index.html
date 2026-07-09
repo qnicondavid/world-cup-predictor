@@ -116,6 +116,40 @@
   .abl-sub { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
   .abl-sub.near { color: var(--accent); }
 
+  .dumb-block { margin: 22px 0 4px; }
+  .dumb-row { display: grid; grid-template-columns: 150px 1fr; gap: 14px; align-items: center; margin-bottom: 22px; }
+  .dumb-label { font-size: 0.82rem; color: #cfd8e3; }
+  .dumb-chip { display: inline-block; font-size: 0.62rem; color: var(--muted); border: 1px solid var(--line);
+    border-radius: 999px; padding: 1px 8px; margin-top: 5px; }
+  .dumb-track { position: relative; height: 12px; }
+  .dumb-line { position: absolute; top: 50%; height: 2px; background: var(--line); transform: translateY(-50%); }
+  .dumb-dot { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%;
+    transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--bg); }
+  .dumb-dot.before { background: var(--muted); }
+  .dumb-dot.after { background: var(--accent); }
+  .dumb-val { position: absolute; top: 15px; font-size: 0.68rem; color: var(--muted);
+    font-variant-numeric: tabular-nums; transform: translateX(-50%); white-space: nowrap; }
+  .dumb-val.after { color: var(--accent); }
+  .dumb-foot { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums;
+    margin: 2px 0 0; line-height: 1.4; }
+
+  .eng-wrap { margin: 20px 0 4px; padding: 30px 0 34px; }
+  .eng-line { position: relative; height: 3px; background: var(--card); border-radius: 2px; }
+  .eng-dot { position: absolute; top: 50%; width: 9px; height: 9px; border-radius: 50%; background: var(--muted);
+    transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--bg); }
+  .eng-dot.shipped { background: var(--accent); width: 12px; height: 12px; }
+  .eng-tick { position: absolute; top: 50%; width: 2px; height: 13px; background: var(--muted); transform: translate(-50%, -50%); }
+  .eng-lbl { position: absolute; font-size: 0.66rem; color: var(--muted); font-variant-numeric: tabular-nums;
+    transform: translateX(-50%); white-space: nowrap; }
+  .eng-lbl.shipped { color: var(--accent); }
+  .eng-lbl.up { bottom: calc(50% + 12px); }
+  .eng-lbl.down { top: calc(50% + 12px); }
+  .eng-lbl.l { transform: translateX(0); }
+  .eng-lbl.r { transform: translateX(-100%); }
+  .eng-legend { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; margin: 4px 0 0; }
+
+  .dc-chart { position: relative; height: 300px; margin: 8px 0 2px; }
+
   .ladder { margin: 4px 0 2px; }
   .lad-head { display: grid; grid-template-columns: 140px 1fr 52px 52px 52px; gap: 10px;
     margin-bottom: 7px; font-size: 0.68rem; color: var(--muted); }
@@ -200,6 +234,7 @@
     .calib { grid-template-columns: 1fr; }
     .draws { grid-template-columns: 1fr; }
     .cs-bands { flex-direction: column; }
+    .dumb-row { grid-template-columns: 1fr; gap: 8px; }
   }
 </style>
 </head>
@@ -261,6 +296,21 @@
           right. One caveat on the first step: the value-prior weights were tuned on 2006 to 2018, so
           four of the five held-out tournaments overlap that window there, and only 2022 is fully out of
           sample (0.6123 to 0.5907).</p>
+
+        <p class="tagline" style="margin-top:26px">The one data edge that shipped was squad market value.
+          Here it is with its cleanest numbers: the muted dot is the model without the prior, the blue dot
+          with it. Lower Brier sits to the left.</p>
+        <div class="dumb-block" id="valuePriorBlock"></div>
+        <p class="dumb-foot" id="valuePriorFoot"></p>
+
+        <p class="tagline" style="margin-top:26px">The raw goal engines are nearly tied. On the same 320
+          held-out matches they land within 0.003 of each other, so the edge is the gated calibration
+          chain, not the engine. The shipped model sits well left; a random guess sits far right.</p>
+        <div class="eng-wrap" id="engineLine"></div>
+        <p class="wcsum" style="margin-top:2px">These four are the raw engines scored head to head. The
+          shipped 0.5441 is reached by the calibration chain above, measured from its own 0.5717
+          Dixon-Coles baseline, so the engine table and that baseline are separate configurations rather
+          than one comparison. Every value here is multiclass Brier over the same 320 matches.</p>
       </section>
 
       <section class="panel" id="champ">
@@ -331,6 +381,17 @@
           favoured side, so the model sharpens its draw estimates without ever picking a draw. Bookmakers
           share the same ceiling.</p>
         <p class="wcsum" id="drawsLive" hidden></p>
+
+        <p class="tagline" style="margin-top:22px">Where does that ceiling come from? This is the empirical
+          curve behind it: the observed draw rate as two teams pull apart in rating, straight from the data.
+          Dots are the observed rate per 50-point gap bin, sized by how many matches fall in each; the blue
+          line is the smoothed table the model actually carries.</p>
+        <div class="dc-chart"><canvas id="drawCurveChart" aria-label="Observed draw rate against Elo rating gap"></canvas></div>
+        <p class="wcsum" id="drawCurveCap" style="margin-top:8px"></p>
+        <p class="wcsum" style="margin-top:6px">One label to keep it honest: this curve belongs to the
+          Elo-side draw model, which drives the baseline and the title simulator. The production Dixon-Coles
+          model derives its draws from the scoreline distribution instead, so read this as the mechanism
+          behind the 30% ceiling, not the production draw engine.</p>
       </section>
 
       <section class="panel" id="past">
@@ -718,6 +779,59 @@ function renderAblation(d) {
   if (ghost) html += row(ghost.label, ghost.brier, "ghost", `${fmt(ghost.delta)} &middot; ${esc(ghost.note)}`, true);
   const el = document.getElementById("ablationRows");
   if (el) el.innerHTML = html;
+  renderValuePrior(d.valuePrior);
+  renderEngines(d.engines, d.shipped, d.uniform);
+}
+
+// Value-prior lift dumbbells: before (no prior) to after (with prior), on a shared Brier scale where
+// lower sits left. Two legs, each with its honesty tag, plus the overfitting and real-squad checks.
+function renderValuePrior(vp) {
+  const el = document.getElementById("valuePriorBlock");
+  if (!el || !vp) return;
+  const legs = [
+    { label: "2022 leg", chip: vp.oos2022.tag, before: vp.oos2022.before, after: vp.oos2022.after },
+    { label: "All five held-out", chip: vp.fiveTourney.tag, before: vp.fiveTourney.before, after: vp.fiveTourney.after }
+  ];
+  const vals = legs.flatMap(l => [l.before, l.after]);
+  const lo = Math.min(...vals) - 0.004, hi = Math.max(...vals) + 0.004;
+  const x = v => ((v - lo) / (hi - lo) * 100).toFixed(1);
+  el.innerHTML = legs.map(l => {
+    const xa = x(l.after), xb = x(l.before);
+    return `<div class="dumb-row">
+      <div><div class="dumb-label">${esc(l.label)}</div><div class="dumb-chip">${esc(l.chip)}</div></div>
+      <div class="dumb-track">
+        <div class="dumb-line" style="left:${xa}%; width:${(xb - xa).toFixed(1)}%"></div>
+        <div class="dumb-dot before" style="left:${xb}%"></div>
+        <div class="dumb-dot after" style="left:${xa}%"></div>
+        <div class="dumb-val" style="left:${xb}%">${l.before.toFixed(4)}</div>
+        <div class="dumb-val after" style="left:${xa}%">${l.after.toFixed(4)}</div>
+      </div>
+    </div>`;
+  }).join("");
+  const foot = document.getElementById("valuePriorFoot");
+  if (foot) foot.textContent = `Re-tuned per fold the weights do slightly worse out of sample (${vp.lotoRetuned.toFixed(4)} against the fixed ${vp.lotoFixed.toFixed(4)}), so they are not curve-fit. Swapping in real published squads finds nothing either: ${vp.realSquadBrier.toFixed(4)} against the proxy's ${vp.proxyBrier.toFixed(4)}.`;
+}
+
+// Engine shoot-out number line: four raw engines clustered within 0.003, the shipped model pulled clear
+// left, uniform far right. All multiclass Brier on the same 320 held-out matches.
+function renderEngines(eng, shipped, uniform) {
+  const el = document.getElementById("engineLine");
+  if (!el || !eng || !eng.models) return;
+  const lo = 0.54, hi = 0.67;
+  const x = v => Math.max(0, Math.min(100, (v - lo) / (hi - lo) * 100)).toFixed(1);
+  const vals = eng.models.map(m => m.brier);
+  const cLo = Math.min(...vals), cHi = Math.max(...vals), cMid = (cLo + cHi) / 2;
+  const dots = eng.models.map(m => `<span class="eng-dot" style="left:${x(m.brier)}%" title="${esc(m.label)} ${m.brier.toFixed(3)}"></span>`).join("");
+  const legend = eng.models.map(m => `${esc(m.label)} ${m.brier.toFixed(3)}`).join(" &middot; ");
+  el.innerHTML = `<div class="eng-line">
+      <span class="eng-dot shipped" style="left:${x(shipped)}%"></span>
+      ${dots}
+      <span class="eng-tick" style="left:${x(uniform)}%"></span>
+      <span class="eng-lbl shipped down l" style="left:${x(shipped)}%">shipped ${shipped.toFixed(4)}</span>
+      <span class="eng-lbl up" style="left:${x(cMid)}%">raw engines ${cLo.toFixed(3)} to ${cHi.toFixed(3)}</span>
+      <span class="eng-lbl down r" style="left:${x(uniform)}%">uniform ${uniform.toFixed(3)}</span>
+    </div>
+    <p class="eng-legend">${legend}</p>`;
 }
 
 let hdData = [], hdYear = "All", hdMisses = false, hdSort = "date", hdDir = -1, hdShow = 20;
@@ -845,6 +959,49 @@ fetch("data/draws.json", { cache: "no-store" })
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(renderDraws)
   .catch(() => {});
+
+fetch("data/draw_curve.json", { cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(renderDrawCurve)
+  .catch(() => {});
+
+// The empirical draw curve behind DrawModel: observed draw rate per 50-point Elo gap bin (dots sized by
+// match count) against the smoothed table the model carries (the line). Elo-side engine, not production.
+function renderDrawCurve(d) {
+  const cap = document.getElementById("drawCurveCap");
+  if (cap) cap.textContent = `Across ${d.replayed.toLocaleString()} post-1980 internationals the observed rate never diverges from the shipped table by more than ${d.maxAbsDiff.toFixed(4)}. Between near-equal sides draws run about 30%, the ceiling that keeps a draw off the top of any prediction; by a 600-point gap they fall to roughly 2%.`;
+  const cv = document.getElementById("drawCurveChart");
+  if (!cv || typeof Chart === "undefined") return;
+  const bins = (d.bins || []).filter(b => b.observed != null);
+  new Chart(cv, {
+    type: "scatter",
+    data: {
+      datasets: [
+        { type: "line", label: "shipped table", data: (d.bins || []).map(b => ({ x: b.gap, y: b.shipped })),
+          borderColor: "#4f9cff", borderWidth: 2, pointRadius: 0, fill: false, tension: 0.25, order: 2 },
+        { label: "observed", data: bins.map(b => ({ x: b.gap, y: b.observed, n: b.n })),
+          backgroundColor: "rgba(139,152,165,0.85)", borderColor: "rgba(139,152,165,0.85)",
+          pointRadius: bins.map(b => 2 + Math.sqrt(b.n) / 12),
+          pointHoverRadius: bins.map(b => 3 + Math.sqrt(b.n) / 12), order: 1 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => c.datasetIndex === 1
+          ? `gap ${c.parsed.x === 600 ? "600+" : c.parsed.x + " to " + (c.parsed.x + 50)}: ${(100 * c.parsed.y).toFixed(1)}% draws, n ${c.raw.n.toLocaleString()}`
+          : `shipped ${(100 * c.parsed.y).toFixed(1)}%` } }
+      },
+      scales: {
+        x: { type: "linear", min: 0, max: 600, title: { display: true, text: "effective Elo rating gap", color: "#8b98a5" },
+             ticks: { color: "#8b98a5", stepSize: 100 }, grid: { color: "#263241" } },
+        y: { min: 0, max: 0.32, title: { display: true, text: "draw rate", color: "#8b98a5" },
+             ticks: { color: "#8b98a5", callback: v => (100 * v).toFixed(0) + "%" }, grid: { color: "#263241" } }
+      }
+    }
+  });
+}
 
 // "Why it never picks a draw": three stat cards + a histogram of the 320 held-out draw probabilities.
 function renderDraws(d) {
