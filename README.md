@@ -21,10 +21,12 @@ the tables below automatically.
 <!-- TRACKER:START -->
 Δ is the total goal difference from the actual result (🎯 = exact), and Brier is multiclass.
 
-**Record: 63/94 picks correct (67.0%), multiclass Brier 0.510, mean goal error 1.9** (uniform guess = 0.667)
+**Record: 64/96 picks correct (66.7%), multiclass Brier 0.510, mean goal error 1.9** (uniform guess = 0.667)
 
 | Date | Match | Winner | H/D/A % | Score (xG) | Result | Δ | Hit |
 |---|---|---|---|---|---|---|---|
+| Jul 7 | Argentina vs Egypt | Argentina | 71/19/10% | 1-0 (1.6–0.5) | 3-2 | 4 | ✅ |
+| Jul 7 | Switzerland vs Colombia | Colombia | 27/23/50% | 1-1 (1.0–1.3) | 0-0 | 2 | ❌ |
 | Jul 6 | United States vs Belgium | Belgium | 30/21/49% | 1-1 (1.3–1.5) | 1-4 | 3 | ✅ |
 | Jul 6 | Portugal vs Spain | Spain | 29/23/48% | 1-1 (1.1–1.3) | 0-1 | 1 | ✅ |
 | Jul 5 | Brazil vs Norway | Brazil | 62/19/19% | 1-1 (1.7–1.0) | 1-2 | 1 | ❌ |
@@ -124,8 +126,6 @@ the tables below automatically.
 
 | Date | Match | Winner | H/D/A % | Score (xG) |
 |---|---|---|---|---|
-| Jul 6 | Argentina vs Egypt | Argentina | 71/19/10% | 1-0 (1.6–0.5) |
-| Jul 6 | Switzerland vs Colombia | Colombia | 27/23/50% | 1-1 (1.0–1.3) |
 | Jul 9 | France vs Morocco | France | 49/25/26% | 1-0 (1.1–0.9) |
 | Jul 10 | Spain vs Belgium | Spain | 57/21/21% | 1-0 (1.5–1.0) |
 | Jul 11 | Norway vs England | England | 22/22/57% | 0-1 (0.9–1.5) |
