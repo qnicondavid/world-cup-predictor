@@ -1,0 +1,11 @@
+{
+  "note": "Held-out combined multiclass Brier as each shipped component is added to the bare Dixon-Coles goal model, ending at the production model. delta is the step-to-step change. bought records whether the decomposition credited the gain to resolution (sharper separation between outcomes) or reliability (calibration). A uniform 1/3-1/3-1/3 guess scores 0.667. Numbers from the README methodology. Caveat: the value-prior weights were tuned on 2006-2018, so four of the five held-out tournaments overlap that window in the first step; only 2022 is fully out of sample there (0.6123 to 0.5907).",
+  "stages": [
+    {"label": "Dixon-Coles (goals only)", "brier": 0.5717, "base": true},
+    {"label": "+ market-value prior", "brier": 0.5566, "delta": -0.0151, "bought": "resolution"},
+    {"label": "+ recent-form nudge", "brier": 0.5506, "delta": -0.0060, "bought": "resolution"},
+    {"label": "+ draw-transfer", "brier": 0.5441, "delta": -0.0065, "bought": "reliability", "shipped": true}
+  ],
+  "ghost": {"label": "stronger form (lambda = 0.60)", "brier": 0.5393, "delta": -0.0048, "note": "rejected: CI grazes zero, 2022 regresses"},
+  "uniform": 0.667
+}
