@@ -122,11 +122,16 @@
   .lad-row { display: grid; grid-template-columns: 140px 1fr 52px 52px 52px; gap: 10px;
     align-items: center; margin-bottom: 7px; }
   .lad-team { font-size: 0.85rem; color: #cfd8e3; }
-  .lad-bar { position: relative; height: 16px; background: var(--card); border-radius: 3px; }
+  .lad-bar { position: relative; height: 18px; background: var(--card); border-radius: 3px; }
   .lad-seg { position: absolute; left: 0; top: 0; height: 100%; border-radius: 3px; background: var(--accent); }
   .lad-seg.semis { opacity: 0.28; }
   .lad-seg.final { opacity: 0.55; }
   .lad-seg.title { opacity: 1; }
+  .lad-key { display: flex; align-items: center; gap: 5px; }
+  .lad-key .sw { width: 10px; height: 10px; border-radius: 2px; background: var(--accent); }
+  .lad-key .sw.semis { opacity: 0.28; }
+  .lad-key .sw.final { opacity: 0.55; }
+  .lad-key .sw.title { opacity: 1; }
   .lad-val { text-align: right; font-size: 0.82rem; font-variant-numeric: tabular-nums; }
   .lad-val.dim { color: var(--muted); }
   .lad-val.ttl { color: var(--fg); }
@@ -139,6 +144,11 @@
   .hd-chip.on { color: var(--fg); border-color: var(--accent); }
   .hd-sep { width: 1px; height: 15px; background: var(--line); margin: 0 3px; }
   #hdTable td, #hdTable th { padding: 6px 10px; }
+
+  .calib { display: grid; grid-template-columns: 1fr 210px; gap: 22px; align-items: center; margin: 6px 0 4px; }
+  .calib-chart { position: relative; height: 280px; }
+  .calib-stats { display: flex; flex-direction: column; gap: 16px; }
+  .calib-stats .stat .lbl { white-space: normal; }
 
   @media (max-width: 560px) {
     .wrap { padding-top: 0; }
@@ -155,6 +165,7 @@
     .abl-label { grid-column: 1 / -1; margin-bottom: 2px; }
     .lad-head, .lad-row { grid-template-columns: 76px 1fr 44px 44px 44px; gap: 6px; }
     #hdTable td:nth-child(4), #hdTable th:nth-child(4) { display: none; }
+    .calib { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -219,13 +230,12 @@
 
       <section class="panel" id="champ">
         <h2>Championship odds</h2>
-        <div class="bars" id="champBars"></div>
-        <p class="tagline" style="margin-top:22px">Route to the title: for each side still in, the chance
-          of reaching the semi-finals, the final, and winning it. The bar runs from the lightest shade
-          (the semis) to the solid one (the title).</p>
+        <p class="tagline">For each side still in, the chance of reaching the semi-finals, the final, and
+          winning the title. The nested bar darkens from the semis (lightest) through the final to the
+          title (solid).</p>
         <div class="lad-head">
           <span></span>
-          <span>chance of reaching each stage</span>
+          <span class="lad-key"><span class="sw semis"></span>semis<span class="sw final"></span>final<span class="sw title"></span>title</span>
           <span class="r">Semis</span>
           <span class="r">Final</span>
           <span class="r">Title</span>
@@ -272,6 +282,18 @@
           <div class="wccard"><div class="yr">2022</div><div class="acc">56%</div><div class="k">accuracy</div><div class="bri">0.589</div><div class="k">Brier</div></div>
         </div>
         <p class="wcsum">Combined across all 320 matches: <strong>59.4%</strong> accuracy, multiclass Brier <strong>0.544</strong> (uniform guess = 0.667), beating both the baseline and a coin flip. The model reads the earlier tournaments best; the tighter recent fields are harder.</p>
+        <p class="tagline" style="margin-top:22px">A probability model should be right about as often as it
+          claims. Each point groups the 320 picks by how confident the model was and plots that against
+          how often it actually won. Well-calibrated points sit on the dashed diagonal.</p>
+        <div class="calib">
+          <div class="calib-chart"><canvas id="calibChart" aria-label="Reliability curve: predicted win probability against observed win rate"></canvas></div>
+          <div class="calib-stats" id="calibStats"></div>
+        </div>
+        <p class="wcsum" style="margin-top:10px">The points sit close to the diagonal, so the model wins
+          about as often as its confidence implies. The top bin is thin, only 18 matches above 80
+          percent, and the small dip at 65 percent is sampling noise rather than miscalibration. Murphy
+          splits the Brier into the three parts on the right: the value prior and recent form bought
+          resolution, the draw-transfer bought reliability.</p>
       </section>
 
       <section class="panel" id="heldout">
@@ -292,11 +314,11 @@
           <button class="hd-chip" data-toggle="misses">misses only</button>
           <span class="hd-sep"></span>
           <span class="hd-lbl">sort</span>
-          <button class="hd-chip on" data-sort="date">date</button>
-          <button class="hd-chip" data-sort="conf">confidence</button>
+          <button class="hd-chip on" data-sort="date" data-label="date">date</button>
+          <button class="hd-chip" data-sort="conf" data-label="confidence">confidence</button>
         </div>
         <table id="hdTable"><thead><tr>
-          <th>Date</th><th>Match</th><th class="num">H/D/A</th><th>Pick</th><th>Actual</th><th class="num">Hit</th>
+          <th>Date</th><th>Match</th><th>Pick</th><th class="num">H/D/A</th><th>Result</th><th class="num">Hit</th>
         </tr></thead><tbody></tbody></table>
         <div style="margin-top:12px"><button class="hd-chip" id="hdMore">show more</button></div>
       </section>
@@ -399,16 +421,9 @@ function render(d) {
 
   // Only teams still able to win: drop eliminated sides (0% title odds) from the odds table/chart.
   const odds = (d.titleOdds || []).filter(o => o.title > 0).slice().sort((a, b) => b.title - a.title);
-  const max = odds.length ? odds[0].title : 1;
-  document.getElementById("champBars").innerHTML = odds.map(o =>
-    `<div class="bar-row">
-       <div class="bar-team">${esc(o.team)}</div>
-       <div class="bar-track"><div class="bar-fill" style="width:${(o.title / max * 100).toFixed(0)}%"></div></div>
-       <div class="bar-val">${o.title.toFixed(1)}%</div>
-     </div>`).join("");
 
-  // Route to the title: reuse the same filtered/sorted odds, reading the semis/final fields the
-  // bars above ignore. Nested bar runs from chance of reaching the semis (lightest) to title (solid).
+  // Route to the title: live teams by title odds, reading the semis/final fields too. The nested
+  // bar runs from the chance of reaching the semis (lightest) to winning the title (solid).
   const ladder = document.getElementById("ladderRows");
   if (ladder) {
     const lscale = Math.max(...odds.map(o => o.semis), 1) * 1.05;
@@ -564,7 +579,7 @@ function renderAblation(d) {
   if (el) el.innerHTML = html;
 }
 
-let hdData = [], hdYear = "All", hdMisses = false, hdSort = "date", hdShow = 20;
+let hdData = [], hdYear = "All", hdMisses = false, hdSort = "date", hdDir = -1, hdShow = 20;
 fetch("data/heldout.csv", { cache: "no-store" })
   .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
   .then(parseHeldout)
@@ -595,17 +610,26 @@ function parseHeldout(txt) {
 
 function hdSide(r, s) { return s === "draw" ? "Draw" : s === "home" ? r.home : r.away; }
 function hdDay(d) { return `${MON[+d.slice(5, 7) - 1]} ${+d.slice(8, 10)}, ${d.slice(0, 4)}`; }
+function hdSortChips() {
+  document.querySelectorAll("#hdControls [data-sort]").forEach(b => {
+    const on = b.getAttribute("data-sort") === hdSort;
+    b.classList.toggle("on", on);
+    b.textContent = b.getAttribute("data-label") + (on ? (hdDir < 0 ? " ↓" : " ↑") : "");
+  });
+}
 
 function renderHeldout() {
   let rows = hdData.filter(r => (hdYear === "All" || r.tour === hdYear) && (!hdMisses || !r.hit));
-  rows.sort(hdSort === "conf"
-    ? (a, b) => b.conf - a.conf
-    : (a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  rows.sort((a, b) => {
+    const d = hdSort === "conf" ? a.conf - b.conf : (a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+    return d * hdDir;
+  });
   const body = document.querySelector("#hdTable tbody");
   if (body) body.innerHTML = rows.slice(0, hdShow).map(r =>
     `<tr><td>${hdDay(r.date)}</td><td>${esc(r.home)} v ${esc(r.away)}</td>
+      <td>${esc(hdSide(r, r.pick))}</td>
       <td class="num">${(100 * r.pHome).toFixed(0)}/${(100 * r.pDraw).toFixed(0)}/${(100 * r.pAway).toFixed(0)}</td>
-      <td>${esc(hdSide(r, r.pick))}</td><td>${esc(hdSide(r, r.actual))}</td>
+      <td>${esc(hdSide(r, r.actual))}</td>
       <td class="num ${r.hit ? "hit" : "miss"}">${r.hit ? "✓" : "✗"}</td></tr>`).join("")
     || `<tr><td colspan="6" style="color:var(--muted)">no matches</td></tr>`;
   const more = document.getElementById("hdMore");
@@ -621,15 +645,59 @@ function wireHeldout() {
       renderHeldout();
     }));
     c.querySelectorAll("[data-sort]").forEach(b => b.addEventListener("click", () => {
-      hdSort = b.getAttribute("data-sort"); hdShow = 20;
-      c.querySelectorAll("[data-sort]").forEach(x => x.classList.toggle("on", x === b));
-      renderHeldout();
+      const key = b.getAttribute("data-sort");
+      if (hdSort === key) hdDir = -hdDir; else { hdSort = key; hdDir = -1; }
+      hdShow = 20; hdSortChips(); renderHeldout();
     }));
     const mt = c.querySelector("[data-toggle=misses]");
     if (mt) mt.addEventListener("click", () => { hdMisses = !hdMisses; hdShow = 20; mt.classList.toggle("on", hdMisses); renderHeldout(); });
+    hdSortChips();
   }
   const more = document.getElementById("hdMore");
   if (more) more.addEventListener("click", () => { hdShow += 20; renderHeldout(); });
+}
+
+fetch("data/calibration.json", { cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(renderCalibration)
+  .catch(() => {});
+
+// Reliability curve (pick confidence vs observed hit rate) + the Murphy split of the Brier.
+function renderCalibration(d) {
+  const m = d.murphy || {};
+  const stats = document.getElementById("calibStats");
+  if (stats) stats.innerHTML =
+    `<div class="stat"><div class="num">${(m.reliability || 0).toFixed(4)}</div><div class="lbl">reliability &middot; calibration error, lower is better</div></div>
+     <div class="stat"><div class="num">${(m.resolution || 0).toFixed(4)}</div><div class="lbl">resolution &middot; how sharply the probabilities separate outcomes, higher is better</div></div>
+     <div class="stat"><div class="num">${(m.uncertainty || 0).toFixed(4)}</div><div class="lbl">uncertainty &middot; set by the outcome base rates</div></div>`;
+  const cv = document.getElementById("calibChart");
+  if (!cv || typeof Chart === "undefined") return;
+  const bins = d.bins || [];
+  new Chart(cv, {
+    type: "scatter",
+    data: {
+      datasets: [
+        { type: "line", data: [{ x: 35, y: 35 }, { x: 95, y: 95 }], borderColor: "#8b98a5",
+          borderDash: [5, 4], borderWidth: 1, pointRadius: 0, fill: false, order: 2 },
+        { data: bins.map(b => ({ x: b.conf, y: b.hit })), backgroundColor: "#4f9cff", borderColor: "#4f9cff",
+          pointRadius: bins.map(b => 2 + Math.sqrt(b.n) * 0.8),
+          pointHoverRadius: bins.map(b => 3 + Math.sqrt(b.n) * 0.8), order: 1 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => c.datasetIndex === 1 ? `conf ${c.parsed.x}%, won ${c.parsed.y}%` : "" } }
+      },
+      scales: {
+        x: { min: 35, max: 95, title: { display: true, text: "predicted win probability", color: "#8b98a5" },
+             ticks: { color: "#8b98a5", callback: v => v + "%" }, grid: { color: "#263241" } },
+        y: { min: 35, max: 95, title: { display: true, text: "observed win rate", color: "#8b98a5" },
+             ticks: { color: "#8b98a5", callback: v => v + "%" }, grid: { color: "#263241" } }
+      }
+    }
+  });
 }
 
 const navLinks = {};

@@ -1,0 +1,12 @@
+{
+  "note": "Calibration of the 320 held-out picks. Each bin groups matches by the model's pick confidence (the winning probability it assigned), then compares the mean confidence with the observed hit rate; perfect calibration puts every point on the diagonal. murphy is the three-part decomposition of the multiclass Brier (reliability - resolution + uncertainty) from research/verify.py. Bins recomputed from research/export_predictions_form.csv; ECE 0.0261.",
+  "bins": [
+    {"conf": 45.3, "hit": 45.7, "n": 92},
+    {"conf": 54.9, "hit": 61.2, "n": 98},
+    {"conf": 64.8, "hit": 58.7, "n": 75},
+    {"conf": 74.3, "hit": 78.4, "n": 37},
+    {"conf": 84.9, "hit": 83.3, "n": 18}
+  ],
+  "murphy": {"reliability": 0.0095, "resolution": 0.1065, "uncertainty": 0.6447},
+  "ece": 0.0261
+}
