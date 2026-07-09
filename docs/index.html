@@ -239,14 +239,22 @@ function render(d) {
   if (!(d.resolved || []).length) rb.innerHTML = `<tr><td colspan="7" style="color:var(--muted)">none yet</td></tr>`;
 
   const ub = document.querySelector("#upcomingTable tbody");
-  (d.upcoming || []).forEach(m => {
+  // Drop fixtures whose date has already passed: once a game is played it should leave the
+  // prediction list, even if its result has not been ingested yet. Same month*100+day key as
+  // the resolved table, compared against today's date (the viewer's local date).
+  const now = new Date();
+  const todayKey = (now.getMonth() + 1) * 100 + now.getDate();
+  const pending = (d.upcoming || []).filter(m => md(m.date) >= todayKey);
+  pending.forEach(m => {
     ub.insertAdjacentHTML("beforeend",
       `<tr><td>${esc(m.date)}</td><td>${esc(m.home)} v ${esc(m.away)}</td><td>${esc(m.pick)}</td>
        <td class="num">${pct(m.pHome)}</td><td class="num">${pct(m.pDraw)}</td>
        <td class="num">${pct(m.pAway)}</td><td>${esc(m.predScore)}</td></tr>`);
   });
+  if (!pending.length) ub.innerHTML = `<tr><td colspan="7" style="color:var(--muted)">none scheduled</td></tr>`;
 
-  const odds = (d.titleOdds || []).slice().sort((a, b) => b.title - a.title);
+  // Only teams still able to win: drop eliminated sides (0% title odds) from the odds table/chart.
+  const odds = (d.titleOdds || []).filter(o => o.title > 0).slice().sort((a, b) => b.title - a.title);
   const max = odds.length ? odds[0].title : 1;
   document.getElementById("champBars").innerHTML = odds.map(o =>
     `<div class="bar-row">
