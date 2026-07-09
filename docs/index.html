@@ -115,6 +115,22 @@
   .abl-sub { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
   .abl-sub.near { color: var(--accent); }
 
+  .ladder { margin: 4px 0 2px; }
+  .lad-head { display: grid; grid-template-columns: 140px 1fr 52px 52px 52px; gap: 10px;
+    margin-bottom: 7px; font-size: 0.68rem; color: var(--muted); }
+  .lad-head .r { text-align: right; }
+  .lad-row { display: grid; grid-template-columns: 140px 1fr 52px 52px 52px; gap: 10px;
+    align-items: center; margin-bottom: 7px; }
+  .lad-team { font-size: 0.85rem; color: #cfd8e3; }
+  .lad-bar { position: relative; height: 16px; background: var(--card); border-radius: 3px; }
+  .lad-seg { position: absolute; left: 0; top: 0; height: 100%; border-radius: 3px; background: var(--accent); }
+  .lad-seg.semis { opacity: 0.28; }
+  .lad-seg.final { opacity: 0.55; }
+  .lad-seg.title { opacity: 1; }
+  .lad-val { text-align: right; font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+  .lad-val.dim { color: var(--muted); }
+  .lad-val.ttl { color: var(--fg); }
+
   @media (max-width: 560px) {
     .wrap { padding-top: 0; }
     .topbar { position: static; max-width: none; margin: 0; padding: 24px 0 8px; }
@@ -128,6 +144,7 @@
     .ledger-row { grid-template-columns: 1fr; gap: 8px; }
     .abl-row { grid-template-columns: 1fr auto; }
     .abl-label { grid-column: 1 / -1; margin-bottom: 2px; }
+    .lad-head, .lad-row { grid-template-columns: 76px 1fr 44px 44px 44px; gap: 6px; }
   }
 </style>
 </head>
@@ -192,6 +209,20 @@
       <section class="panel" id="champ">
         <h2>Championship odds</h2>
         <div class="bars" id="champBars"></div>
+        <p class="tagline" style="margin-top:22px">Route to the title: for each side still in, the chance
+          of reaching the semi-finals, the final, and winning it. The bar runs from the lightest shade
+          (the semis) to the solid one (the title).</p>
+        <div class="lad-head">
+          <span></span>
+          <span>chance of reaching each stage</span>
+          <span class="r">Semis</span>
+          <span class="r">Final</span>
+          <span class="r">Title</span>
+        </div>
+        <div class="ladder" id="ladderRows"></div>
+        <p class="wcsum" style="margin-top:12px">These come from 10,000 Monte-Carlo runs of the bracket.
+          The simulator keeps it simple: neutral venues, no draws, and the knockout paired in schedule
+          order. Read them as the model's view, not a hard forecast.</p>
       </section>
 
       <section class="panel" id="traj">
@@ -337,6 +368,22 @@ function render(d) {
        <div class="bar-track"><div class="bar-fill" style="width:${(o.title / max * 100).toFixed(0)}%"></div></div>
        <div class="bar-val">${o.title.toFixed(1)}%</div>
      </div>`).join("");
+
+  // Route to the title: reuse the same filtered/sorted odds, reading the semis/final fields the
+  // bars above ignore. Nested bar runs from chance of reaching the semis (lightest) to title (solid).
+  const ladder = document.getElementById("ladderRows");
+  if (ladder) {
+    const lscale = Math.max(...odds.map(o => o.semis), 1) * 1.05;
+    const seg = (cls, v) => `<span class="lad-seg ${cls}" style="width:${(v / lscale * 100).toFixed(1)}%"></span>`;
+    ladder.innerHTML = odds.map(o =>
+      `<div class="lad-row">
+         <div class="lad-team">${esc(o.team)}</div>
+         <div class="lad-bar">${seg("semis", o.semis)}${seg("final", o.final)}${seg("title", o.title)}</div>
+         <div class="lad-val dim">${o.semis.toFixed(1)}%</div>
+         <div class="lad-val dim">${o.final.toFixed(1)}%</div>
+         <div class="lad-val ttl">${o.title.toFixed(1)}%</div>
+       </div>`).join("");
+  }
 }
 
 const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];

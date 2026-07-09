@@ -6,6 +6,5 @@
     {"label": "+ recent-form nudge", "brier": 0.5506, "delta": -0.0060, "bought": "resolution"},
     {"label": "+ draw-transfer", "brier": 0.5441, "delta": -0.0065, "bought": "reliability", "shipped": true}
   ],
-  "ghost": {"label": "stronger form (lambda = 0.60)", "brier": 0.5393, "delta": -0.0048, "note": "rejected: CI grazes zero, 2022 regresses"},
   "uniform": 0.667
 }
