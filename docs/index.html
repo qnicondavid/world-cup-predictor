@@ -70,6 +70,7 @@
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   .hit { color: var(--good); } .miss { color: var(--bad); }
   .exact-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); margin-left: 5px; vertical-align: middle; }
+  #resolvedTable td.num { white-space: nowrap; }
   footer { margin-top: 40px; color: var(--muted); font-size: 0.85rem; }
   canvas { max-height: 380px; }
   .err { color: var(--bad); }
@@ -133,7 +134,7 @@
   .dumb-foot { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums;
     margin: 2px 0 0; line-height: 1.4; }
 
-  .eng-wrap { margin: 20px 0 4px; padding: 30px 0 34px; }
+  .eng-wrap { margin: 20px 0 4px; padding: 30px 0 12px; }
   .eng-line { position: relative; height: 3px; background: var(--card); border-radius: 2px; }
   .eng-dot { position: absolute; top: 50%; width: 9px; height: 9px; border-radius: 50%; background: var(--muted);
     transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--bg); }
@@ -146,7 +147,7 @@
   .eng-lbl.down { top: calc(50% + 12px); }
   .eng-lbl.l { transform: translateX(0); }
   .eng-lbl.r { transform: translateX(-100%); }
-  .eng-legend { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; margin: 4px 0 0; }
+  .eng-legend { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; margin: 30px 0 0; }
 
   .dc-chart { position: relative; height: 300px; margin: 8px 0 2px; }
 
