@@ -38,10 +38,11 @@ the tables below automatically.
 <!-- TRACKER:START -->
 Δ is the total goal difference from the actual result (🎯 = exact), and Brier is multiclass.
 
-**Record: 64/96 picks correct (66.7%), multiclass Brier 0.510, mean goal error 1.9** (uniform guess = 0.667)
+**Record: 65/97 picks correct (67.0%), multiclass Brier 0.509, mean goal error 1.9** (uniform guess = 0.667)
 
 | Date | Match | Winner | H/D/A % | Score (xG) | Result | Δ | Hit |
 |---|---|---|---|---|---|---|---|
+| Jul 9 | France vs Morocco | France | 49/25/26% | 1-0 (1.1–0.9) | 2-0 | 1 | ✅ |
 | Jul 7 | Argentina vs Egypt | Argentina | 71/19/10% | 1-0 (1.6–0.5) | 3-2 | 4 | ✅ |
 | Jul 7 | Switzerland vs Colombia | Colombia | 27/23/50% | 1-1 (1.0–1.3) | 0-0 | 2 | ❌ |
 | Jul 6 | United States vs Belgium | Belgium | 30/21/49% | 1-1 (1.3–1.5) | 1-4 | 3 | ✅ |
@@ -143,7 +144,6 @@ the tables below automatically.
 
 | Date | Match | Winner | H/D/A % | Score (xG) |
 |---|---|---|---|---|
-| Jul 9 | France vs Morocco | France | 49/25/26% | 1-0 (1.1–0.9) |
 | Jul 10 | Spain vs Belgium | Spain | 57/21/21% | 1-0 (1.5–1.0) |
 | Jul 11 | Norway vs England | England | 22/22/57% | 0-1 (0.9–1.5) |
 | Jul 11 | Argentina vs Switzerland | Argentina | 58/22/20% | 1-0 (1.5–0.8) |
@@ -153,26 +153,17 @@ the tables below automatically.
 ### Championship odds
 
 <!-- TITLE:START -->
-The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-07-09. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
+The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-07-10. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
 
 | # | Team | Title | Final | Semis |
 |---|---|---|---|---|
-| 1 | Argentina | 28.6% | 50.9% | 75.5% |
-| 2 | Spain | 24.0% | 41.4% | 71.8% |
-| 3 | France | 20.7% | 37.5% | 68.5% |
-| 4 | England | 11.8% | 27.8% | 62.4% |
-| 5 | Morocco | 4.3% | 11.0% | 31.5% |
-| 6 | Norway | 4.0% | 11.9% | 37.7% |
-| 7 | Belgium | 3.8% | 10.2% | 28.2% |
-| 8 | Switzerland | 2.7% | 9.4% | 24.5% |
-| 9 | Mexico | 0.0% | 0.0% | 0.0% |
-| 10 | South Africa | 0.0% | 0.0% | 0.0% |
-| 11 | South Korea | 0.0% | 0.0% | 0.0% |
-| 12 | Czech Republic | 0.0% | 0.0% | 0.0% |
-| 13 | Canada | 0.0% | 0.0% | 0.0% |
-| 14 | Bosnia and Herzegovina | 0.0% | 0.0% | 0.0% |
-| 15 | United States | 0.0% | 0.0% | 0.0% |
-| 16 | Paraguay | 0.0% | 0.0% | 0.0% |
+| 1 | France | 34.6% | 58.0% | 100.0% |
+| 2 | Argentina | 26.6% | 51.0% | 76.3% |
+| 3 | Spain | 20.0% | 34.1% | 71.8% |
+| 4 | England | 10.5% | 27.1% | 62.0% |
+| 5 | Norway | 3.2% | 12.2% | 38.0% |
+| 6 | Belgium | 2.8% | 7.9% | 28.2% |
+| 7 | Switzerland | 2.4% | 9.6% | 23.7% |
 
 <!-- TITLE:END -->
 
