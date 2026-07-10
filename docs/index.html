@@ -47,6 +47,8 @@
   .stat .num { font-size: 2rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1; }
   .stat .lbl { color: var(--muted); font-size: 0.72rem; line-height: 1.45; margin-top: 10px; white-space: nowrap; }
   .stat + .stat { border-left: 1px solid var(--line); padding-left: 24px; }
+  .statrow .stat { text-align: center; }
+  .statrow .stat + .stat { padding-left: 0; }
 
   .bars { margin-top: 4px; }
   .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
@@ -109,29 +111,25 @@
     margin-bottom: 9px; }
   .abl-label { font-size: 0.85rem; color: #cfd8e3; }
   .abl-track { position: relative; height: 16px; background: transparent; border-radius: 3px; }
-  .abl-fill { height: 100%; background: var(--accent); border-radius: 3px; }
-  .abl-fill.base { background: var(--muted); }
-  .abl-fill.uniform { background: var(--muted); opacity: 0.4; }
-  .abl-fill.ghost { background: transparent; border: 1px dashed var(--muted); }
+  .abl-fill { position: relative; height: 100%; background: var(--accent); border-radius: 3px; }
+  .abl-gain { position: absolute; right: 0; top: 0; height: 100%; background: rgba(255,255,255,0.62);
+    border-radius: 0 3px 3px 0; }
   .abl-num { text-align: right; }
   .abl-brier { font-size: 0.9rem; color: var(--fg); font-variant-numeric: tabular-nums; }
   .abl-sub { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
   .abl-sub.near { color: var(--accent); }
 
   .dumb-block { margin: 22px 0 4px; }
-  .dumb-row { display: grid; grid-template-columns: 150px 1fr; gap: 14px; align-items: center; margin-bottom: 22px; }
-  .dumb-label { font-size: 0.82rem; color: #cfd8e3; }
+  .vp-row { display: grid; grid-template-columns: 150px 1fr 74px; gap: 14px; align-items: center; margin-bottom: 16px; }
+  .vp-label { font-size: 0.82rem; color: #cfd8e3; }
   .dumb-chip { display: inline-block; font-size: 0.62rem; color: var(--muted); border: 1px solid var(--line);
     border-radius: 999px; padding: 1px 8px; margin-top: 5px; }
-  .dumb-track { position: relative; height: 12px; }
-  .dumb-line { position: absolute; top: 50%; height: 2px; background: var(--line); transform: translateY(-50%); }
-  .dumb-dot { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%;
-    transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--bg); }
-  .dumb-dot.before { background: var(--muted); }
-  .dumb-dot.after { background: var(--accent); }
-  .dumb-val { position: absolute; top: 15px; font-size: 0.68rem; color: var(--muted);
-    font-variant-numeric: tabular-nums; transform: translateX(-50%); white-space: nowrap; }
-  .dumb-val.after { color: var(--accent); }
+  .vp-nums { font-size: 0.76rem; color: var(--muted); font-variant-numeric: tabular-nums; margin-bottom: 5px; }
+  .vp-nums .vp-after { color: var(--accent); }
+  .vp-arrow { margin: 0 4px; }
+  .vp-track { height: 10px; }
+  .vp-drop { height: 100%; background: var(--accent); border-radius: 3px; }
+  .vp-delta { text-align: right; font-size: 0.82rem; color: var(--accent); font-variant-numeric: tabular-nums; }
   .dumb-foot { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums;
     margin: 2px 0 0; line-height: 1.4; }
 
@@ -164,11 +162,11 @@
   .lad-seg.semis { opacity: 0.28; }
   .lad-seg.final { opacity: 0.55; }
   .lad-seg.title { opacity: 1; }
-  .lad-key { display: flex; align-items: center; gap: 5px; }
-  .lad-key .sw { width: 10px; height: 10px; border-radius: 2px; background: var(--accent); }
-  .lad-key .sw.semis { opacity: 0.28; }
-  .lad-key .sw.final { opacity: 0.55; }
-  .lad-key .sw.title { opacity: 1; }
+  .lad-head .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: var(--accent);
+    vertical-align: middle; margin-right: 4px; }
+  .lad-head .sw.semis { opacity: 0.28; }
+  .lad-head .sw.final { opacity: 0.55; }
+  .lad-head .sw.title { opacity: 1; }
   .lad-val { text-align: right; font-size: 0.82rem; font-variant-numeric: tabular-nums; }
   .lad-val.dim { color: var(--muted); }
   .lad-val.ttl { color: var(--fg); }
@@ -236,7 +234,8 @@
     .calib { grid-template-columns: 1fr; }
     .draws { grid-template-columns: 1fr; }
     .cs-bands { flex-direction: column; }
-    .dumb-row { grid-template-columns: 1fr; gap: 8px; }
+    .vp-row { grid-template-columns: 1fr; gap: 6px; }
+    .vp-delta { text-align: left; }
   }
 </style>
 </head>
@@ -294,14 +293,16 @@
           the production model. The top bar is a random guess at 0.667.</p>
         <div class="ablation" id="ablationRows"></div>
         <p class="wcsum" style="margin-top:10px">Every bar runs to scale from zero, so its length is the
-          Brier as a share of the random guess at the top, and the exact value is printed on each row. One
-          caveat on the first step: the value-prior weights were tuned on 2006 to 2018, so four of the five
-          held-out tournaments overlap that window there, and only 2022 is fully out of sample (0.6123 to
+          Brier as a share of the random guess at the top, shaded dark to light down the chain. The
+          brighter tip on each step is the improvement it bought, magnified so the small gains stay
+          comparable to each other, and the exact value is printed on each row. One caveat on the first
+          step: the value-prior weights were tuned on 2006 to 2018, so four of the five held-out
+          tournaments overlap that window there, and only 2022 is fully out of sample (0.6123 to
           0.5907).</p>
 
         <p class="tagline" style="margin-top:26px">The one data edge that shipped was squad market value.
-          Here it is with its cleanest numbers: the muted dot is the model without the prior, the blue dot
-          with it. Lower Brier sits to the left.</p>
+          Here it is with its cleanest numbers: the held-out Brier without the prior, then with it, and a
+          bar sized by the drop so you can see where it helped more.</p>
         <div class="dumb-block" id="valuePriorBlock"></div>
         <p class="dumb-foot" id="valuePriorFoot"></p>
 
@@ -322,10 +323,10 @@
           title (solid).</p>
         <div class="lad-head">
           <span></span>
-          <span class="lad-key"><span class="sw semis"></span>semis<span class="sw final"></span>final<span class="sw title"></span>title</span>
-          <span class="r">Semis</span>
-          <span class="r">Final</span>
-          <span class="r">Title</span>
+          <span></span>
+          <span class="r"><span class="sw semis"></span>Semis</span>
+          <span class="r"><span class="sw final"></span>Final</span>
+          <span class="r"><span class="sw title"></span>Title</span>
         </div>
         <div class="ladder" id="ladderRows"></div>
         <p class="wcsum" style="margin-top:12px">These come from 10,000 Monte-Carlo runs of the bracket.
@@ -680,6 +681,7 @@ function drawTraj() {
       plugins: {
         legend: { labels: { color: "#e6edf3", filter: item => top6.includes(item.text) } },
         tooltip: { filter: item => item.parsed.y != null,
+          itemSort: (a, b) => b.parsed.y - a.parsed.y,
           callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y.toFixed(1)}%` } }
       },
       scales: {
@@ -757,35 +759,43 @@ fetch("data/ablation.json", { cache: "no-store" })
     if (el) el.innerHTML = `<p class="tagline">Could not load data/ablation.json.</p>`;
   });
 
-// Renders the component "ablation staircase": held-out Brier as each shipped part is added, on a
-// true zero-based scale (each bar length is the Brier as a share of the uniform guess, shown as a row).
+// Renders the component "ablation staircase": bars run to scale as a share of the uniform guess, shaded
+// dark to light down the chain; each step's brighter tip is its improvement on a shared magnified scale
+// (the gains are proportional to each other, not to the full bar, since the true fractions are tiny).
 function renderAblation(d) {
-  const stages = (d.stages || []).slice();
-  const ghost = d.ghost;
-  const scaleMax = d.uniform || (Math.max(...stages.map(s => s.brier)) * 1.02);
-  const w = b => Math.max(0, Math.min(100, b / scaleMax * 100)).toFixed(1);
   const fmt = v => (v > 0 ? "+" : "") + v.toFixed(4);
-  const row = (label, brier, fillCls, sub, subNear) =>
-    `<div class="abl-row">
-       <div class="abl-label">${esc(label)}</div>
-       <div class="abl-track"><div class="abl-fill ${fillCls}" style="width:${w(brier)}%"></div></div>
-       <div class="abl-num"><div class="abl-brier">${brier.toFixed(4)}</div><div class="abl-sub${subNear ? " near" : ""}">${sub}</div></div>
+  const rows = [];
+  if (d.uniform != null) rows.push({ label: "Uniform guess", brier: d.uniform, delta: null, sub: "random 1/3 each" });
+  (d.stages || []).forEach(s => rows.push({
+    label: s.label, brier: s.brier, delta: s.delta,
+    sub: s.delta != null ? `${fmt(s.delta)}${s.bought ? " &middot; " + esc(s.bought) : ""}` : "baseline"
+  }));
+  const scaleMax = d.uniform || Math.max(...rows.map(r => r.brier)) * 1.02;
+  const w = b => Math.max(0, Math.min(100, b / scaleMax * 100));
+  const maxDelta = Math.max(...rows.filter(r => r.delta != null).map(r => Math.abs(r.delta)), 1e-9);
+  const capMax = 16;                                   // % width of the largest improvement tip
+  const cap = delta => delta != null ? Math.abs(delta) / maxDelta * capMax : 0;
+  const dark = [33, 60, 102], lightC = [130, 187, 255];  // gradient endpoints, dark to light blue
+  const shade = i => { const t = rows.length > 1 ? i / (rows.length - 1) : 1;
+    return `rgb(${dark.map((c, k) => Math.round(c + (lightC[k] - c) * t)).join(",")})`; };
+  const html = rows.map((r, i) => {
+    const bw = w(r.brier).toFixed(1);
+    const cw = Math.min(cap(r.delta), w(r.brier)).toFixed(1);
+    const gain = r.delta != null ? `<span class="abl-gain" style="width:${cw}%"></span>` : "";
+    return `<div class="abl-row">
+       <div class="abl-label">${esc(r.label)}</div>
+       <div class="abl-track"><div class="abl-fill" style="width:${bw}%;background:${shade(i)}">${gain}</div></div>
+       <div class="abl-num"><div class="abl-brier">${r.brier.toFixed(4)}</div><div class="abl-sub">${r.sub}</div></div>
      </div>`;
-  let html = "";
-  if (d.uniform != null) html += row("Uniform guess", d.uniform, "uniform", "random 1/3 each", false);
-  stages.forEach(s => {
-    const sub = s.delta != null ? `${fmt(s.delta)}${s.bought ? " &middot; " + esc(s.bought) : ""}` : "baseline";
-    html += row(s.label, s.brier, s.base ? "base" : "", sub, false);
-  });
-  if (ghost) html += row(ghost.label, ghost.brier, "ghost", `${fmt(ghost.delta)} &middot; ${esc(ghost.note)}`, true);
+  }).join("");
   const el = document.getElementById("ablationRows");
   if (el) el.innerHTML = html;
   renderValuePrior(d.valuePrior);
   renderEngines(d.engines, d.shipped, d.uniform);
 }
 
-// Value-prior lift dumbbells: before (no prior) to after (with prior), on a shared Brier scale where
-// lower sits left. Two legs, each with its honesty tag, plus the overfitting and real-squad checks.
+// Value-prior lift: for each held-out slice, the Brier without the prior then with it, and a bar sized
+// by the drop (shared scale across the slices, so you can see where the prior helped more).
 function renderValuePrior(vp) {
   const el = document.getElementById("valuePriorBlock");
   if (!el || !vp) return;
@@ -793,20 +803,17 @@ function renderValuePrior(vp) {
     { label: "2022 leg", chip: vp.oos2022.tag, before: vp.oos2022.before, after: vp.oos2022.after },
     { label: "All five held-out", chip: vp.fiveTourney.tag, before: vp.fiveTourney.before, after: vp.fiveTourney.after }
   ];
-  const vals = legs.flatMap(l => [l.before, l.after]);
-  const lo = Math.min(...vals) - 0.004, hi = Math.max(...vals) + 0.004;
-  const x = v => ((v - lo) / (hi - lo) * 100).toFixed(1);
+  const maxDrop = Math.max(...legs.map(l => l.before - l.after), 1e-9);
   el.innerHTML = legs.map(l => {
-    const xa = x(l.after), xb = x(l.before);
-    return `<div class="dumb-row">
-      <div><div class="dumb-label">${esc(l.label)}</div><div class="dumb-chip">${esc(l.chip)}</div></div>
-      <div class="dumb-track">
-        <div class="dumb-line" style="left:${xa}%; width:${(xb - xa).toFixed(1)}%"></div>
-        <div class="dumb-dot before" style="left:${xb}%"></div>
-        <div class="dumb-dot after" style="left:${xa}%"></div>
-        <div class="dumb-val" style="left:${xb}%">${l.before.toFixed(4)}</div>
-        <div class="dumb-val after" style="left:${xa}%">${l.after.toFixed(4)}</div>
+    const drop = l.before - l.after;
+    const wdrop = (drop / maxDrop * 100).toFixed(1);
+    return `<div class="vp-row">
+      <div><div class="vp-label">${esc(l.label)}</div><div class="dumb-chip">${esc(l.chip)}</div></div>
+      <div>
+        <div class="vp-nums">${l.before.toFixed(4)} <span class="vp-arrow">&rarr;</span> <span class="vp-after">${l.after.toFixed(4)}</span> with the prior</div>
+        <div class="vp-track"><div class="vp-drop" style="width:${wdrop}%"></div></div>
       </div>
+      <div class="vp-delta">${(-drop).toFixed(4)}</div>
     </div>`;
   }).join("");
   const foot = document.getElementById("valuePriorFoot");
