@@ -108,9 +108,10 @@
   .abl-row { display: grid; grid-template-columns: 190px 1fr 132px; gap: 12px; align-items: center;
     margin-bottom: 9px; }
   .abl-label { font-size: 0.85rem; color: #cfd8e3; }
-  .abl-track { position: relative; height: 16px; background: var(--card); border-radius: 3px; }
+  .abl-track { position: relative; height: 16px; background: transparent; border-radius: 3px; }
   .abl-fill { height: 100%; background: var(--accent); border-radius: 3px; }
   .abl-fill.base { background: var(--muted); }
+  .abl-fill.uniform { background: var(--muted); opacity: 0.4; }
   .abl-fill.ghost { background: transparent; border: 1px dashed var(--muted); }
   .abl-num { text-align: right; }
   .abl-brier { font-size: 0.9rem; color: var(--fg); font-variant-numeric: tabular-nums; }
@@ -290,13 +291,13 @@
         </div>
         <p class="tagline" style="margin-top:22px">Each shipped part had to earn its place out of sample.
           Adding them one at a time walks the held-out Brier down this chain, from the bare goal model to
-          the production model. A random guess scores 0.667.</p>
+          the production model. The top bar is a random guess at 0.667.</p>
         <div class="ablation" id="ablationRows"></div>
-        <p class="wcsum" style="margin-top:10px">The bars share a clipped Brier scale so the steps are
-          visible, and the exact value is printed on each row; a random guess (0.667) sits well off the
-          right. One caveat on the first step: the value-prior weights were tuned on 2006 to 2018, so
-          four of the five held-out tournaments overlap that window there, and only 2022 is fully out of
-          sample (0.6123 to 0.5907).</p>
+        <p class="wcsum" style="margin-top:10px">Every bar runs to scale from zero, so its length is the
+          Brier as a share of the random guess at the top, and the exact value is printed on each row. One
+          caveat on the first step: the value-prior weights were tuned on 2006 to 2018, so four of the five
+          held-out tournaments overlap that window there, and only 2022 is fully out of sample (0.6123 to
+          0.5907).</p>
 
         <p class="tagline" style="margin-top:26px">The one data edge that shipped was squad market value.
           Here it is with its cleanest numbers: the muted dot is the model without the prior, the blue dot
@@ -757,14 +758,12 @@ fetch("data/ablation.json", { cache: "no-store" })
   });
 
 // Renders the component "ablation staircase": held-out Brier as each shipped part is added, on a
-// clipped scale (the exact value is printed per row; the 0.667 uniform guess sits off-scale right).
+// true zero-based scale (each bar length is the Brier as a share of the uniform guess, shown as a row).
 function renderAblation(d) {
   const stages = (d.stages || []).slice();
   const ghost = d.ghost;
-  const briers = stages.map(s => s.brier).concat(ghost ? [ghost.brier] : []);
-  const maxB = Math.max(...briers) + 0.004;
-  const minB = Math.min(...briers) - 0.006;
-  const w = b => ((b - minB) / (maxB - minB) * 100).toFixed(1);
+  const scaleMax = d.uniform || (Math.max(...stages.map(s => s.brier)) * 1.02);
+  const w = b => Math.max(0, Math.min(100, b / scaleMax * 100)).toFixed(1);
   const fmt = v => (v > 0 ? "+" : "") + v.toFixed(4);
   const row = (label, brier, fillCls, sub, subNear) =>
     `<div class="abl-row">
@@ -773,6 +772,7 @@ function renderAblation(d) {
        <div class="abl-num"><div class="abl-brier">${brier.toFixed(4)}</div><div class="abl-sub${subNear ? " near" : ""}">${sub}</div></div>
      </div>`;
   let html = "";
+  if (d.uniform != null) html += row("Uniform guess", d.uniform, "uniform", "random 1/3 each", false);
   stages.forEach(s => {
     const sub = s.delta != null ? `${fmt(s.delta)}${s.bought ? " &middot; " + esc(s.bought) : ""}` : "baseline";
     html += row(s.label, s.brier, s.base ? "base" : "", sub, false);
