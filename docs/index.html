@@ -523,9 +523,9 @@
           </tbody>
         </table>
         <p class="wcsum">The margin sits inside one standard error, so the honest read is parity with
-          the sharpest line rather than a beat. The scoreboard below carries the same test into 2026: for
-          every match where we capture the bookmaker's price, it scores the model's probabilities against
-          the market's on the result.</p>
+          the sharpest line rather than a beat. The scoreboard below carries the same method into 2026, though
+          the 2026 benchmark is a cross-book average rather than a single book's line: for every match where we
+          captured a market price, it scores the model's probabilities against that market consensus on the result.</p>
         <div class="closing-note">
           <p class="tagline">How the model reached parity, in three moves.</p>
           <div class="cs-step"><span class="cs-lbl">diagnose</span><p class="cs-body" id="csDiagnose"></p></div>
@@ -538,16 +538,19 @@
           <p style="margin-top:6px"><span class="cs-chip" id="csChip"></span></p>
         </div>
         <div class="closing-note">
-          <p class="tagline">Model versus the bookmaker, live.</p>
+          <p class="tagline">Model versus the market consensus, live.</p>
           <div class="statrow" id="lmStats"></div>
           <table id="lmTable"><thead><tr>
             <th>Date</th><th>Match</th><th class="num">Model</th><th class="num">Market</th><th>Sharper</th>
           </tr></thead><tbody></tbody></table>
-          <p class="wcsum" style="margin-top:10px">These are the 2026 matches where we captured the
-            bookmaker's 1X2 odds. Market probability is the de-vigged average price from the snapshot we
-            grabbed, not necessarily the closing line, and the sample is small and noisy, so read the
-            running gap and not a verdict. On the rigorous test, the 99 matches from 2018 and 2022 with
-            real closing lines, the model was level (0.5643 against 0.5684).</p>
+          <p class="wcsum" style="margin-top:10px">These are the 2026 matches where we captured a market
+            price. The market figure is the de-vigged average across many bookmakers, not a single book's
+            closing line. Because it pools many books it carries almost no margin (on nearly half of these
+            matches the raw prices sum to under 100 percent), which makes it sharper than any one bookmaker would
+            quote, so the model trailing it here is expected and is not the same as trailing a single book.
+            The calibrated comparison is the rigorous test above: on the 99 matches from 2018 and 2022 with
+            real single-book closing lines, the model was level (0.5643 against 0.5684). This 2026 sample is
+            small and noisy, so read the running gap, not a verdict.</p>
         </div>
       </section>
     </div>
@@ -1113,24 +1116,25 @@ fetch("data/live_market.json", { cache: "no-store" })
   .then(renderLiveMarket)
   .catch(() => {});
 
-// Model vs bookmaker, live: multiclass Brier head to head on 2026 matches where a book price was
-// captured. Lower is better; the gap (model minus market) is the headline. Small-sample caveat kept.
+// Model vs market consensus, live: multiclass Brier head to head on 2026 matches where a market price
+// was captured. The 2026 market is a de-vigged cross-book average, sharper than a single book, so this
+// is directional; the calibrated statement is the 99-match 2018/2022 single-book closing-line parity.
 function renderLiveMarket(d) {
   const stats = document.getElementById("lmStats");
   if (stats && d.matches) {
     const gap = d.model - d.market;
-    const lead = gap > 0 ? "the book leads" : gap < 0 ? "the model leads" : "level";
+    const lead = gap > 0 ? "the consensus leads" : gap < 0 ? "the model leads" : "level";
     stats.innerHTML =
       `<div class="stat"><div class="num">${d.model.toFixed(4)}</div><div class="lbl">model Brier over ${d.matches} live matches (lower is better)</div></div>
-       <div class="stat"><div class="num">${d.market.toFixed(4)}</div><div class="lbl">bookmaker Brier, same matches</div></div>
+       <div class="stat"><div class="num">${d.market.toFixed(4)}</div><div class="lbl">market consensus Brier, same matches</div></div>
        <div class="stat"><div class="num">${(gap > 0 ? "+" : "") + gap.toFixed(4)}</div><div class="lbl">gap, ${lead}; model sharper on ${d.modelWins} of ${d.matches}</div></div>`;
   }
   const body = document.querySelector("#lmTable tbody");
-  if (body && !(d.rows || []).length) body.innerHTML = `<tr><td colspan="5" style="color:var(--muted)">no captured book odds yet</td></tr>`;
+  if (body && !(d.rows || []).length) body.innerHTML = `<tr><td colspan="5" style="color:var(--muted)">no captured market odds yet</td></tr>`;
   else if (body) body.innerHTML = (d.rows || []).map(r =>
     `<tr><td>${fmtDay(r.date)}</td><td>${esc(r.home)} v ${esc(r.away)}</td>
       <td class="num">${r.model.toFixed(3)}</td><td class="num">${r.market.toFixed(3)}</td>
-      <td><span class="lm-chip ${r.sharper === "model" ? "model" : ""}">${r.sharper === "model" ? "model" : "book"}</span></td></tr>`).join("");
+      <td><span class="lm-chip ${r.sharper === "model" ? "model" : ""}">${r.sharper === "model" ? "model" : "market"}</span></td></tr>`).join("");
 }
 
 const navLinks = {};
