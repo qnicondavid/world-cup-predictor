@@ -126,6 +126,59 @@ def value_as_of(history, when):
     return None
 
 
+def current_participants(year):
+    """Teams that play a FIFA World Cup match in `year`, read from results.csv. Used only to
+    focus the staleness alarm on teams the model is actually pricing now, so a stale micro
+    nation nobody predicts does not raise noise. Returns an empty set if results.csv is absent,
+    which simply disables the alarm."""
+    path = os.path.join(REPO, "data", "results.csv")
+    teams = set()
+    if not os.path.exists(path):
+        return teams
+    with open(path, newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            if r.get("date", "")[:4] == str(year) and r.get("tournament") == "FIFA World Cup":
+                for t in (r.get("home_team"), r.get("away_team")):
+                    if t:
+                        teams.add(t)
+    return teams
+
+
+def report_staleness(rows):
+    """Warn when a current World Cup participant's squad value is older than the newest
+    snapshot, meaning the model prices that team from a stale figure (Qatar, for example,
+    last valued in 2022). Reads only; it does not touch the market_values.csv output, and it
+    is non-fatal so the daily build never breaks over a data-freshness issue."""
+    newest = max(SNAPSHOTS)
+    team_newest = {}
+    for team, as_of, _ in rows:
+        d = date.fromisoformat(as_of)
+        if team not in team_newest or d > team_newest[team]:
+            team_newest[team] = d
+    participants = current_participants(newest.year)
+    if not participants:
+        return
+    stale = []
+    for team in sorted(participants):
+        d = team_newest.get(team)
+        if d is None or d < newest:
+            stale.append((team, d))
+    if not stale:
+        print(f"Squad values current: all {len(participants)} {newest.year} World Cup "
+              f"participants have a {newest.isoformat()} valuation.")
+        return
+    print(f"WARNING: squad market value is stale for {len(stale)} of {len(participants)} "
+          f"{newest.year} World Cup participant(s); the model prices them from an older snapshot:")
+    for team, d in stale:
+        if d is None:
+            print(f"  {team:<26} no market-value row (check the ALIASES name mapping)")
+        else:
+            months = (newest.year - d.year) * 12 + (newest.month - d.month)
+            print(f"  {team:<26} newest value {d.isoformat()} "
+                  f"({months} months behind {newest.isoformat()})")
+    print("  Refresh the Transfermarkt dumps or fix the team-name alias, then rebuild.")
+
+
 def main():
     nationality = load_nationality()
     valuations = load_valuations()
@@ -149,6 +202,7 @@ def main():
         w.writerow(["team", "as_of", "value_eur"])
         w.writerows(rows)
     print(f"Wrote {len(rows)} rows for {len({r[0] for r in rows})} teams to {OUTPUT}")
+    report_staleness(rows)
 
 
 if __name__ == "__main__":
