@@ -49,6 +49,7 @@
   .stat + .stat { border-left: 1px solid var(--line); padding-left: 24px; }
   .statrow .stat { text-align: center; }
   .statrow .stat + .stat { padding-left: 0; }
+  #lmStats .stat .lbl { white-space: normal; }
 
   .bars { margin-top: 4px; }
   .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
@@ -234,8 +235,13 @@
   .fwd-chip.won { color: var(--good); border-color: var(--good); }
   .fwd-chip.lost { color: var(--bad); border-color: var(--bad); }
   #lmTable td, #lmTable th { padding: 6px 10px; }
-  #lmTable { width: auto; max-width: 100%; }
-  #lmTable th:nth-child(2), #lmTable td:nth-child(2) { min-width: 190px; }
+  #lmTable { width: 100%; table-layout: fixed; }
+  #lmTable th, #lmTable td { text-align: center; }
+  #lmTable th:nth-child(1), #lmTable td:nth-child(1) { width: 12%; }
+  #lmTable th:nth-child(2), #lmTable td:nth-child(2) { width: 44%; }
+  #lmTable th:nth-child(3), #lmTable td:nth-child(3),
+  #lmTable th:nth-child(4), #lmTable td:nth-child(4) { width: 15%; }
+  #lmTable th:nth-child(5), #lmTable td:nth-child(5) { width: 14%; }
   .lm-chip { display: inline-block; font-size: 0.66rem; border-radius: 999px; padding: 1px 9px; border: 1px solid var(--line); color: var(--muted); }
   .lm-chip.model { color: var(--accent); border-color: var(--accent); }
 
@@ -260,7 +266,6 @@
     .draws { grid-template-columns: 1fr; }
     .cs-bands { flex-direction: column; }
     .vp2-row, .vp2-axis { grid-template-columns: 92px 1fr 56px; gap: 8px; }
-    #lmTable th:nth-child(2), #lmTable td:nth-child(2) { min-width: 120px; }
   }
 </style>
 </head>
