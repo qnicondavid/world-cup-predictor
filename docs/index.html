@@ -118,6 +118,7 @@
   .abl-brier { font-size: 0.9rem; color: var(--fg); font-variant-numeric: tabular-nums; }
   .abl-sub { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
   .abl-sub.near { color: var(--accent); }
+  .abl-chart { position: relative; height: 330px; margin: 10px 0 2px; }
 
   .dumb-block { margin: 22px 0 4px; }
   .vp-row { display: grid; grid-template-columns: 150px 1fr 74px; gap: 14px; align-items: center; margin-bottom: 16px; }
@@ -132,6 +133,23 @@
   .vp-delta { text-align: right; font-size: 0.82rem; color: var(--accent); font-variant-numeric: tabular-nums; }
   .dumb-foot { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums;
     margin: 2px 0 0; line-height: 1.4; }
+
+  .vp2 { margin: 14px 0 4px; }
+  .vp2-row { display: grid; grid-template-columns: 150px 1fr 74px; gap: 14px; align-items: center; margin-bottom: 26px; }
+  .vp2-track { position: relative; height: 12px; }
+  .vp2-line { position: absolute; top: 50%; height: 2px; background: var(--line); transform: translateY(-50%); }
+  .vp2-dot { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%;
+    transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--bg); }
+  .vp2-dot.before { background: var(--muted); }
+  .vp2-dot.after { background: var(--accent); }
+  .vp2-val { position: absolute; bottom: 13px; font-size: 0.68rem; color: var(--muted);
+    font-variant-numeric: tabular-nums; transform: translateX(-50%); white-space: nowrap; }
+  .vp2-val.after { color: var(--accent); }
+  .vp2-axis { display: grid; grid-template-columns: 150px 1fr 74px; gap: 14px; }
+  .vp2-scale { position: relative; height: 18px; border-top: 1px solid var(--line); }
+  .vp2-tick { position: absolute; top: 5px; font-size: 0.64rem; color: var(--muted);
+    font-variant-numeric: tabular-nums; transform: translateX(-50%); }
+  .vp2-tick::before { content: ""; position: absolute; top: -5px; left: 50%; width: 1px; height: 4px; background: var(--line); }
 
   .eng-wrap { margin: 20px 0 4px; padding: 30px 0 12px; }
   .eng-line { position: relative; height: 3px; background: var(--card); border-radius: 2px; }
@@ -237,8 +255,7 @@
     .calib { grid-template-columns: 1fr; }
     .draws { grid-template-columns: 1fr; }
     .cs-bands { flex-direction: column; }
-    .vp-row { grid-template-columns: 1fr; gap: 6px; }
-    .vp-delta { text-align: left; }
+    .vp2-row, .vp2-axis { grid-template-columns: 92px 1fr 56px; gap: 8px; }
   }
 </style>
 </head>
@@ -292,20 +309,18 @@
           <div class="stat"><div class="num">0.026</div><div class="lbl">expected calibration error</div></div>
         </div>
         <p class="tagline" style="margin-top:22px">Each shipped part had to earn its place out of sample.
-          Adding them one at a time walks the held-out Brier down this chain, from the bare goal model to
-          the production model. The top bar is a random guess at 0.667.</p>
-        <div class="ablation" id="ablationRows"></div>
-        <p class="wcsum" style="margin-top:10px">Every bar runs to scale from zero, so its length is the
-          Brier as a share of the random guess at the top, shaded dark to light down the chain. The
-          brighter tip on each step is the improvement it bought, magnified so the small gains stay
-          comparable to each other, and the exact value is printed on each row. One caveat on the first
-          step: the value-prior weights were tuned on 2006 to 2018, so four of the five held-out
-          tournaments overlap that window there, and only 2022 is fully out of sample (0.6123 to
-          0.5907).</p>
+          Adding them one at a time steps the held-out Brier down this chain, from a random guess to the
+          production model.</p>
+        <div class="abl-chart"><canvas id="ablationChart" aria-label="Held-out Brier stepping down as each component is added"></canvas></div>
+        <p class="wcsum" style="margin-top:10px">The line steps down from a random guess (0.667) to the
+          shipped model (0.5441); the figure under each step is the out-of-sample gain it bought. The axis
+          is zoomed so the small steps are visible. One caveat on the first step: the value-prior weights
+          were tuned on 2006 to 2018, so four of the five held-out tournaments overlap that window there,
+          and only 2022 is fully out of sample (0.6123 to 0.5907).</p>
 
         <p class="tagline" style="margin-top:26px">The one data edge that shipped was squad market value.
-          Here it is with its cleanest numbers: the held-out Brier without the prior, then with it, and a
-          bar sized by the drop so you can see where it helped more.</p>
+          Here are its cleanest numbers on one scale: the grey dot is the held-out Brier without the prior,
+          the blue dot with it, and lower (left) is better. Both slices move left, 2022 the most.</p>
         <div class="dumb-block" id="valuePriorBlock"></div>
         <p class="dumb-foot" id="valuePriorFoot"></p>
 
@@ -757,48 +772,66 @@ function renderLedger(d) {
 fetch("data/ablation.json", { cache: "no-store" })
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(renderAblation)
-  .catch(() => {
-    const el = document.getElementById("ablationRows");
-    if (el) el.innerHTML = `<p class="tagline">Could not load data/ablation.json.</p>`;
-  });
+  .catch(() => {});
 
-// Renders the component "ablation staircase": bars run to scale as a share of the uniform guess, shaded
-// dark to light down the chain; each step's brighter tip is its improvement on a shared magnified scale
-// (the gains are proportional to each other, not to the full bar, since the true fractions are tiny).
+// Renders the "ablation staircase" as a descending step-line: held-out Brier from a random guess down to
+// the shipped model, on a zoomed y-axis so the small out-of-sample gains are visible. Each point is
+// labelled with its Brier and each step with the gain it bought.
 function renderAblation(d) {
-  const fmt = v => (v > 0 ? "+" : "") + v.toFixed(4);
-  const rows = [];
-  if (d.uniform != null) rows.push({ label: "Uniform guess", brier: d.uniform, delta: null, sub: "random 1/3 each" });
-  (d.stages || []).forEach(s => rows.push({
-    label: s.label, brier: s.brier, delta: s.delta,
-    sub: s.delta != null ? `${fmt(s.delta)}${s.bought ? " &middot; " + esc(s.bought) : ""}` : "baseline"
-  }));
-  const scaleMax = d.uniform || Math.max(...rows.map(r => r.brier)) * 1.02;
-  const w = b => Math.max(0, Math.min(100, b / scaleMax * 100));
-  const maxDelta = Math.max(...rows.filter(r => r.delta != null).map(r => Math.abs(r.delta)), 1e-9);
-  const capMax = 16;                                   // % width of the largest improvement tip
-  const cap = delta => delta != null ? Math.abs(delta) / maxDelta * capMax : 0;
-  const dark = [33, 60, 102], lightC = [130, 187, 255];  // gradient endpoints, dark to light blue
-  const shade = i => { const t = rows.length > 1 ? i / (rows.length - 1) : 1;
-    return `rgb(${dark.map((c, k) => Math.round(c + (lightC[k] - c) * t)).join(",")})`; };
-  const html = rows.map((r, i) => {
-    const bw = w(r.brier).toFixed(1);
-    const cw = Math.min(cap(r.delta), w(r.brier)).toFixed(1);
-    const gain = r.delta != null ? `<span class="abl-gain" style="width:${cw}%"></span>` : "";
-    return `<div class="abl-row">
-       <div class="abl-label">${esc(r.label)}</div>
-       <div class="abl-track"><div class="abl-fill" style="width:${bw}%;background:${shade(i)}">${gain}</div></div>
-       <div class="abl-num"><div class="abl-brier">${r.brier.toFixed(4)}</div><div class="abl-sub">${r.sub}</div></div>
-     </div>`;
-  }).join("");
-  const el = document.getElementById("ablationRows");
-  if (el) el.innerHTML = html;
   renderValuePrior(d.valuePrior);
   renderEngines(d.engines, d.shipped, d.uniform);
+  const cv = document.getElementById("ablationChart");
+  if (!cv || typeof Chart === "undefined") return;
+  const rows = [];
+  if (d.uniform != null) rows.push({ label: "Uniform guess", brier: d.uniform });
+  (d.stages || []).forEach(s => rows.push({ label: s.label, brier: s.brier }));
+  const short = {
+    "Uniform guess": "Random guess", "Dixon-Coles (goals only)": "Dixon-Coles",
+    "+ market-value prior": "+ market value", "+ recent-form nudge": "+ recent form",
+    "+ draw-transfer": "+ draw transfer"
+  };
+  const labels = rows.map(r => short[r.label] || r.label);
+  const vals = rows.map(r => r.brier);
+  const dark = [33, 60, 102], lightC = [130, 187, 255];
+  const shade = i => { const t = rows.length > 1 ? i / (rows.length - 1) : 1;
+    return `rgb(${dark.map((c, k) => Math.round(c + (lightC[k] - c) * t)).join(",")})`; };
+  const labelPlugin = { id: "abllabels", afterDatasetsDraw(chart) {
+    const ctx = chart.ctx, meta = chart.getDatasetMeta(0);
+    ctx.save(); ctx.textAlign = "center";
+    meta.data.forEach((pt, i) => {
+      ctx.fillStyle = "#e6edf3"; ctx.font = "600 11px system-ui, -apple-system, sans-serif";
+      ctx.fillText(vals[i].toFixed(4), pt.x, pt.y - 9);
+      if (i > 0) {
+        const prev = meta.data[i - 1], dl = vals[i] - vals[i - 1];
+        ctx.fillStyle = "#8b98a5"; ctx.font = "10px system-ui, -apple-system, sans-serif";
+        ctx.fillText((dl > 0 ? "+" : "") + dl.toFixed(4), (pt.x + prev.x) / 2, Math.max(pt.y, prev.y) + 16);
+      }
+    });
+    ctx.restore();
+  }};
+  new Chart(cv, {
+    type: "line",
+    data: { labels, datasets: [{ data: vals, borderColor: "#4f9cff", borderWidth: 2, tension: 0, fill: false,
+      pointBackgroundColor: rows.map((r, i) => shade(i)), pointBorderColor: rows.map((r, i) => shade(i)),
+      pointRadius: rows.map((r, i) => i === rows.length - 1 ? 6 : 4), pointHoverRadius: 7 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20, right: 12, left: 4 } },
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: c => `held-out Brier ${c.parsed.y.toFixed(4)}` } } },
+      scales: {
+        x: { ticks: { color: "#8b98a5", font: { size: 11 } }, grid: { display: false } },
+        y: { min: 0.53, max: 0.68,
+          ticks: { color: "#8b98a5", stepSize: 0.03, callback: v => v.toFixed(2) },
+          grid: { color: "#263241" },
+          title: { display: true, text: "held-out multiclass Brier", color: "#8b98a5" } }
+      }
+    },
+    plugins: [labelPlugin]
+  });
 }
 
-// Value-prior lift: for each held-out slice, the Brier without the prior then with it, and a bar sized
-// by the drop (shared scale across the slices, so you can see where the prior helped more).
+// Value-prior lift: both held-out slices on ONE shared Brier axis, a grey "without" dot and a blue
+// "with" dot per slice (lower/left is better), so the improvement and its size are read off one scale.
 function renderValuePrior(vp) {
   const el = document.getElementById("valuePriorBlock");
   if (!el || !vp) return;
@@ -806,19 +839,26 @@ function renderValuePrior(vp) {
     { label: "2022 leg", chip: vp.oos2022.tag, before: vp.oos2022.before, after: vp.oos2022.after },
     { label: "All five held-out", chip: vp.fiveTourney.tag, before: vp.fiveTourney.before, after: vp.fiveTourney.after }
   ];
-  const maxDrop = Math.max(...legs.map(l => l.before - l.after), 1e-9);
-  el.innerHTML = legs.map(l => {
-    const drop = l.before - l.after;
-    const wdrop = (drop / maxDrop * 100).toFixed(1);
-    return `<div class="vp-row">
+  const lo = 0.545, hi = 0.625;
+  const x = v => Math.max(0, Math.min(100, (v - lo) / (hi - lo) * 100));
+  const row = l => {
+    const xb = x(l.before).toFixed(1), xa = x(l.after).toFixed(1);
+    return `<div class="vp2-row">
       <div><div class="vp-label">${esc(l.label)}</div><div class="dumb-chip">${esc(l.chip)}</div></div>
-      <div>
-        <div class="vp-nums">${l.before.toFixed(4)} <span class="vp-arrow">&rarr;</span> <span class="vp-after">${l.after.toFixed(4)}</span> with the prior</div>
-        <div class="vp-track"><div class="vp-drop" style="width:${wdrop}%"></div></div>
+      <div class="vp2-track">
+        <div class="vp2-line" style="left:${xa}%;width:${(xb - xa).toFixed(1)}%"></div>
+        <div class="vp2-val" style="left:${xb}%">${l.before.toFixed(4)}</div>
+        <div class="vp2-val after" style="left:${xa}%">${l.after.toFixed(4)}</div>
+        <div class="vp2-dot before" style="left:${xb}%"></div>
+        <div class="vp2-dot after" style="left:${xa}%"></div>
       </div>
-      <div class="vp-delta">${(-drop).toFixed(4)}</div>
+      <div class="vp-delta">${(l.after - l.before).toFixed(4)}</div>
     </div>`;
-  }).join("");
+  };
+  const ticks = [0.56, 0.58, 0.60, 0.62].map(t =>
+    `<span class="vp2-tick" style="left:${x(t).toFixed(1)}%">${t.toFixed(2)}</span>`).join("");
+  el.innerHTML = `<div class="vp2">${legs.map(row).join("")}` +
+    `<div class="vp2-axis"><span></span><div class="vp2-scale">${ticks}</div><span></span></div></div>`;
   const foot = document.getElementById("valuePriorFoot");
   if (foot) foot.textContent = `Re-tuned per fold the weights do slightly worse out of sample (${vp.lotoRetuned.toFixed(4)} against the fixed ${vp.lotoFixed.toFixed(4)}), so they are not curve-fit. Swapping in real published squads finds nothing either: ${vp.realSquadBrier.toFixed(4)} against the proxy's ${vp.proxyBrier.toFixed(4)}.`;
 }
