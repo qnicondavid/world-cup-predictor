@@ -36,6 +36,8 @@ import com.david.worldcup.tracker.Tracker;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1052,12 +1054,11 @@ public final class Main {
                 Tracker.TITLE_SECTION_START, Tracker.TITLE_SECTION_END,
                 Tracker.renderTitleOdds(odds, 16, today, runs));
 
-        Files.writeString(readmePath, readme);
+        writeStringAtomic(readmePath, readme);
 
         // Structured data for the static demo page (GitHub Pages reads docs/data/tracker.json).
         Path trackerJson = Path.of("docs/data/tracker.json");
-        Files.createDirectories(trackerJson.getParent());
-        Files.writeString(trackerJson, Tracker.renderJson(scored, pending, odds, 16, today));
+        writeStringAtomic(trackerJson, Tracker.renderJson(scored, pending, odds, 16, today));
 
         System.out.printf("Locked %d new prediction(s); ledger holds %d.%n",
                 added.size(), ledger.size());
@@ -1071,6 +1072,30 @@ public final class Main {
             System.out.println("No locked predictions resolved yet.");
         }
         System.out.println("README updated.");
+    }
+
+    /**
+     * Write {@code content} to {@code target} atomically. The content is written to a sibling
+     * temp file in the same directory, then renamed over the target, so a reader (or a cloud
+     * sync client such as OneDrive) never observes a half-written file. Falls back to a plain
+     * replace only if the filesystem refuses an atomic move; even then the content is complete
+     * before the move, so no truncated file is ever exposed.
+     */
+    private static void writeStringAtomic(Path target, String content) throws IOException {
+        Path dir = target.toAbsolutePath().getParent();
+        Files.createDirectories(dir);
+        Path tmp = Files.createTempFile(dir, target.getFileName().toString() + ".", ".tmp");
+        try {
+            Files.writeString(tmp, content);
+            try {
+                Files.move(tmp, target,
+                        StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } finally {
+            Files.deleteIfExists(tmp);
+        }
     }
 
     private static void runSimulation(List<Match> matches, Path csv) throws IOException {
