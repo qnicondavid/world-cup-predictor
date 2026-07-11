@@ -73,6 +73,8 @@
   .hit { color: var(--good); } .miss { color: var(--bad); }
   .exact-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); margin-left: 5px; vertical-align: middle; }
   #resolvedTable td.num { white-space: nowrap; }
+  #resolvedTable td:first-child, #resolvedTable th:first-child,
+  #hdTable td:first-child, #hdTable th:first-child { white-space: nowrap; }
   footer { margin-top: 40px; color: var(--muted); font-size: 0.85rem; }
   canvas { max-height: 380px; }
   .err { color: var(--bad); }
@@ -232,6 +234,8 @@
   .fwd-chip.won { color: var(--good); border-color: var(--good); }
   .fwd-chip.lost { color: var(--bad); border-color: var(--bad); }
   #lmTable td, #lmTable th { padding: 6px 10px; }
+  #lmTable { width: auto; max-width: 100%; }
+  #lmTable th:nth-child(2), #lmTable td:nth-child(2) { min-width: 190px; }
   .lm-chip { display: inline-block; font-size: 0.66rem; border-radius: 999px; padding: 1px 9px; border: 1px solid var(--line); color: var(--muted); }
   .lm-chip.model { color: var(--accent); border-color: var(--accent); }
 
@@ -256,6 +260,7 @@
     .draws { grid-template-columns: 1fr; }
     .cs-bands { flex-direction: column; }
     .vp2-row, .vp2-axis { grid-template-columns: 92px 1fr 56px; gap: 8px; }
+    #lmTable th:nth-child(2), #lmTable td:nth-child(2) { min-width: 120px; }
   }
 </style>
 </head>
@@ -815,7 +820,7 @@ function renderAblation(d) {
       pointBackgroundColor: rows.map((r, i) => shade(i)), pointBorderColor: rows.map((r, i) => shade(i)),
       pointRadius: rows.map((r, i) => i === rows.length - 1 ? 6 : 4), pointHoverRadius: 7 }] },
     options: {
-      responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20, right: 12, left: 4 } },
+      responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20, right: 12, left: 20 } },
       plugins: { legend: { display: false },
         tooltip: { callbacks: { label: c => `held-out Brier ${c.parsed.y.toFixed(4)}` } } },
       scales: {
