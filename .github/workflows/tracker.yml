@@ -77,26 +77,23 @@ jobs:
       - name: Lock new predictions and score completed ones
         run: mvn -B -q compile exec:java -Dexec.args="--track"
 
-      - name: Capture live odds and forward value flags
+      - name: Capture live bookmaker odds
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: |
           if [ -z "${ODDS_API_KEY:-}" ]; then
-            echo "No ODDS_API_KEY secret set; skipping odds capture (settlement still runs)."
+            echo "No ODDS_API_KEY secret set; skipping odds capture."
             exit 0
           fi
-          # Appends a timestamped snapshot to data/odds_live.csv and any new value flags
-          # (edge >= 5%) to the append-only data/forward_bets.csv. Non-fatal: a bad API day
-          # must not break the core tracker.
+          # Appends a timestamped 1X2 snapshot to data/odds_live.csv (the market probabilities
+          # the model is scored against). Non-fatal: a bad API day must not break the tracker.
           python3 research/fetch_odds_live.py soccer_fifa_world_cup || echo "odds capture soft-failed; continuing"
 
-      - name: Settle forward bets and refresh the site ledger
+      - name: Score model vs bookmaker on the live matches
         run: |
-          # Grades every flag against results into data/forward_bets_settled.csv (won/lost/open).
-          # Never mutates the append-only forward_bets.csv. Non-fatal.
-          python3 research/settle_bets.py || echo "settle soft-failed; continuing"
-          cp -f data/forward_bets.csv docs/data/forward_bets.csv
-          cp -f data/forward_bets_settled.csv docs/data/forward_bets_settled.csv
+          # De-vigs the captured odds and writes docs/data/live_market.json: model vs market
+          # multiclass Brier on every 2026 match with both a locked prediction and a price. Non-fatal.
+          python3 research/live_vs_market.py || echo "live_vs_market soft-failed; continuing"
 
       - name: Append today's title odds to the trajectory history
         run: |
@@ -119,8 +116,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/results.csv predictions/predictions.csv README.md docs/data/tracker.json docs/data/odds_history.json \
-            data/odds_live.csv data/forward_bets.csv data/forward_bets_settled.csv \
-            docs/data/forward_bets.csv docs/data/forward_bets_settled.csv
+            data/odds_live.csv docs/data/live_market.json
           git diff --cached --quiet || git commit -m "Tracker: lock predictions / update results $(date -u +%F)"
           # Self-heal lost races: retry the whole pull --rebase + push a few times. Both are in
           # the if-condition so a failed rebase does not trip `set -e`; abort any half-done rebase

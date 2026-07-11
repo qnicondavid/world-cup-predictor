@@ -1,0 +1,22 @@
+{
+"note": "Head-to-head multiclass Brier (lower is better) on 2026 matches with both a locked model prediction and a captured bookmaker price. Market probabilities are the de-vigged average 1X2 odds from data/odds_live.csv, the snapshot captured, not necessarily the closing line. Small sample: read the running gap, not a verdict. The rigorous version is the 99-match 2018/2022 closing-line comparison, which came out at parity.",
+"matches": 13,
+"model": 0.4245,
+"market": 0.3295,
+"modelWins": 2,
+"rows": [
+{"date": "2026-06-30", "home": "France", "away": "Sweden", "result": "3-0", "model": 0.2206, "market": 0.0036, "sharper": "market"},
+{"date": "2026-07-01", "home": "Mexico", "away": "Ecuador", "result": "2-0", "model": 0.6415, "market": 0.4843, "sharper": "market"},
+{"date": "2026-07-01", "home": "England", "away": "DR Congo", "result": "2-1", "model": 0.2938, "market": 0.0995, "sharper": "market"},
+{"date": "2026-07-01", "home": "Belgium", "away": "Senegal", "result": "3-2", "model": 0.4828, "market": 0.4724, "sharper": "market"},
+{"date": "2026-07-02", "home": "United States", "away": "Bosnia and Herzegovina", "result": "2-0", "model": 0.1989, "market": 0.1438, "sharper": "market"},
+{"date": "2026-07-02", "home": "Spain", "away": "Austria", "result": "3-0", "model": 0.2715, "market": 0.1192, "sharper": "market"},
+{"date": "2026-07-02", "home": "Portugal", "away": "Croatia", "result": "2-1", "model": 0.3783, "market": 0.3247, "sharper": "market"},
+{"date": "2026-07-03", "home": "Switzerland", "away": "Algeria", "result": "2-0", "model": 0.5441, "market": 0.4332, "sharper": "market"},
+{"date": "2026-07-03", "home": "Australia", "away": "Egypt", "result": "1-1", "model": 0.6439, "market": 0.6763, "sharper": "model"},
+{"date": "2026-07-03", "home": "Argentina", "away": "Cape Verde", "result": "3-2", "model": 0.0896, "market": 0.0493, "sharper": "market"},
+{"date": "2026-07-04", "home": "Colombia", "away": "Ghana", "result": "1-0", "model": 0.2016, "market": 0.2129, "sharper": "model"},
+{"date": "2026-07-04", "home": "Canada", "away": "Morocco", "result": "0-3", "model": 0.4675, "market": 0.3408, "sharper": "market"},
+{"date": "2026-07-05", "home": "Brazil", "away": "Norway", "result": "1-2", "model": 1.0848, "market": 0.9229, "sharper": "market"}
+]
+}

@@ -213,6 +213,9 @@
   .fwd-chip { display: inline-block; font-size: 0.66rem; border-radius: 999px; padding: 1px 9px; border: 1px solid var(--line); color: var(--muted); }
   .fwd-chip.won { color: var(--good); border-color: var(--good); }
   .fwd-chip.lost { color: var(--bad); border-color: var(--bad); }
+  #lmTable td, #lmTable th { padding: 6px 10px; }
+  .lm-chip { display: inline-block; font-size: 0.66rem; border-radius: 999px; padding: 1px 9px; border: 1px solid var(--line); color: var(--muted); }
+  .lm-chip.model { color: var(--accent); border-color: var(--accent); }
 
   @media (max-width: 560px) {
     .wrap { padding-top: 0; }
@@ -484,9 +487,9 @@
           </tbody>
         </table>
         <p class="wcsum">The margin sits inside one standard error, so the honest read is parity with
-          the sharpest line rather than a beat. A forward ledger captures pre-kickoff prices and settles
-          each flag against the result, the honest way to turn parity into a verdict over time, though the
-          sample so far is far too small to read.</p>
+          the sharpest line rather than a beat. The scoreboard below carries the same test into 2026: for
+          every match where we capture the bookmaker's price, it scores the model's probabilities against
+          the market's on the result.</p>
         <div class="closing-note">
           <p class="tagline">How the model reached parity, in three moves.</p>
           <div class="cs-step"><span class="cs-lbl">diagnose</span><p class="cs-body" id="csDiagnose"></p></div>
@@ -499,18 +502,16 @@
           <p style="margin-top:6px"><span class="cs-chip" id="csChip"></span></p>
         </div>
         <div class="closing-note">
-          <p class="tagline">Forward ledger: no verdict yet.</p>
-          <div class="fwd-bar"><span id="fwdFill" style="width:0%"></span></div>
-          <p class="fwd-meterlbl" id="fwdMeter"></p>
-          <table id="fwdTable"><thead><tr>
-            <th>Date</th><th>Match</th><th>Flag</th><th class="num">Model</th><th class="num">Market</th><th class="num">Odds</th><th class="num">Stake</th><th>Status</th>
+          <p class="tagline">Model versus the bookmaker, live.</p>
+          <div class="statrow" id="lmStats"></div>
+          <table id="lmTable"><thead><tr>
+            <th>Date</th><th>Match</th><th class="num">Model</th><th class="num">Market</th><th>Sharper</th>
           </tr></thead><tbody></tbody></table>
-          <p class="wcsum" style="margin-top:10px">The first flags have now settled, and the early read
-            is poor: the model's value flags, all on draws or underdogs it priced above the market, mostly
-            lost. The staking stays conservative (a 5% edge floor, quarter-Kelly, capped at 5% of a
-            notional bankroll). A dozen bets is noise, not a verdict, and closing-line value needs prices
-            captured nearer kickoff than these were. Read it as the instrument warming up: counts and
-            statuses only, no running total.</p>
+          <p class="wcsum" style="margin-top:10px">These are the 2026 matches where we captured the
+            bookmaker's 1X2 odds. Market probability is the de-vigged average price from the snapshot we
+            grabbed, not necessarily the closing line, and the sample is small and noisy, so read the
+            running gap and not a verdict. On the rigorous test, the 99 matches from 2018 and 2022 with
+            real closing lines, the model was level (0.5643 against 0.5684).</p>
         </div>
       </section>
     </div>
@@ -1046,36 +1047,29 @@ function renderClosing(d) {
   if (chip) chip.textContent = "result: parity with the line, confidence interval spans zero";
 }
 
-fetch("data/forward_bets_settled.csv", { cache: "no-store" })
-  .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
-  .then(renderForward)
+fetch("data/live_market.json", { cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(renderLiveMarket)
   .catch(() => {});
 
-// The forward CLV ledger: each value flag settled won/lost/open against the result. Counts and statuses
-// only, no running total or profit figure, and every mention keeps the tiny-sample caveat.
-function renderForward(txt) {
-  const rows = txt.trim().split(/\r?\n/).slice(1).filter(l => l.trim()).map(l => {
-    const f = l.split(",");
-    return { date: f[1], home: f[2], away: f[3], outcome: f[4], model: +f[5], market: +f[6],
-             odds: +f[7], stake: +f[9], status: (f[10] || "open").trim() };
-  });
-  const flag = r => r.outcome === "draw" ? "Draw" : r.outcome === "home" ? r.home : r.away;
-  const body = document.querySelector("#fwdTable tbody");
-  if (body && !rows.length) body.innerHTML = `<tr><td colspan="8" style="color:var(--muted)">none yet</td></tr>`;
-  else if (body) body.innerHTML = rows.map(r =>
-    `<tr><td>${fmtDay(r.date)}</td><td>${esc(r.home)} v ${esc(r.away)}</td><td>${esc(flag(r))}</td>
-      <td class="num">${(100 * r.model).toFixed(1)}%</td><td class="num">${(100 * r.market).toFixed(1)}%</td>
-      <td class="num">${r.odds.toFixed(2)}</td><td class="num">${(100 * r.stake).toFixed(1)}%</td>
-      <td><span class="fwd-chip ${/^(won|lost)$/.test(r.status) ? esc(r.status) : ""}">${esc(r.status)}</span></td></tr>`).join("");
-  const won = rows.filter(r => r.status === "won").length;
-  const lost = rows.filter(r => r.status === "lost").length;
-  const settled = won + lost, openN = rows.length - settled;
-  const fill = document.getElementById("fwdFill");
-  if (fill) fill.style.width = Math.min(100, rows.length / 300 * 100).toFixed(1) + "%";
-  const meter = document.getElementById("fwdMeter");
-  if (meter) meter.textContent = settled
-    ? `${rows.length} flags placed, ${settled} settled so far: ${won} won, ${lost} lost${openN ? `, ${openN} still open` : ""}. Far too small for a verdict; a few hundred settled bets are needed, so the bar stays near empty by design.`
-    : `${rows.length} flags placed, none settled yet. A verdict needs a few hundred settled bets, so the bar stays near empty by design.`;
+// Model vs bookmaker, live: multiclass Brier head to head on 2026 matches where a book price was
+// captured. Lower is better; the gap (model minus market) is the headline. Small-sample caveat kept.
+function renderLiveMarket(d) {
+  const stats = document.getElementById("lmStats");
+  if (stats && d.matches) {
+    const gap = d.model - d.market;
+    const lead = gap > 0 ? "the book leads" : gap < 0 ? "the model leads" : "level";
+    stats.innerHTML =
+      `<div class="stat"><div class="num">${d.model.toFixed(4)}</div><div class="lbl">model Brier over ${d.matches} live matches (lower is better)</div></div>
+       <div class="stat"><div class="num">${d.market.toFixed(4)}</div><div class="lbl">bookmaker Brier, same matches</div></div>
+       <div class="stat"><div class="num">${(gap > 0 ? "+" : "") + gap.toFixed(4)}</div><div class="lbl">gap, ${lead}; model sharper on ${d.modelWins} of ${d.matches}</div></div>`;
+  }
+  const body = document.querySelector("#lmTable tbody");
+  if (body && !(d.rows || []).length) body.innerHTML = `<tr><td colspan="5" style="color:var(--muted)">no captured book odds yet</td></tr>`;
+  else if (body) body.innerHTML = (d.rows || []).map(r =>
+    `<tr><td>${fmtDay(r.date)}</td><td>${esc(r.home)} v ${esc(r.away)}</td>
+      <td class="num">${r.model.toFixed(3)}</td><td class="num">${r.market.toFixed(3)}</td>
+      <td><span class="lm-chip ${r.sharper === "model" ? "model" : ""}">${r.sharper === "model" ? "model" : "book"}</span></td></tr>`).join("");
 }
 
 const navLinks = {};

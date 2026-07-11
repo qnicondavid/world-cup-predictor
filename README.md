@@ -25,7 +25,7 @@ Every headline claim maps to its number, where it is proven, and the honesty lab
 | Draw-transfer calibration | 0.5506 to 0.5441, all five held-out | [Draw-transfer calibration](#draw-transfer-calibration) | held-out result |
 | Ideas tested and rejected | 15 documented, none adopted | [More negative findings](#more-negative-findings-from-goal-model-research) | not adopted |
 | Live 2026 record (small sample) | tracked daily in the table below, still a small sample | [Live results](#live-results) | in progress |
-| Forward betting ledger | flags placed, none settled | [Against the closing line](#against-the-closing-line) | no verdict |
+| Model vs bookmaker, live 2026 | scored on the site as odds are captured; book currently ahead on a small sample | [Against the closing line](#against-the-closing-line) | in progress |
 
 The load-bearing figure is the held-out 0.5441. The live 2026 record is still a small sample, and the closing-line row is parity, not a win. Multiclass and binary Brier sit on scales about four times apart, so the two track-record rows are not directly comparable.
 
