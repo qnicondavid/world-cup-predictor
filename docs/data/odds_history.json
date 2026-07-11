@@ -590,13 +590,12 @@
 {
 "date": "2026-07-11",
 "odds": {
-"France": 34.5,
-"Argentina": 26.6,
-"Spain": 20.0,
-"England": 10.5,
-"Norway": 3.2,
-"Belgium": 2.8,
-"Switzerland": 2.4,
+"France": 30.4,
+"Spain": 30.4,
+"Argentina": 24.7,
+"England": 9.3,
+"Norway": 3.1,
+"Switzerland": 2.1,
 "Mexico": 0.0,
 "South Africa": 0.0,
 "South Korea": 0.0,
@@ -605,7 +604,8 @@
 "Bosnia and Herzegovina": 0.0,
 "United States": 0.0,
 "Paraguay": 0.0,
-"Qatar": 0.0
+"Qatar": 0.0,
+"Brazil": 0.0
 }
 }
 ]
