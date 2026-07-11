@@ -1,5 +1,3 @@
-# World Cup Predictor
-
 <p align="center">
   <a href="https://qnicondavid.github.io/world-cup-predictor/">
     <img src="docs/preview.png" alt="World Cup Predictor dashboard: at parity with the bookmaker closing line" width="760">
