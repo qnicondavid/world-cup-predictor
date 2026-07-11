@@ -1,0 +1,99 @@
+match_date,home_team,away_team,home_odds,draw_odds,away_odds
+2026-06-11,Mexico,South Africa,1.5,4.65,9.0
+2026-06-12,Canada,Bosnia and Herzegovina,1.92,3.6,5.05
+2026-06-12,South Korea,Czech Republic,2.65,3.3,3.15
+2026-06-13,Qatar,Switzerland,19.0,7.0,1.24
+2026-06-13,United States,Paraguay,2.12,3.3,4.15
+2026-06-14,Australia,Turkey,5.5,3.8,1.8
+2026-06-14,Brazil,Morocco,1.8,3.9,5.8
+2026-06-14,Germany,Curacao,1.07,26.0,61.0
+2026-06-14,Haiti,Scotland,6.2,4.5,1.67
+2026-06-14,Netherlands,Japan,2.1,3.55,4.1
+2026-06-15,Belgium,Egypt,1.6,4.5,7.0
+2026-06-15,Ivory Coast,Ecuador,3.5,3.0,2.6
+2026-06-15,Spain,Cape Verde,1.13,13.25,36.0
+2026-06-15,Sweden,Tunisia,2.0,3.5,4.75
+2026-06-16,France,Senegal,1.54,4.55,7.5
+2026-06-16,Iran,New Zealand,1.94,3.5,4.9
+2026-06-16,Saudi Arabia,Uruguay,8.1,4.45,1.55
+2026-06-17,Argentina,Algeria,1.6,4.33,7.0
+2026-06-17,Austria,Jordan,1.47,5.0,9.0
+2026-06-17,England,Croatia,1.77,4.0,5.5
+2026-06-17,Iraq,Norway,14.0,6.7,1.27
+2026-06-17,Portugal,DR Congo,1.33,5.85,13.0
+2026-06-18,Czech Republic,South Africa,1.95,3.6,4.65
+2026-06-18,Ghana,Panama,2.42,3.25,3.45
+2026-06-18,Switzerland,Bosnia and Herzegovina,1.6,4.35,6.7
+2026-06-18,Uzbekistan,Colombia,11.5,5.6,1.4
+2026-06-19,Canada,Qatar,1.3,6.5,14.0
+2026-06-19,Mexico,South Korea,2.14,3.3,4.2
+2026-06-19,United States,Australia,1.65,4.33,6.5
+2026-06-20,Brazil,Haiti,1.15,12.0,31.0
+2026-06-20,Germany,Ivory Coast,1.53,5.05,7.6
+2026-06-20,Netherlands,Sweden,1.78,4.1,5.0
+2026-06-20,Scotland,Morocco,5.8,3.8,1.78
+2026-06-20,Turkey,Paraguay,2.18,3.45,3.85
+2026-06-21,Belgium,Iran,1.47,4.9,8.9
+2026-06-21,Ecuador,Curacao,1.19,8.9,23.0
+2026-06-21,Spain,Saudi Arabia,1.13,12.0,31.0
+2026-06-21,Tunisia,Japan,8.7,4.75,1.51
+2026-06-22,Argentina,Austria,1.52,4.6,8.0
+2026-06-22,France,Iraq,1.11,13.25,41.0
+2026-06-22,New Zealand,Egypt,6.0,4.0,1.7
+2026-06-22,Uruguay,Cape Verde,1.44,4.75,10.0
+2026-06-23,England,Ghana,1.22,7.5,19.0
+2026-06-23,Jordan,Algeria,7.5,4.65,1.53
+2026-06-23,Norway,Senegal,2.55,3.5,3.0
+2026-06-23,Portugal,Uzbekistan,1.17,9.2,23.0
+2026-06-24,Bosnia and Herzegovina,Qatar,1.47,5.25,8.0
+2026-06-24,Colombia,DR Congo,1.58,4.2,7.5
+2026-06-24,Panama,Croatia,8.3,5.0,1.5
+2026-06-24,Switzerland,Canada,2.65,3.1,3.3
+2026-06-25,Curacao,Ivory Coast,21.0,8.0,1.21
+2026-06-25,Czech Republic,Mexico,4.75,4.0,1.82
+2026-06-25,Ecuador,Germany,4.7,4.5,1.78
+2026-06-25,Morocco,Haiti,1.35,5.85,11.0
+2026-06-25,Scotland,Brazil,11.0,5.6,1.38
+2026-06-25,South Africa,South Korea,5.8,4.0,1.76
+2026-06-26,Japan,Sweden,2.45,3.45,3.4
+2026-06-26,Norway,France,8.25,6.0,1.4
+2026-06-26,Paraguay,Australia,2.75,2.5,4.35
+2026-06-26,Senegal,Iraq,1.24,7.5,15.0
+2026-06-26,Tunisia,Netherlands,23.0,9.0,1.18
+2026-06-26,Turkey,United States,3.33,4.05,2.16
+2026-06-27,Cape Verde,Saudi Arabia,2.75,3.5,2.82
+2026-06-27,Croatia,Ghana,1.93,3.35,5.75
+2026-06-27,Egypt,Iran,2.68,2.8,3.75
+2026-06-27,New Zealand,Belgium,15.0,9.1,1.2
+2026-06-27,Panama,England,19.5,8.7,1.19
+2026-06-27,Uruguay,Spain,6.4,3.65,1.72
+2026-06-28,Algeria,Austria,3.6,2.32,3.75
+2026-06-28,Colombia,Portugal,4.15,4.1,1.93
+2026-06-28,DR Congo,Uzbekistan,1.75,3.85,5.5
+2026-06-28,Jordan,Argentina,21.0,8.7,1.18
+2026-06-28,South Africa,Canada,5.1,3.5,1.9
+2026-06-29,Brazil,Japan,1.83,3.7,5.25
+2026-06-29,Germany,Paraguay,1.4,5.35,10.5
+2026-06-30,France,Sweden,1.34,6.5,10.0
+2026-06-30,Ivory Coast,Norway,3.7,3.5,2.22
+2026-06-30,Netherlands,Morocco,2.45,3.25,3.45
+2026-07-01,Belgium,Senegal,2.1,3.65,4.33
+2026-07-01,England,DR Congo,1.36,5.5,14.5
+2026-07-01,Mexico,Ecuador,2.33,2.9,4.25
+2026-07-02,Spain,Austria,1.38,5.5,11.0
+2026-07-02,United States,Bosnia and Herzegovina,1.42,5.5,9.0
+2026-07-03,Australia,Egypt,3.75,3.0,2.5
+2026-07-03,Portugal,Croatia,1.77,3.85,5.65
+2026-07-03,Switzerland,Algeria,2.07,3.4,4.5
+2026-07-04,Argentina,Cape Verde,1.18,8.75,26.0
+2026-07-04,Canada,Morocco,5.33,3.4,1.88
+2026-07-04,Colombia,Ghana,1.5,4.5,9.0
+2026-07-04,Paraguay,France,19.0,7.0,1.25
+2026-07-05,Brazil,Norway,1.84,4.0,4.9
+2026-07-06,Mexico,England,3.2,3.2,2.6
+2026-07-06,Portugal,Spain,4.1,3.65,2.05
+2026-07-07,Argentina,Egypt,1.38,5.35,12.0
+2026-07-07,Switzerland,Colombia,3.9,3.15,2.54
+2026-07-07,United States,Belgium,2.62,3.45,3.0
+2026-07-09,France,Morocco,1.65,4.05,6.5
+2026-07-10,Spain,Belgium,1.72,4.15,5.6

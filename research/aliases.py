@@ -19,6 +19,11 @@ import unicodedata
 # odds-source / API team name (lowercased, NFKD-stripped) -> results.csv name.
 # Union of the four scripts' maps; extend as the coverage reports flag gaps.
 ALIASES = {
+    # DR Congo (OddsPortal writes it "D.R. Congo")
+    "d.r. congo": "DR Congo",
+    "dr congo": "DR Congo",
+    "democratic republic of congo": "DR Congo",
+    "congo dr": "DR Congo",
     # Korea
     "korea republic": "South Korea",
     "south korea": "South Korea",

@@ -38,8 +38,9 @@ def brier(p, actual):
 
 
 def main():
-    # latest captured price per (home, away); teams are unique within one World Cup
+    # market price per (home, away); teams are unique within one World Cup.
     mkt = {}
+    # Live captures first: average 1X2 snapshots grabbed before kickoff (data/odds_live.csv).
     op = os.path.join(_ROOT, "data", "odds_live.csv")
     if os.path.exists(op):
         for r in csv.DictReader(open(op, encoding="utf-8")):
@@ -48,24 +49,41 @@ def main():
             except (ValueError, KeyError, ZeroDivisionError):
                 continue
             mkt[(canon(r["home_team"]), canon(r["away_team"]))] = {"date": r["match_date"], "p": probs}
+    # Then scraped closing lines (data/odds_2026.csv, odds_history schema:
+    # match_date,home_team,away_team,home_odds,draw_odds,away_odds). These are the sharper,
+    # more rigorous benchmark, so they take precedence over the live snapshot where present.
+    bp = os.path.join(_ROOT, "data", "odds_2026.csv")
+    if os.path.exists(bp):
+        for r in csv.DictReader(open(bp, encoding="utf-8")):
+            try:
+                probs = devig(float(r["home_odds"]), float(r["draw_odds"]), float(r["away_odds"]))
+            except (ValueError, KeyError, ZeroDivisionError):
+                continue
+            mkt[(canon(r["home_team"]), canon(r["away_team"]))] = {"date": r["match_date"], "p": probs}
 
     tj = json.load(open(os.path.join(_ROOT, "docs", "data", "tracker.json"), encoding="utf-8"))
     rows = []
     ms = ks = 0.0
     for m in tj.get("resolved", []):
-        c = mkt.get((canon(m["home"]), canon(m["away"])))
-        if not c:
-            continue
+        mh, ma = canon(m["home"]), canon(m["away"])
+        c = mkt.get((mh, ma))
+        if c:
+            market, mdate = c["p"], c["date"]
+        else:                                    # odds stored in the other team order: swap
+            c = mkt.get((ma, mh))
+            if not c:
+                continue
+            market, mdate = [c["p"][2], c["p"][1], c["p"][0]], c["date"]
         try:
             hs, as_ = [int(x) for x in str(m["result"]).split("-")]
         except (ValueError, AttributeError):
             continue
         actual = 0 if hs > as_ else (2 if as_ > hs else 1)
         mb = brier([m["pHome"], m["pDraw"], m["pAway"]], actual)
-        kb = brier(c["p"], actual)
+        kb = brier(market, actual)
         ms += mb
         ks += kb
-        rows.append({"date": c["date"], "home": m["home"], "away": m["away"], "result": m["result"],
+        rows.append({"date": mdate, "home": m["home"], "away": m["away"], "result": m["result"],
                      "model": round(mb, 4), "market": round(kb, 4),
                      "sharper": "model" if mb < kb else "market"})
 
