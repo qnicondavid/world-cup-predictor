@@ -1,0 +1,36 @@
+name: Tracker / data bug
+description: Report a wrong score, championship number, or something off on the live site or in the data.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for flagging it. Predictions are locked in git before kickoff and never edited, so a locked pick that reads oddly is expected. This is for scoring, data, or site-display problems.
+  - type: input
+    id: match
+    attributes:
+      label: Match and date
+      placeholder: e.g. Spain vs Belgium, Jul 10 2026
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What is wrong, and what did you expect?
+      description: Describe the discrepancy. A screenshot of the site or a link to the row helps.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where is it?
+      options:
+        - Live results table (score / hit / goal difference)
+        - Championship odds
+        - Model vs market scoreboard
+        - A data file in the repo
+        - Live site display or rendering
+        - Other
+    validations:
+      required: true

@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Live demo and methodology
+    url: https://qnicondavid.github.io/world-cup-predictor/
+    about: See the live predictions, calibration, and the full rejected-ideas ledger before opening an issue.

@@ -1,0 +1,54 @@
+name: Idea to test
+description: Propose a model change or new signal to run through the out-of-sample gate.
+title: "[Idea] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every idea here is measured leave-one-tournament-out over the 2006 to 2022 World Cups and adopted only if a paired block-bootstrap 95% CI clears zero. Most do not, and that is fine: a well-measured negative result is a valued contribution.
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Hypothesis (one sentence)
+      description: What change or signal, and why it might sharpen the probabilities.
+      placeholder: e.g. Weighting continental qualifiers above friendlies should improve calibration on European sides.
+    validations:
+      required: true
+  - type: textarea
+    id: information
+    attributes:
+      label: What information does it add?
+      description: What does this capture that squad market value, recent form, and the fitted Elo / Dixon-Coles ratings do not already?
+    validations:
+      required: true
+  - type: textarea
+    id: leakage
+    attributes:
+      label: How is it computed leakage-safe?
+      description: Confirm it uses only data available before kickoff, and explain how the lookups are dated.
+    validations:
+      required: true
+  - type: textarea
+    id: evaluation
+    attributes:
+      label: Proposed evaluation and expected effect
+      description: Which tournaments, and a rough guess at the effect size on held-out multiclass Brier.
+    validations:
+      required: false
+  - type: textarea
+    id: prior-art
+    attributes:
+      label: Prior art / redundancy
+      description: Might this already be absorbed by the value prior or an existing feature? Link anything relevant.
+    validations:
+      required: false
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Before submitting
+      options:
+        - label: I understand this will be gated leave-one-tournament-out and may be rejected if its 95% CI does not clear zero.
+          required: true
+        - label: The signal uses only pre-kickoff information (no leakage).
+          required: true
