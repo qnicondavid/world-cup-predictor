@@ -484,8 +484,9 @@
           </tbody>
         </table>
         <p class="wcsum">The margin sits inside one standard error, so the honest read is parity with
-          the sharpest line rather than a beat. A live ledger now captures pre-kickoff prices and
-          tracks closing-line value forward, the only honest way to turn parity into a verdict.</p>
+          the sharpest line rather than a beat. A forward ledger captures pre-kickoff prices and settles
+          each flag against the result, the honest way to turn parity into a verdict over time, though the
+          sample so far is far too small to read.</p>
         <div class="closing-note">
           <p class="tagline">How the model reached parity, in three moves.</p>
           <div class="cs-step"><span class="cs-lbl">diagnose</span><p class="cs-body" id="csDiagnose"></p></div>
@@ -504,11 +505,12 @@
           <table id="fwdTable"><thead><tr>
             <th>Date</th><th>Match</th><th>Flag</th><th class="num">Model</th><th class="num">Market</th><th class="num">Odds</th><th class="num">Stake</th><th>Status</th>
           </tr></thead><tbody></tbody></table>
-          <p class="wcsum" style="margin-top:10px">Every flag above is still open. The staking stays
-            conservative (a 5% edge floor, quarter-Kelly, capped at 5% of a notional bankroll), and it
-            will take a few hundred settled bets to tell whether these small edges are real. Until then
-            this is an instrument, not a result: no running total, no profit figure, just the flags and
-            how they land.</p>
+          <p class="wcsum" style="margin-top:10px">The first flags have now settled, and the early read
+            is poor: the model's value flags, all on draws or underdogs it priced above the market, mostly
+            lost. The staking stays conservative (a 5% edge floor, quarter-Kelly, capped at 5% of a
+            notional bankroll). A dozen bets is noise, not a verdict, and closing-line value needs prices
+            captured nearer kickoff than these were. Read it as the instrument warming up: counts and
+            statuses only, no running total.</p>
         </div>
       </section>
     </div>
@@ -1044,15 +1046,15 @@ function renderClosing(d) {
   if (chip) chip.textContent = "result: parity with the line, confidence interval spans zero";
 }
 
-fetch("data/forward_bets.csv", { cache: "no-store" })
+fetch("data/forward_bets_settled.csv", { cache: "no-store" })
   .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
   .then(renderForward)
   .catch(() => {});
 
-// The forward CLV ledger, shown as an instrument with no verdict yet: counts and statuses only,
-// no running total or profit figure.
+// The forward CLV ledger: each value flag settled won/lost/open against the result. Counts and statuses
+// only, no running total or profit figure, and every mention keeps the tiny-sample caveat.
 function renderForward(txt) {
-  const rows = txt.trim().split(/\r?\n/).slice(1).map(l => {
+  const rows = txt.trim().split(/\r?\n/).slice(1).filter(l => l.trim()).map(l => {
     const f = l.split(",");
     return { date: f[1], home: f[2], away: f[3], outcome: f[4], model: +f[5], market: +f[6],
              odds: +f[7], stake: +f[9], status: (f[10] || "open").trim() };
@@ -1065,11 +1067,15 @@ function renderForward(txt) {
       <td class="num">${(100 * r.model).toFixed(1)}%</td><td class="num">${(100 * r.market).toFixed(1)}%</td>
       <td class="num">${r.odds.toFixed(2)}</td><td class="num">${(100 * r.stake).toFixed(1)}%</td>
       <td><span class="fwd-chip ${/^(won|lost)$/.test(r.status) ? esc(r.status) : ""}">${esc(r.status)}</span></td></tr>`).join("");
-  const settled = rows.filter(r => r.status !== "open").length;
+  const won = rows.filter(r => r.status === "won").length;
+  const lost = rows.filter(r => r.status === "lost").length;
+  const settled = won + lost, openN = rows.length - settled;
   const fill = document.getElementById("fwdFill");
   if (fill) fill.style.width = Math.min(100, rows.length / 300 * 100).toFixed(1) + "%";
   const meter = document.getElementById("fwdMeter");
-  if (meter) meter.textContent = `${rows.length} flags placed, ${settled} settled. A verdict needs a few hundred settled bets, so the bar stays near empty by design.`;
+  if (meter) meter.textContent = settled
+    ? `${rows.length} flags placed, ${settled} settled so far: ${won} won, ${lost} lost${openN ? `, ${openN} still open` : ""}. Far too small for a verdict; a few hundred settled bets are needed, so the bar stays near empty by design.`
+    : `${rows.length} flags placed, none settled yet. A verdict needs a few hundred settled bets, so the bar stays near empty by design.`;
 }
 
 const navLinks = {};
