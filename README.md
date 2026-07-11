@@ -1,6 +1,10 @@
 # World Cup Predictor
 
-![World Cup Predictor dashboard: at parity with the bookmaker closing line](docs/preview.png)
+<p align="center">
+  <a href="https://qnicondavid.github.io/world-cup-predictor/">
+    <img src="docs/preview.png" alt="World Cup Predictor dashboard: at parity with the bookmaker closing line" width="760">
+  </a>
+</p>
 
 A prediction model for FIFA World Cup matches, trained on 150+ years of
 international football results (49,000+ matches, 1872 to today). Predictions are
