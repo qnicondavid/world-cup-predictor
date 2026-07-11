@@ -1,5 +1,7 @@
 # World Cup Predictor
 
+![World Cup Predictor dashboard: at parity with the bookmaker closing line](docs/preview.png)
+
 A prediction model for FIFA World Cup matches, trained on 150+ years of
 international football results (49,000+ matches, 1872 to today). Predictions are
 served from a **Dixon-Coles goal model** with a squad market-value prior, locked
@@ -7,7 +9,7 @@ before kickoff, and scored against real results as the tournament unfolds. The
 harder question behind the project was whether the probabilities are sharp enough
 to beat a bookmaker's closing line. Tested against real closing odds from two
 past World Cups, the model comes out level with the line: a small edge after
-calibration, but well inside the margin of error, so not a demonstrated one. How
+calibration, but well inside the margin of error, so not a demonstrated one. Fifteen other ideas that looked promising were tested and rejected out of sample, and they stay documented alongside the three that shipped. How
 it gets there, and where it stops, is the rest of this README.
 
 **Live demo: [qnicondavid.github.io/world-cup-predictor](https://qnicondavid.github.io/world-cup-predictor/)**
@@ -574,6 +576,14 @@ mvn compile exec:java -Dexec.args="--draw-curve"  # reproduce DrawModel's draw-r
 ```
 
 (PowerShell: quote the whole flag, e.g. `mvn compile exec:java "-Dexec.args=--simulate"`.)
+
+## Datasets you can reuse
+
+Three artifacts here are hard to find elsewhere and are free to reuse under the MIT license:
+
+- **[docs/data/heldout.csv](docs/data/heldout.csv)** (320 rows) - every held-out prediction behind the headline: 320 World Cup matches (2006-2022), each with the model's win/draw/loss probabilities and the actual result, trained leave-one-tournament-out.
+- **[data/wc2018_odds.csv](data/wc2018_odds.csv)** + **[data/wc2022_odds.csv](data/wc2022_odds.csv)** (50 + 50 rows) - de-vigged bookmaker closing lines for the 2018 and 2022 World Cups, 99 matches scored against the model. Real closing odds for international football are genuinely scarce.
+- **[docs/data/live_market.json](docs/data/live_market.json)** - the per-match 2026 model-vs-market comparison behind the live scoreboard: model and de-vigged market probabilities plus multiclass Brier for every 2026 match where a bookmaker price was captured.
 
 ## Data & credits
 
