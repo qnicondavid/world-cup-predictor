@@ -988,6 +988,15 @@ public final class Main {
 
         // Lock predictions for upcoming World Cup fixtures not yet in the ledger.
         List<Fixture> fixtures = new MatchCsvParser().parseFixtures(csv);
+
+        // Warn in the run log if a current World Cup team is being priced from a stale squad value.
+        java.util.Set<String> currentTeams = new java.util.TreeSet<>();
+        matches.stream().filter(Match::isWorldCupFinals)
+                .filter(m -> m.date().getYear() == today.getYear())
+                .forEach(m -> { currentTeams.add(m.homeTeam()); currentTeams.add(m.awayTeam()); });
+        fixtures.stream().filter(Fixture::isWorldCupFinals)
+                .forEach(fx -> { currentTeams.add(fx.homeTeam()); currentTeams.add(fx.awayTeam()); });
+        warnStaleValues(marketValues, currentTeams, today);
         List<PredictionLedger.Prediction> ledger =
                 new ArrayList<>(PredictionLedger.load(ledgerPath));
         FormAdjuster form = new FormAdjuster(matches);
@@ -1095,6 +1104,23 @@ public final class Main {
             }
         } finally {
             Files.deleteIfExists(tmp);
+        }
+    }
+
+    /** Print a warning for any current team whose squad market value has not been refreshed in a
+     *  long time, so a stale figure feeding the live prediction is visible in the daily run log.
+     *  Teams with no value row at all are left to the build-time alarm in build_market_values.py. */
+    private static void warnStaleValues(MarketValueTable values, java.util.Set<String> teams, LocalDate today) {
+        for (String team : teams) {
+            java.util.Optional<LocalDate> asOf = values.latestAsOf(team);
+            if (asOf.isEmpty()) {
+                continue;
+            }
+            long months = java.time.temporal.ChronoUnit.MONTHS.between(asOf.get(), today);
+            if (months >= 18) {
+                System.out.printf("WARNING: %s is priced from a stale squad value (%s, %d months old).%n",
+                        team, asOf.get(), months);
+            }
         }
     }
 

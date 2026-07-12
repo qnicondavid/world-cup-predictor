@@ -77,6 +77,14 @@ public final class MarketValueTable {
         return entry == null ? OptionalDouble.empty() : OptionalDouble.of(entry.getValue());
     }
 
+    /** The most recent as-of date on record for {@code team}, or empty if the team is absent.
+     *  Lets callers flag a team whose squad value has not been refreshed in a long time. */
+    public java.util.Optional<LocalDate> latestAsOf(String team) {
+        NavigableMap<LocalDate, Double> history = byTeam.get(team);
+        return (history == null || history.isEmpty())
+                ? java.util.Optional.empty() : java.util.Optional.of(history.lastKey());
+    }
+
     /** Teams that have at least one valuation on or before {@code date}. */
     public Set<String> teamsWithValueAsOf(LocalDate date) {
         Set<String> teams = new TreeSet<>();

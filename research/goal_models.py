@@ -15,6 +15,9 @@ class Match:
 
 def load(path):
     rows=[]
+    with open(path, 'rb') as _fh:
+        if b'\x00' in _fh.read():
+            raise SystemExit(f"{path} contains NUL bytes (a OneDrive sync artifact); restore it with: git checkout -- {path}")
     with open(path, newline='', encoding='utf-8') as f:
         for r in csv.DictReader(f):
             try: hg=int(r["home_score"]); ag=int(r["away_score"])

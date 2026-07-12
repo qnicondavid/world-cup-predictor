@@ -135,6 +135,9 @@ def current_participants(year):
     teams = set()
     if not os.path.exists(path):
         return teams
+    with open(path, "rb") as _fh:
+        if b"\x00" in _fh.read():
+            raise SystemExit(f"{path} contains NUL bytes (a OneDrive sync artifact); restore it with: git checkout -- {path}")
     with open(path, newline="", encoding="utf-8") as f:
         for r in csv.DictReader(f):
             if r.get("date", "")[:4] == str(year) and r.get("tournament") == "FIFA World Cup":
@@ -176,7 +179,8 @@ def report_staleness(rows):
             months = (newest.year - d.year) * 12 + (newest.month - d.month)
             print(f"  {team:<26} newest value {d.isoformat()} "
                   f"({months} months behind {newest.isoformat()})")
-    print("  Refresh the Transfermarkt dumps or fix the team-name alias, then rebuild.")
+    print("  If the name is a mapping gap, fix the alias; otherwise the source data simply lacks")
+    print("  recent coverage for that team (Qatar, for example), and the flag is expected.")
 
 
 def main():
