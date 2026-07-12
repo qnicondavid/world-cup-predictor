@@ -9,6 +9,7 @@ import com.david.worldcup.elo.Tuner;
 import com.david.worldcup.elo.DrawModel;
 import com.david.worldcup.goals.BivariatePoissonModel;
 import com.david.worldcup.goals.Calibration;
+import com.david.worldcup.goals.Confederations;
 import com.david.worldcup.goals.DixonColesModel;
 import com.david.worldcup.goals.ValueAdjuster;
 import com.david.worldcup.goals.FormAdjuster;
@@ -44,6 +45,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.io.PrintWriter;
 import java.io.FileWriter;
@@ -131,6 +133,10 @@ public final class Main {
             runFormExport(matches);
         } else if (arguments.contains("--expanded-windows")) {
             runExpandedWindows(matches);
+        } else if (arguments.stream().anyMatch(a -> a.startsWith("--expanded-export-confed"))) {
+            runExpandedExportConfed(matches, arguments);
+        } else if (arguments.stream().anyMatch(a -> a.startsWith("--expanded-export"))) {
+            runExpandedExport(matches, arguments);
         } else if (arguments.contains("--values-tune")) {
             runValuesTune(matches);
         } else if (arguments.contains("--values-tune-loto")) {
@@ -1290,6 +1296,194 @@ public final class Main {
         byTournament.forEach((t, c) ->
                 System.out.printf(Locale.ROOT, "  %-26s %d matches%n", t, c));
         System.out.println("(The World Cup 320 gate stays separate; this is the continental surface added on top.)");
+    }
+
+    /**
+     * Expanded export: runs the production Dixon-Coles + value-prior + form + draw-transfer
+     * pipeline over BOTH the World Cup windows and the continental-final windows at a chosen
+     * form lambda, writing per-match predictions for the Python scorer. The form lambda is
+     * parsed from {@code --expanded-export=0.60} (default 0.20 when no value is given).
+     *
+     * <p>This mirrors the per-window body of {@link #writeExportCsvs} exactly (ValueTuner.prepare
+     * -> ValueAdjuster with {@code ValueWeights.DEFAULT} -> DixonColesModel -> FormAdjuster ->
+     * {@code Calibration.transferDraw} -> {@link #writeExportRow}); the only additions are the
+     * continental surface and the caller-supplied test predicate. It does not touch any shipped
+     * export path.
+     */
+    private static void runExpandedExport(List<Match> matches, List<String> arguments) throws IOException {
+        double lambda = 0.20;
+        for (String a : arguments) {
+            if (a.startsWith("--expanded-export=")) {
+                lambda = Double.parseDouble(a.substring("--expanded-export=".length()));
+            }
+        }
+        System.out.printf(Locale.ROOT,
+                "=== Expanded export: value prior + recent form at lambda %.2f over World Cup + continental finals ===%n",
+                lambda);
+        FormAdjuster form = new FormAdjuster(matches, lambda);
+        MarketValueTable values = MarketValueTable.load(Path.of("data/market_values.csv"));
+        ValueTuner tuner = new ValueTuner(12, values);
+
+        long lambdaBps = Math.round(lambda * 100);
+        Path outPath = Path.of("research", String.format(Locale.ROOT, "expanded_predictions_l%03d.csv", lambdaBps));
+
+        int worldCupRows = 0;
+        int continentalRows = 0;
+        try (PrintWriter pw = new PrintWriter(new FileWriter(outPath.toFile()))) {
+            pw.println("tournament,home,away,date,p_home,p_draw,p_away,actual");
+
+            // World Cup surface: same windows, filter and labels as writeExportCsvs.
+            for (Backtest.Window w : Backtest.WORLD_CUPS) {
+                String label = "WC" + w.from().getYear();
+                worldCupRows += writeExpandedWindow(pw, matches, tuner, values, form,
+                        w, Match::isWorldCupFinals, label);
+            }
+            // Continental-final surface added on top.
+            for (Backtest.TournamentWindow tw : Backtest.continentalFinalWindows(matches, 2000)) {
+                String label = tw.window().label();
+                continentalRows += writeExpandedWindow(pw, matches, tuner, values, form,
+                        tw.window(), (Match m) -> m.tournament().equals(tw.tournament()), label);
+            }
+        }
+        int total = worldCupRows + continentalRows;
+        System.out.printf(Locale.ROOT,
+                "Written %s%n  %d rows total (%d World Cup, %d continental)%n",
+                outPath.toAbsolutePath(), total, worldCupRows, continentalRows);
+    }
+
+    /**
+     * Scores one (window, test predicate, label) triple into {@code pw} using the production
+     * value-prior + form + draw-transfer pipeline, returning the number of rows written. This
+     * is the per-window body of {@link #writeExportCsvs} lifted so both surfaces share it; it
+     * does not change {@code writeExportCsvs}'s own behaviour.
+     */
+    private static int writeExpandedWindow(PrintWriter pw, List<Match> matches, ValueTuner tuner,
+                                           MarketValueTable values, FormAdjuster form,
+                                           Backtest.Window window,
+                                           java.util.function.Predicate<Match> isTest, String label) {
+        ValueTuner.Prepared p = tuner.prepare(matches, window, isTest);
+        var strength = values.isEmpty() ? p.base()
+                : ValueAdjuster.adjust(p.base(), p.counts(), values, p.asof(), ValueWeights.DEFAULT);
+        DixonColesModel model = new DixonColesModel(strength);
+        int rows = 0;
+        for (Match m : p.test()) {
+            DrawModel.Probabilities pr =
+                    model.probabilities(m.homeTeam(), m.awayTeam(), m.neutralVenue());
+            String actual = switch (m.outcome()) {
+                case HOME_WIN -> "home";
+                case DRAW    -> "draw";
+                case AWAY_WIN -> "away";
+            };
+            DrawModel.Probabilities adjusted = Calibration.transferDraw(
+                    form.adjust(m.homeTeam(), m.awayTeam(), m.date(), pr));
+            writeExportRow(pw, label, m, adjusted, actual);
+            rows++;
+        }
+        return rows;
+    }
+
+    /**
+     * Confederation-corrected expanded export: runs the production LOTO pipeline
+     * (Dixon-Coles + value prior + form 0.20 + draw transfer) over the World Cup and
+     * continental-final windows, then layers the cross-confederation correction
+     * ({@link Confederations}) on top at a chosen scale, writing per-match predictions
+     * for the Python scorer. The scale is parsed from
+     * {@code --expanded-export-confed=1.0} (default 0.5 when no value is given).
+     *
+     * <p>At scale 0 the correction is a no-op (adj = 0), so the output is byte-identical
+     * to {@code research/expanded_predictions_l020.csv}. Offsets are estimated only from
+     * each window's training split, so the correction stays leakage-safe. This does not
+     * touch any shipped export path.
+     */
+    private static void runExpandedExportConfed(List<Match> matches, List<String> arguments) throws IOException {
+        double scale = 0.5;
+        for (String a : arguments) {
+            if (a.startsWith("--expanded-export-confed=")) {
+                scale = Double.parseDouble(a.substring("--expanded-export-confed=".length()));
+            }
+        }
+        System.out.printf(Locale.ROOT,
+                "=== Expanded export (cross-confederation correction, scale %.2f): production LOTO over World Cup + continental finals ===%n",
+                scale);
+        Map<String, String> cmap = Confederations.buildConfedMap(matches);
+        FormAdjuster form = new FormAdjuster(matches);
+        MarketValueTable values = MarketValueTable.load(Path.of("data/market_values.csv"));
+        ValueTuner tuner = new ValueTuner(12, values);
+
+        long scaleBps = Math.round(scale * 100);
+        Path outPath = Path.of("research",
+                String.format(Locale.ROOT, "expanded_predictions_confed_s%03d.csv", scaleBps));
+
+        int total = 0;
+        int inter = 0;
+        try (PrintWriter pw = new PrintWriter(new FileWriter(outPath.toFile()))) {
+            pw.println("tournament,home,away,date,p_home,p_draw,p_away,actual");
+
+            // World Cup surface: same windows, filter and labels as the other exports.
+            for (Backtest.Window w : Backtest.WORLD_CUPS) {
+                int[] r = writeConfedWindow(pw, matches, tuner, values, form, cmap,
+                        w, Match::isWorldCupFinals, "WC" + w.from().getYear(), scale);
+                total += r[0];
+                inter += r[1];
+            }
+            // Continental-final surface added on top.
+            for (Backtest.TournamentWindow tw : Backtest.continentalFinalWindows(matches, 2000)) {
+                int[] r = writeConfedWindow(pw, matches, tuner, values, form, cmap,
+                        tw.window(), (Match m) -> m.tournament().equals(tw.tournament()),
+                        tw.window().label(), scale);
+                total += r[0];
+                inter += r[1];
+            }
+        }
+        System.out.printf(Locale.ROOT,
+                "Written %s%n  %d rows total, %d inter-confederation test matches (the surface the correction touched)%n",
+                outPath.toAbsolutePath(), total, inter);
+    }
+
+    /**
+     * Scores one (window, test predicate, label) triple with the confederation-corrected
+     * pipeline, returning {@code {rowsWritten, interConfederationTestMatches}}. Identical to
+     * {@link #writeExpandedWindow} except the per-match probabilities come from
+     * {@link Confederations#applyOffset} (which reduces to the plain model at scale 0);
+     * offsets are estimated once per window from that window's training split only.
+     */
+    private static int[] writeConfedWindow(PrintWriter pw, List<Match> matches, ValueTuner tuner,
+                                           MarketValueTable values, FormAdjuster form,
+                                           Map<String, String> cmap, Backtest.Window window,
+                                           java.util.function.Predicate<Match> isTest, String label,
+                                           double scale) {
+        ValueTuner.Prepared p = tuner.prepare(matches, window, isTest);
+        TeamStrength strength = values.isEmpty() ? p.base()
+                : ValueAdjuster.adjust(p.base(), p.counts(), values, p.asof(), ValueWeights.DEFAULT);
+        // Recompute training with the same filter ValueTuner.prepare uses (12-year window).
+        LocalDate start = window.from();
+        LocalDate trainStart = start.minusYears(12);
+        List<Match> training = matches.stream()
+                .filter(m -> m.date().isBefore(start) && !m.date().isBefore(trainStart))
+                .toList();
+        Map<String, Double> offsets = Confederations.estimateOffsets(
+                strength, training, cmap, start, 6.0, 15);
+        int rows = 0;
+        int inter = 0;
+        for (Match m : p.test()) {
+            DrawModel.Probabilities pr = Confederations.applyOffset(strength,
+                    m.homeTeam(), m.awayTeam(), m.neutralVenue(), cmap, offsets, scale, 0.6);
+            String actual = switch (m.outcome()) {
+                case HOME_WIN -> "home";
+                case DRAW    -> "draw";
+                case AWAY_WIN -> "away";
+            };
+            DrawModel.Probabilities adjusted = Calibration.transferDraw(
+                    form.adjust(m.homeTeam(), m.awayTeam(), m.date(), pr));
+            writeExportRow(pw, label, m, adjusted, actual);
+            rows++;
+            String ca = cmap.get(m.homeTeam());
+            String cb = cmap.get(m.awayTeam());
+            if (ca != null && cb != null && !ca.equals(cb)) {
+                inter++;
+            }
+        }
+        return new int[] {rows, inter};
     }
 
     /**

@@ -79,6 +79,18 @@ public final class ValueTuner {
     }
 
     public Prepared prepare(List<Match> all, Backtest.Window window) {
+        return prepare(all, window, Match::isWorldCupFinals);
+    }
+
+    /**
+     * Same as {@link #prepare(List, Backtest.Window)} but with a caller-supplied
+     * predicate selecting which matches land in the test set. The training split,
+     * base fit, counts and date filter are identical; only the tournament predicate
+     * is parameterized, so passing {@code Match::isWorldCupFinals} reproduces the
+     * World Cup path byte-for-byte.
+     */
+    public Prepared prepare(List<Match> all, Backtest.Window window,
+                            java.util.function.Predicate<Match> isTest) {
         LocalDate start = window.from();
         LocalDate trainStart = start.minusYears(trainingYears);
         List<Match> training = all.stream()
@@ -95,7 +107,7 @@ public final class ValueTuner {
             counts.merge(m.awayTeam(), 1, Integer::sum);
         }
         List<Match> test = all.stream()
-                .filter(Match::isWorldCupFinals)
+                .filter(isTest)
                 .filter(m -> !m.date().isBefore(start) && !m.date().isAfter(window.until()))
                 .toList();
         return new Prepared(base, counts, start, test);

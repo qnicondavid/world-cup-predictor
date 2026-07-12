@@ -687,11 +687,185 @@ def run_paired(baseline_csv, variant_csv):
         print(f"  VERDICT: does not clear the gate  ({'; '.join(reasons)})")
 
 
+# ---------------------------------------------------------------------------
+# 12. run_expanded_paired  (expanded-surface paired gate: confed + fav strata)
+# ---------------------------------------------------------------------------
+def _favourite_band(p_home, p_away):
+    """Favourite win probability band using max(pH, pA). Bands:
+    <40%, 40-55%, 55-70%, >70%."""
+    fav = max(p_home, p_away)
+    if fav < 0.40:
+        return "<40%"
+    if fav < 0.55:
+        return "40-55%"
+    if fav < 0.70:
+        return "55-70%"
+    return ">70%"
+
+
+def _mean_delta(recs):
+    """Mean per-match paired delta over records carrying a '_delta' key."""
+    if not recs:
+        return float("nan")
+    return float(np.mean([r["_delta"] for r in recs]))
+
+
+def run_expanded_paired(baseline_csv, variant_csv):
+    """
+    Expanded-surface paired Brier gate over two exports (A=baseline, B=variant).
+
+    For every match matched on (tournament, home, away, date):
+        delta_i = brier(A) - brier(B) = mcb(A.p, A.y) - mcb(B.p, B.y)
+    so a POSITIVE mean delta means B improved (its Brier loss went down).
+
+    Reports:
+      * pooled mean delta and a tournament-block bootstrap 95% CI (each
+        tournament edition, e.g. "UEFA Euro 2004" or "WC2006", is one block),
+      * stratified mean delta (with n) by confederation pairing
+        (intra vs inter, plus per-confederation-pair where n >= 20),
+      * stratified mean delta (with n) by favourite band from file B,
+      * the World Cup only subset (tournaments starting with "WC"):
+        pooled delta and per-World-Cup-tournament deltas.
+    """
+    baseline = load_export(baseline_csv)
+    variant  = load_export(variant_csv)
+    print(f"Loaded {len(baseline)} baseline (A) records from {baseline_csv}")
+    print(f"Loaded {len(variant)} variant  (B) records from {variant_csv}")
+
+    # ---- Align on match key (tournament, home, away, date) ----
+    base_by_key = {_record_key(r): r for r in baseline}
+    var_by_key  = {_record_key(r): r for r in variant}
+    if len(base_by_key) != len(baseline):
+        print("ERROR: baseline export contains duplicate match keys "
+              f"({len(baseline)} rows, {len(base_by_key)} distinct keys).",
+              file=sys.stderr)
+        sys.exit(1)
+    if len(var_by_key) != len(variant):
+        print("ERROR: variant export contains duplicate match keys "
+              f"({len(variant)} rows, {len(var_by_key)} distinct keys).",
+              file=sys.stderr)
+        sys.exit(1)
+
+    common = set(base_by_key) & set(var_by_key)
+    only_a = set(base_by_key) - set(var_by_key)
+    only_b = set(var_by_key) - set(base_by_key)
+    if only_a or only_b:
+        print(f"WARNING: match-key mismatch: in A only={len(only_a)}, "
+              f"in B only={len(only_b)}; using {len(common)} matched matches.",
+              file=sys.stderr)
+    if not common:
+        print("ERROR: no matched matches between A and B.", file=sys.stderr)
+        sys.exit(1)
+
+    # ---- Per-match paired records (delta = A_loss - B_loss) ----
+    paired = []
+    for k in base_by_key:
+        if k not in var_by_key:
+            continue
+        ra, rb = base_by_key[k], var_by_key[k]
+        d = mcb(ra["p"], ra["y"]) - mcb(rb["p"], rb["y"])
+        paired.append(dict(
+            tournament=ra["tournament"], home=ra["home"], away=ra["away"],
+            date=ra["date"], _delta=d,
+            fav_band=_favourite_band(rb["p"][0], rb["p"][2]),
+        ))
+
+    pooled = _mean_delta(paired)
+    print(f"\n--- Pooled paired delta (delta = A - B; positive = B improves) ---")
+    print(f"  Matched matches: {len(paired)}")
+    print(f"  Pooled mean delta: {pooled:+.5f}")
+
+    # ---- Tournament-block bootstrap 95% CI (block = tournament column) ----
+    pt, lo, hi = block_bootstrap(paired, _mean_delta, B=2000, seed=12345)
+    print(f"  Block-bootstrap 95% CI (tournament blocks): "
+          f"[{lo:+.5f}, {hi:+.5f}]")
+
+    # ---- Confederation strata ----
+    print("\n--- Stratified by confederation pairing ---")
+    cmap = _load_confed_map()
+    intra, inter, unclassified = [], [], 0
+    from collections import defaultdict
+    pair_groups = defaultdict(list)
+    for r in paired:
+        ca = cmap.get(r["home"])
+        cb = cmap.get(r["away"])
+        if ca is None or cb is None:
+            unclassified += 1
+            continue
+        if ca == cb:
+            intra.append(r)
+        else:
+            inter.append(r)
+        pair_key = tuple(sorted((ca, cb)))
+        pair_groups[pair_key].append(r)
+    print(f"  intra-confederation: n={len(intra):<5d} "
+          f"meanDelta={_mean_delta(intra):+.5f}")
+    print(f"  inter-confederation: n={len(inter):<5d} "
+          f"meanDelta={_mean_delta(inter):+.5f}")
+    if unclassified:
+        print(f"  unclassified (team not in confed map): n={unclassified}")
+    print("  per-confederation-pair (n >= 20):")
+    printed_any = False
+    for pair in sorted(pair_groups, key=lambda pr: -len(pair_groups[pr])):
+        recs = pair_groups[pair]
+        if len(recs) < 20:
+            continue
+        printed_any = True
+        kind = "intra" if pair[0] == pair[1] else "inter"
+        label = f"{pair[0]} vs {pair[1]}"
+        print(f"    {label:<24s} n={len(recs):<5d} "
+              f"meanDelta={_mean_delta(recs):+.5f}  ({kind})")
+    if not printed_any:
+        print("    (no confederation pair reaches n >= 20)")
+
+    # ---- Favourite-band strata (favourite prob from file B) ----
+    print("\n--- Stratified by favourite band (max(pH, pA) from file B) ---")
+    band_groups = defaultdict(list)
+    for r in paired:
+        band_groups[r["fav_band"]].append(r)
+    for band in ("<40%", "40-55%", "55-70%", ">70%"):
+        recs = band_groups.get(band, [])
+        if recs:
+            print(f"  {band:<7s} n={len(recs):<5d} "
+                  f"meanDelta={_mean_delta(recs):+.5f}")
+        else:
+            print(f"  {band:<7s} n=0")
+
+    # ---- World Cup only subset (tournaments starting with 'WC') ----
+    print("\n--- World Cup only subset (tournament starts with 'WC') ---")
+    wc = [r for r in paired if r["tournament"].startswith("WC")]
+    if not wc:
+        print("  (no World Cup matches in this surface)")
+    else:
+        print(f"  Matched World Cup matches: {len(wc)}")
+        print(f"  Pooled World Cup delta: {_mean_delta(wc):+.5f}")
+        wc_groups = defaultdict(list)
+        for r in wc:
+            wc_groups[r["tournament"]].append(r)
+        print("  per-World-Cup-tournament:")
+        for t in sorted(wc_groups):
+            recs = wc_groups[t]
+            print(f"    {t:<10s} n={len(recs):<4d} "
+                  f"meanDelta={_mean_delta(recs):+.5f}")
+
+
+def _load_confed_map():
+    """Build {team: confederation} from the repo's data/results.csv.
+    Imported lazily so --score / --paired stay free of this dependency."""
+    import confederation as _confed
+    repo_root = os.path.dirname(_HERE)
+    results_path = os.path.join(repo_root, "data", "results.csv")
+    data = load(results_path)
+    return _confed.build_confed_map(data)
+
+
 if __name__ == "__main__":
     if len(sys.argv) >= 3 and sys.argv[1] == "--score":
         score_export(sys.argv[2])
     elif len(sys.argv) >= 4 and sys.argv[1] == "--paired":
         run_paired(sys.argv[2], sys.argv[3])
+    elif len(sys.argv) >= 4 and sys.argv[1] == "--expanded-paired":
+        run_expanded_paired(sys.argv[2], sys.argv[3])
     else:
         path = sys.argv[1] if len(sys.argv) > 1 else None
         main(path)
