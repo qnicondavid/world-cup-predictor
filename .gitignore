@@ -21,3 +21,6 @@ data/wc_squads_html/
 research/export_predictions_realsquad.csv
 research/export_proxy_3wc.csv
 research/export_real_3wc.csv
+
+# Local planning and prompt notes (model research + promotion); not part of the project
+notes/
