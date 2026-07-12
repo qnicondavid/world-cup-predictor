@@ -1158,7 +1158,7 @@ function syncNav() {
   for (const p of panels) {
     if (p.getBoundingClientRect().top <= line) current = p.id;
   }
-  // near the bottom the last (short) panel can't reach the line, so force it — but only when the page can actually scroll
+  // near the bottom the last (short) panel can't reach the line, so force it, but only when the page can actually scroll
   const doc = document.documentElement;
   if (doc.scrollHeight > window.innerHeight + 4 && window.scrollY + window.innerHeight >= doc.scrollHeight - 2) {
     current = panels[panels.length - 1].id;

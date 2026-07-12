@@ -261,9 +261,9 @@ public final class Tracker {
         return ScorePredictor.fromExpectedScore(p.pHome() + p.pDraw() / 2.0);
     }
 
-    /** "2-1 (1.9–0.8)" — most likely scoreline with expected goals in brackets. */
+    /** "2-1 (1.9-0.8)", most likely scoreline with expected goals in brackets. */
     private static String scoreLabel(ScorePredictor.PredictedScore ps) {
-        return String.format(Locale.ROOT, "%d-%d (%.1f–%.1f)",
+        return String.format(Locale.ROOT, "%d-%d (%.1f-%.1f)",
                 ps.modalHome(), ps.modalAway(), ps.homeGoals(), ps.awayGoals());
     }
 

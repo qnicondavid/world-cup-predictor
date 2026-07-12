@@ -462,7 +462,12 @@ tournaments, but its paired CI [-0.0004, +0.0096] grazes zero (2022 regresses), 
 stronger nudge just misses the gate and the conservative 0.20 is kept (see negative
 findings). It is shipped and wired into the live tracker, so daily predictions carry it. One caveat: the nudge moves the
 probabilities, not the expected goals, so the most-likely-score column still
-comes from the raw model.
+comes from the raw model. That raw scoreline carries its own measured bias:
+leave-one-tournament-out, the model's expected total goals run about 0.45 below the
+actual at the 2018 and 2022 World Cups, near zero in 2006 and widening since, so the
+displayed expected goals and most-likely scores read low at recent tournaments. This
+shows up only in the scorelines on display, not in the win, draw, and loss
+probabilities or the Brier.
 
 ### Draw-transfer calibration
 
