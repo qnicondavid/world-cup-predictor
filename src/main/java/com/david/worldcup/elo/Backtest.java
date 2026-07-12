@@ -43,6 +43,64 @@ public final class Backtest {
     /** Windows used for tuning; 2022 is reserved for held-out validation. */
     public static final List<Window> TUNING_WINDOWS = WORLD_CUPS.subList(0, 4);
 
+    /**
+     * Tournaments that count as continental finals for the Phase 1 expanded validation surface:
+     * the top-tier continental championships plus the inter-confederation Confederations Cup.
+     * Sub-regional cups (AFF, EAFF, WAFF, CAFA) and non-FIFA events are deliberately excluded,
+     * because they are lower-stakes and do not resemble World Cup conditions.
+     */
+    public static final java.util.Set<String> CONTINENTAL_FINALS = java.util.Set.of(
+            "UEFA Euro", "Copa América", "African Cup of Nations", "AFC Asian Cup",
+            "Gold Cup", "Oceania Nations Cup", "Confederations Cup");
+
+    /** One continental-final edition: a tournament in a single year, with its date span. */
+    public record TournamentWindow(String tournament, int year, Window window, int matchCount) {}
+
+    /**
+     * Build one window per continental-final edition since {@code sinceYear}, straight from the
+     * match data. An edition is a {@link #CONTINENTAL_FINALS} tournament in a single calendar year;
+     * its window spans that edition's matches (earliest to latest date). Ordered by start date.
+     */
+    public static List<TournamentWindow> continentalFinalWindows(List<Match> all, int sinceYear) {
+        java.util.Map<String, List<Match>> byTournament = new java.util.HashMap<>();
+        for (Match m : all) {
+            if (CONTINENTAL_FINALS.contains(m.tournament())) {
+                byTournament.computeIfAbsent(m.tournament(), k -> new ArrayList<>()).add(m);
+            }
+        }
+        List<TournamentWindow> out = new ArrayList<>();
+        for (java.util.Map.Entry<String, List<Match>> entry : byTournament.entrySet()) {
+            String tournament = entry.getKey();
+            List<Match> ms = entry.getValue();
+            ms.sort(Comparator.comparing(Match::date));
+            // Cluster into editions: consecutive matches within 180 days belong to the same edition.
+            // 180 sits between the largest genuine within-edition gap (an Oceania Nations Cup spread
+            // over months, about 125 days) and the smallest gap between distinct editions (back-to-back
+            // Copa America 2015 and 2016, about 334 days), so a Dec-Jan edition or a spread-out one stays
+            // a single window while two real editions never merge.
+            int i = 0;
+            while (i < ms.size()) {
+                LocalDate from = ms.get(i).date();
+                LocalDate until = from;
+                int matchCount = 1;
+                int j = i + 1;
+                while (j < ms.size() && !ms.get(j).date().isAfter(until.plusDays(180))) {
+                    until = ms.get(j).date();
+                    matchCount++;
+                    j++;
+                }
+                int year = from.getYear();
+                if (year >= sinceYear) {
+                    Window w = new Window(tournament + " " + year, from, until);
+                    out.add(new TournamentWindow(tournament, year, w, matchCount));
+                }
+                i = j;
+            }
+        }
+        out.sort(Comparator.comparing(tw -> tw.window().from()));
+        return out;
+    }
+
     /** Pools several windows into one match-weighted result. */
     public BacktestResult runCombined(List<Match> matches, List<Window> windows,
                                       EloConfig config) {

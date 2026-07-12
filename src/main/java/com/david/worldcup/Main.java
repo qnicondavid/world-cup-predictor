@@ -129,6 +129,8 @@ public final class Main {
             runImportanceExport(matches);
         } else if (arguments.contains("--form-export")) {
             runFormExport(matches);
+        } else if (arguments.contains("--expanded-windows")) {
+            runExpandedWindows(matches);
         } else if (arguments.contains("--values-tune")) {
             runValuesTune(matches);
         } else if (arguments.contains("--values-tune-loto")) {
@@ -1263,6 +1265,31 @@ public final class Main {
         writeExportCsvs(matches, tuner, new FormAdjuster(matches, 0.60),
                 Path.of("research/export_predictions_formlambda_value.csv"),
                 Path.of("research/export_predictions_formlambda.csv"));
+    }
+
+    /**
+     * Phase 1 dry run: enumerate the continental-final windows the expanded walk-forward would
+     * use (see {@link Backtest#continentalFinalWindows}) and print each edition with its date span
+     * and match count, plus per-tournament and overall totals. No model is fit here; this only
+     * verifies the window enumeration before the pipeline runs over it.
+     */
+    private static void runExpandedWindows(List<Match> matches) {
+        List<Backtest.TournamentWindow> windows = Backtest.continentalFinalWindows(matches, 2000);
+        System.out.println("=== Continental-final windows for the expanded surface (since 2000) ===");
+        int total = 0;
+        java.util.Map<String, Integer> byTournament = new java.util.TreeMap<>();
+        for (Backtest.TournamentWindow tw : windows) {
+            System.out.printf(Locale.ROOT, "  %-26s %s to %s   %3d matches%n",
+                    tw.tournament() + " " + tw.year(),
+                    tw.window().from(), tw.window().until(), tw.matchCount());
+            total += tw.matchCount();
+            byTournament.merge(tw.tournament(), tw.matchCount(), Integer::sum);
+        }
+        System.out.printf(Locale.ROOT, "%n%d editions, %d matches total across the added surface%n",
+                windows.size(), total);
+        byTournament.forEach((t, c) ->
+                System.out.printf(Locale.ROOT, "  %-26s %d matches%n", t, c));
+        System.out.println("(The World Cup 320 gate stays separate; this is the continental surface added on top.)");
     }
 
     /**
