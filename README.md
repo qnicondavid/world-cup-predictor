@@ -46,118 +46,118 @@ the tables below automatically.
 
 | Date | Match | Winner | H/D/A % | Score (xG) | Result | Δ | Hit |
 |---|---|---|---|---|---|---|---|
-| Jul 10 | Spain vs Belgium | Spain | 57/21/21% | 1-0 (1.5–1.0) | 2-1 | 2 | ✅ |
-| Jul 9 | France vs Morocco | France | 49/25/26% | 1-0 (1.1–0.9) | 2-0 | 1 | ✅ |
-| Jul 7 | Argentina vs Egypt | Argentina | 71/19/10% | 1-0 (1.6–0.5) | 3-2 | 4 | ✅ |
-| Jul 7 | Switzerland vs Colombia | Colombia | 27/23/50% | 1-1 (1.0–1.3) | 0-0 | 2 | ❌ |
-| Jul 6 | United States vs Belgium | Belgium | 30/21/49% | 1-1 (1.3–1.5) | 1-4 | 3 | ✅ |
-| Jul 6 | Portugal vs Spain | Spain | 29/23/48% | 1-1 (1.1–1.3) | 0-1 | 1 | ✅ |
-| Jul 5 | Brazil vs Norway | Brazil | 62/19/19% | 1-1 (1.7–1.0) | 1-2 | 1 | ❌ |
-| Jul 5 | Mexico vs England | England | 22/22/55% | 0-1 (0.9–1.5) | 2-3 | 4 | ✅ |
-| Jul 4 | Canada vs Morocco | Morocco | 22/34/45% | 0-1 (0.7–1.1) | 0-3 | 2 | ✅ |
-| Jul 4 | Paraguay vs France | France | 13/19/68% | 0-1 (0.6–1.7) | 0-1 | 0 🎯 | ✅ |
-| Jul 3 | Australia vs Egypt | Australia | 36/35/30% | 0-0 (0.9–0.8) | 1-1 | 2 | ❌ |
-| Jul 3 | Argentina vs Cape Verde | Argentina | 77/18/5% | 2-0 (2.1–0.4) | 3-2 | 3 | ✅ |
-| Jul 3 | Colombia vs Ghana | Colombia | 64/24/12% | 1-0 (1.8–0.6) | 1-0 | 0 🎯 | ✅ |
-| Jul 2 | Spain vs Austria | Spain | 58/25/17% | 1-0 (1.7–0.8) | 3-0 | 2 | ✅ |
-| Jul 2 | Portugal vs Croatia | Portugal | 50/27/23% | 1-0 (1.5–0.9) | 2-1 | 2 | ✅ |
-| Jul 2 | Switzerland vs Algeria | Switzerland | 40/28/32% | 1-1 (1.4–1.2) | 2-0 | 2 | ✅ |
-| Jul 1 | England vs DR Congo | England | 57/30/14% | 1-0 (1.3–0.5) | 2-1 | 2 | ✅ |
-| Jul 1 | Belgium vs Senegal | Belgium | 43/29/28% | 1-1 (1.4–1.0) | 3-2 | 3 | ✅ |
-| Jul 1 | United States vs Bosnia and Herzegovina | United States | 64/21/15% | 2-0 (2.1–0.9) | 2-0 | 0 🎯 | ✅ |
-| Jun 30 | Ivory Coast vs Norway | Norway | 30/30/40% | 1-1 (1.0–1.2) | 1-2 | 1 | ✅ |
-| Jun 30 | France vs Sweden | France | 62/22/16% | 2-0 (2.0–1.0) | 3-0 | 1 | ✅ |
-| Jun 30 | Mexico vs Ecuador | Mexico | 35/34/31% | 0-0 (0.9–0.9) | 2-0 | 2 | ✅ |
-| Jun 29 | Brazil vs Japan | Brazil | 45/29/26% | 1-0 (1.4–1.0) | 2-1 | 2 | ✅ |
-| Jun 29 | Germany vs Paraguay | Germany | 53/27/21% | 1-0 (1.6–0.9) | 1-1 | 1 | ❌ |
-| Jun 29 | Netherlands vs Morocco | Morocco | 33/32/35% | 1-1 (1.0–1.0) | 1-1 | 0 🎯 | ❌ |
-| Jun 28 | South Africa vs Canada | Canada | 19/30/50% | 0-1 (0.7–1.3) | 0-1 | 0 🎯 | ✅ |
-| Jun 27 | Algeria vs Austria | Austria | 33/30/37% | 1-1 (1.3–1.3) | 3-3 | 4 | ❌ |
-| Jun 27 | Jordan vs Argentina | Argentina | 2/12/86% | 0-3 (0.5–3.7) | 1-3 | 1 | ✅ |
-| Jun 27 | Colombia vs Portugal | Colombia | 36/30/35% | 1-1 (1.3–1.3) | 0-0 | 2 | ❌ |
-| Jun 27 | DR Congo vs Uzbekistan | Uzbekistan | 26/28/46% | 1-1 (1.1–1.5) | 3-1 | 2 | ❌ |
-| Jun 27 | Panama vs England | England | 8/19/73% | 0-2 (0.7–2.5) | 0-2 | 0 🎯 | ✅ |
-| Jun 27 | Croatia vs Ghana | Croatia | 81/15/4% | 3-0 (3.1–0.5) | 2-1 | 2 | ✅ |
-| Jun 26 | Egypt vs Iran | Iran | 22/27/51% | 1-1 (1.0–1.7) | 1-1 | 0 🎯 | ❌ |
-| Jun 26 | New Zealand vs Belgium | Belgium | 6/18/76% | 0-2 (0.6–2.8) | 1-5 | 4 | ✅ |
-| Jun 26 | Cape Verde vs Saudi Arabia | Saudi Arabia | 29/29/42% | 1-1 (1.2–1.5) | 0-0 | 2 | ❌ |
-| Jun 26 | Uruguay vs Spain | Spain | 10/21/69% | 0-2 (0.7–2.3) | 0-1 | 1 | ✅ |
-| Jun 26 | Norway vs France | France | 19/26/56% | 0-1 (0.9–1.8) | 1-4 | 4 | ✅ |
-| Jun 26 | Senegal vs Iraq | Senegal | 61/25/15% | 1-0 (2.0–0.8) | 5-0 | 4 | ✅ |
-| Jun 25 | United States vs Turkey | Turkey | 27/28/45% | 1-1 (1.1–1.5) | 2-3 | 3 | ✅ |
-| Jun 25 | Paraguay vs Australia | Paraguay | 37/30/33% | 1-1 (1.3–1.3) | 0-0 | 2 | ❌ |
-| Jun 25 | Curaçao vs Ivory Coast | Ivory Coast | 9/20/71% | 0-2 (0.7–2.5) | 0-2 | 0 🎯 | ✅ |
-| Jun 25 | Ecuador vs Germany | Germany | 33/30/38% | 1-1 (1.2–1.4) | 2-1 | 1 | ❌ |
-| Jun 25 | Japan vs Sweden | Japan | 67/22/11% | 2-0 (2.3–0.7) | 1-1 | 2 | ❌ |
-| Jun 25 | Tunisia vs Netherlands | Netherlands | 8/19/73% | 0-2 (0.7–2.6) | 1-3 | 2 | ✅ |
-| Jun 24 | Mexico vs Czech Republic | Mexico | 65/23/11% | 2-0 (2.2–0.8) | 3-0 | 1 | ✅ |
-| Jun 24 | South Africa vs South Korea | South Korea | 9/20/70% | 0-2 (0.7–2.4) | 1-0 | 3 | ❌ |
-| Jun 24 | Canada vs Switzerland | Switzerland | 34/30/36% | 1-1 (1.3–1.3) | 1-2 | 1 | ✅ |
-| Jun 24 | Bosnia and Herzegovina vs Qatar | Bosnia and Herzegovina | 52/27/21% | 1-0 (1.7–1.0) | 3-1 | 3 | ✅ |
-| Jun 24 | Scotland vs Brazil | Brazil | 11/23/66% | 0-2 (0.8–2.2) | 0-3 | 1 | ✅ |
-| Jun 24 | Morocco vs Haiti | Morocco | 78/17/5% | 2-0 (2.9–0.6) | 4-2 | 4 | ✅ |
-| Jun 23 | Portugal vs Uzbekistan | Portugal | 68/22/10% | 2-0 (2.3–0.7) | 5-0 | 3 | ✅ |
-| Jun 23 | Colombia vs DR Congo | Colombia | 76/18/6% | 2-0 (2.8–0.6) | 1-0 | 1 | ✅ |
-| Jun 23 | England vs Ghana | England | 88/10/2% | 4-0 (4.0–0.4) | 0-0 | 4 | ❌ |
-| Jun 23 | Panama vs Croatia | Croatia | 15/25/60% | 0-1 (0.9–2.0) | 0-1 | 0 🎯 | ✅ |
-| Jun 22 | France vs Iraq | France | 84/13/3% | 3-0 (3.4–0.5) | 3-0 | 0 🎯 | ✅ |
-| Jun 22 | Norway vs Senegal | Norway | 48/28/24% | 1-1 (1.6–1.1) | 3-2 | 3 | ✅ |
-| Jun 22 | Argentina vs Austria | Argentina | 71/20/9% | 2-0 (2.4–0.7) | 2-0 | 0 🎯 | ✅ |
-| Jun 22 | Jordan vs Algeria | Algeria | 17/25/58% | 0-1 (0.9–1.9) | 1-2 | 2 | ✅ |
-| Jun 21 | Belgium vs Iran | Belgium | 49/27/23% | 1-1 (1.6–1.0) | 0-0 | 2 | ❌ |
-| Jun 21 | New Zealand vs Egypt | Egypt | 22/27/52% | 0-1 (1.0–1.7) | 1-3 | 3 | ✅ |
-| Jun 21 | Spain vs Saudi Arabia | Spain | 91/8/2% | 4-0 (4.5–0.4) | 4-0 | 0 🎯 | ✅ |
-| Jun 21 | Uruguay vs Cape Verde | Uruguay | 77/18/6% | 2-0 (2.8–0.6) | 2-2 | 2 | ❌ |
-| Jun 20 | Germany vs Ivory Coast | Germany | 63/24/12% | 2-0 (2.1–0.8) | 2-1 | 1 | ✅ |
-| Jun 20 | Ecuador vs Curaçao | Ecuador | 87/11/2% | 3-0 (3.9–0.4) | 0-0 | 3 | ❌ |
-| Jun 20 | Netherlands vs Sweden | Netherlands | 68/22/10% | 2-0 (2.3–0.7) | 5-1 | 4 | ✅ |
-| Jun 20 | Tunisia vs Japan | Japan | 8/19/73% | 0-2 (0.7–2.6) | 0-4 | 2 | ✅ |
-| Jun 19 | Scotland vs Morocco | Morocco | 17/25/58% | 0-1 (0.9–1.9) | 0-1 | 0 🎯 | ✅ |
-| Jun 19 | Brazil vs Haiti | Brazil | 84/13/3% | 3-0 (3.4–0.5) | 3-0 | 0 🎯 | ✅ |
-| Jun 19 | United States vs Australia | United States | 38/30/32% | 1-1 (1.4–1.2) | 2-0 | 2 | ✅ |
-| Jun 19 | Turkey vs Paraguay | Turkey | 46/28/26% | 1-1 (1.5–1.1) | 0-1 | 1 | ❌ |
-| Jun 18 | Czech Republic vs South Africa | Czech Republic | 59/25/16% | 1-0 (1.9–0.9) | 1-1 | 1 | ❌ |
-| Jun 18 | Mexico vs South Korea | Mexico | 54/26/20% | 1-0 (1.8–1.0) | 1-0 | 0 🎯 | ✅ |
-| Jun 18 | Switzerland vs Bosnia and Herzegovina | Switzerland | 76/18/6% | 2-0 (2.8–0.6) | 4-1 | 3 | ✅ |
-| Jun 18 | Canada vs Qatar | Canada | 85/12/3% | 3-0 (3.6–0.5) | 6-0 | 3 | ✅ |
-| Jun 17 | Portugal vs DR Congo | Portugal | 76/18/6% | 2-0 (2.8–0.6) | 1-1 | 2 | ❌ |
-| Jun 17 | Uzbekistan vs Colombia | Colombia | 10/21/69% | 0-2 (0.7–2.3) | 1-3 | 2 | ✅ |
-| Jun 17 | England vs Croatia | England | 51/27/22% | 1-1 (1.7–1.0) | 4-2 | 4 | ✅ |
-| Jun 17 | Ghana vs Panama | Panama | 13/25/62% | 0-2 (0.8–2.1) | 1-0 | 3 | ❌ |
-| Jun 16 | France vs Senegal | France | 66/23/11% | 2-0 (2.2–0.8) | 3-1 | 2 | ✅ |
-| Jun 16 | Iraq vs Norway | Norway | 9/20/71% | 0-2 (0.7–2.5) | 1-4 | 3 | ✅ |
-| Jun 16 | Argentina vs Algeria | Argentina | 72/19/8% | 2-0 (2.5–0.7) | 3-0 | 1 | ✅ |
-| Jun 16 | Austria vs Jordan | Austria | 60/25/15% | 1-0 (2.0–0.9) | 3-1 | 3 | ✅ |
-| Jun 15 | Belgium vs Egypt | Belgium | 63/24/13% | 2-0 (2.1–0.8) | 1-1 | 2 | ❌ |
-| Jun 15 | Iran vs New Zealand | Iran | 65/24/11% | 2-0 (2.2–0.8) | 2-2 | 2 | ❌ |
-| Jun 15 | Spain vs Cape Verde | Spain | 93/5/2% | 5-0 (5.0–0.3) | 0-0 | 5 | ❌ |
-| Jun 15 | Saudi Arabia vs Uruguay | Uruguay | 8/20/72% | 0-2 (0.7–2.5) | 1-1 | 2 | ❌ |
-| Jun 14 | Germany vs Curaçao | Germany | 88/10/2% | 4-0 (4.0–0.4) | 7-1 | 4 | ✅ |
-| Jun 14 | Ivory Coast vs Ecuador | Ecuador | 14/25/61% | 0-2 (0.8–2.0) | 1-0 | 3 | ❌ |
-| Jun 14 | Netherlands vs Japan | Netherlands | 36/30/35% | 1-1 (1.3–1.3) | 2-2 | 2 | ❌ |
-| Jun 14 | Sweden vs Tunisia | Sweden | 42/29/29% | 1-1 (1.5–1.2) | 5-1 | 4 | ✅ |
-| Jun 13 | Qatar vs Switzerland | Switzerland | 3/12/85% | 0-3 (0.5–3.6) | 1-1 | 3 | ❌ |
-| Jun 13 | Brazil vs Morocco | Brazil | 46/28/26% | 1-1 (1.5–1.1) | 1-1 | 0 🎯 | ❌ |
-| Jun 13 | Haiti vs Scotland | Scotland | 15/25/60% | 0-1 (0.8–2.0) | 0-1 | 0 🎯 | ✅ |
-| Jun 13 | Australia vs Turkey | Turkey | 25/28/48% | 1-1 (1.1–1.6) | 2-0 | 2 | ❌ |
-| Jun 12 | Canada vs Bosnia and Herzegovina | Canada | 75/18/7% | 2-0 (2.7–0.6) | 1-1 | 2 | ❌ |
-| Jun 12 | United States vs Paraguay | United States | 36/30/34% | 1-1 (1.3–1.3) | 4-1 | 3 | ✅ |
-| Jun 11 | Mexico vs South Africa | Mexico | 75/16/9% | 2-0 (2.0–0.6) | 2-0 | 0 🎯 | ✅ |
-| Jun 11 | South Korea vs Czech Republic | South Korea | 44/23/33% | 1-1 (1.2–1.2) | 2-1 | 1 | ✅ |
+| Jul 10 | Spain vs Belgium | Spain | 57/21/21% | 1-0 (1.5-1.0) | 2-1 | 2 | ✅ |
+| Jul 9 | France vs Morocco | France | 49/25/26% | 1-0 (1.1-0.9) | 2-0 | 1 | ✅ |
+| Jul 7 | Argentina vs Egypt | Argentina | 71/19/10% | 1-0 (1.6-0.5) | 3-2 | 4 | ✅ |
+| Jul 7 | Switzerland vs Colombia | Colombia | 27/23/50% | 1-1 (1.0-1.3) | 0-0 | 2 | ❌ |
+| Jul 6 | United States vs Belgium | Belgium | 30/21/49% | 1-1 (1.3-1.5) | 1-4 | 3 | ✅ |
+| Jul 6 | Portugal vs Spain | Spain | 29/23/48% | 1-1 (1.1-1.3) | 0-1 | 1 | ✅ |
+| Jul 5 | Brazil vs Norway | Brazil | 62/19/19% | 1-1 (1.7-1.0) | 1-2 | 1 | ❌ |
+| Jul 5 | Mexico vs England | England | 22/22/55% | 0-1 (0.9-1.5) | 2-3 | 4 | ✅ |
+| Jul 4 | Canada vs Morocco | Morocco | 22/34/45% | 0-1 (0.7-1.1) | 0-3 | 2 | ✅ |
+| Jul 4 | Paraguay vs France | France | 13/19/68% | 0-1 (0.6-1.7) | 0-1 | 0 🎯 | ✅ |
+| Jul 3 | Australia vs Egypt | Australia | 36/35/30% | 0-0 (0.9-0.8) | 1-1 | 2 | ❌ |
+| Jul 3 | Argentina vs Cape Verde | Argentina | 77/18/5% | 2-0 (2.1-0.4) | 3-2 | 3 | ✅ |
+| Jul 3 | Colombia vs Ghana | Colombia | 64/24/12% | 1-0 (1.8-0.6) | 1-0 | 0 🎯 | ✅ |
+| Jul 2 | Spain vs Austria | Spain | 58/25/17% | 1-0 (1.7-0.8) | 3-0 | 2 | ✅ |
+| Jul 2 | Portugal vs Croatia | Portugal | 50/27/23% | 1-0 (1.5-0.9) | 2-1 | 2 | ✅ |
+| Jul 2 | Switzerland vs Algeria | Switzerland | 40/28/32% | 1-1 (1.4-1.2) | 2-0 | 2 | ✅ |
+| Jul 1 | England vs DR Congo | England | 57/30/14% | 1-0 (1.3-0.5) | 2-1 | 2 | ✅ |
+| Jul 1 | Belgium vs Senegal | Belgium | 43/29/28% | 1-1 (1.4-1.0) | 3-2 | 3 | ✅ |
+| Jul 1 | United States vs Bosnia and Herzegovina | United States | 64/21/15% | 2-0 (2.1-0.9) | 2-0 | 0 🎯 | ✅ |
+| Jun 30 | Ivory Coast vs Norway | Norway | 30/30/40% | 1-1 (1.0-1.2) | 1-2 | 1 | ✅ |
+| Jun 30 | France vs Sweden | France | 62/22/16% | 2-0 (2.0-1.0) | 3-0 | 1 | ✅ |
+| Jun 30 | Mexico vs Ecuador | Mexico | 35/34/31% | 0-0 (0.9-0.9) | 2-0 | 2 | ✅ |
+| Jun 29 | Brazil vs Japan | Brazil | 45/29/26% | 1-0 (1.4-1.0) | 2-1 | 2 | ✅ |
+| Jun 29 | Germany vs Paraguay | Germany | 53/27/21% | 1-0 (1.6-0.9) | 1-1 | 1 | ❌ |
+| Jun 29 | Netherlands vs Morocco | Morocco | 33/32/35% | 1-1 (1.0-1.0) | 1-1 | 0 🎯 | ❌ |
+| Jun 28 | South Africa vs Canada | Canada | 19/30/50% | 0-1 (0.7-1.3) | 0-1 | 0 🎯 | ✅ |
+| Jun 27 | Algeria vs Austria | Austria | 33/30/37% | 1-1 (1.3-1.3) | 3-3 | 4 | ❌ |
+| Jun 27 | Jordan vs Argentina | Argentina | 2/12/86% | 0-3 (0.5-3.7) | 1-3 | 1 | ✅ |
+| Jun 27 | Colombia vs Portugal | Colombia | 36/30/35% | 1-1 (1.3-1.3) | 0-0 | 2 | ❌ |
+| Jun 27 | DR Congo vs Uzbekistan | Uzbekistan | 26/28/46% | 1-1 (1.1-1.5) | 3-1 | 2 | ❌ |
+| Jun 27 | Panama vs England | England | 8/19/73% | 0-2 (0.7-2.5) | 0-2 | 0 🎯 | ✅ |
+| Jun 27 | Croatia vs Ghana | Croatia | 81/15/4% | 3-0 (3.1-0.5) | 2-1 | 2 | ✅ |
+| Jun 26 | Egypt vs Iran | Iran | 22/27/51% | 1-1 (1.0-1.7) | 1-1 | 0 🎯 | ❌ |
+| Jun 26 | New Zealand vs Belgium | Belgium | 6/18/76% | 0-2 (0.6-2.8) | 1-5 | 4 | ✅ |
+| Jun 26 | Cape Verde vs Saudi Arabia | Saudi Arabia | 29/29/42% | 1-1 (1.2-1.5) | 0-0 | 2 | ❌ |
+| Jun 26 | Uruguay vs Spain | Spain | 10/21/69% | 0-2 (0.7-2.3) | 0-1 | 1 | ✅ |
+| Jun 26 | Norway vs France | France | 19/26/56% | 0-1 (0.9-1.8) | 1-4 | 4 | ✅ |
+| Jun 26 | Senegal vs Iraq | Senegal | 61/25/15% | 1-0 (2.0-0.8) | 5-0 | 4 | ✅ |
+| Jun 25 | United States vs Turkey | Turkey | 27/28/45% | 1-1 (1.1-1.5) | 2-3 | 3 | ✅ |
+| Jun 25 | Paraguay vs Australia | Paraguay | 37/30/33% | 1-1 (1.3-1.3) | 0-0 | 2 | ❌ |
+| Jun 25 | Curaçao vs Ivory Coast | Ivory Coast | 9/20/71% | 0-2 (0.7-2.5) | 0-2 | 0 🎯 | ✅ |
+| Jun 25 | Ecuador vs Germany | Germany | 33/30/38% | 1-1 (1.2-1.4) | 2-1 | 1 | ❌ |
+| Jun 25 | Japan vs Sweden | Japan | 67/22/11% | 2-0 (2.3-0.7) | 1-1 | 2 | ❌ |
+| Jun 25 | Tunisia vs Netherlands | Netherlands | 8/19/73% | 0-2 (0.7-2.6) | 1-3 | 2 | ✅ |
+| Jun 24 | Mexico vs Czech Republic | Mexico | 65/23/11% | 2-0 (2.2-0.8) | 3-0 | 1 | ✅ |
+| Jun 24 | South Africa vs South Korea | South Korea | 9/20/70% | 0-2 (0.7-2.4) | 1-0 | 3 | ❌ |
+| Jun 24 | Canada vs Switzerland | Switzerland | 34/30/36% | 1-1 (1.3-1.3) | 1-2 | 1 | ✅ |
+| Jun 24 | Bosnia and Herzegovina vs Qatar | Bosnia and Herzegovina | 52/27/21% | 1-0 (1.7-1.0) | 3-1 | 3 | ✅ |
+| Jun 24 | Scotland vs Brazil | Brazil | 11/23/66% | 0-2 (0.8-2.2) | 0-3 | 1 | ✅ |
+| Jun 24 | Morocco vs Haiti | Morocco | 78/17/5% | 2-0 (2.9-0.6) | 4-2 | 4 | ✅ |
+| Jun 23 | Portugal vs Uzbekistan | Portugal | 68/22/10% | 2-0 (2.3-0.7) | 5-0 | 3 | ✅ |
+| Jun 23 | Colombia vs DR Congo | Colombia | 76/18/6% | 2-0 (2.8-0.6) | 1-0 | 1 | ✅ |
+| Jun 23 | England vs Ghana | England | 88/10/2% | 4-0 (4.0-0.4) | 0-0 | 4 | ❌ |
+| Jun 23 | Panama vs Croatia | Croatia | 15/25/60% | 0-1 (0.9-2.0) | 0-1 | 0 🎯 | ✅ |
+| Jun 22 | France vs Iraq | France | 84/13/3% | 3-0 (3.4-0.5) | 3-0 | 0 🎯 | ✅ |
+| Jun 22 | Norway vs Senegal | Norway | 48/28/24% | 1-1 (1.6-1.1) | 3-2 | 3 | ✅ |
+| Jun 22 | Argentina vs Austria | Argentina | 71/20/9% | 2-0 (2.4-0.7) | 2-0 | 0 🎯 | ✅ |
+| Jun 22 | Jordan vs Algeria | Algeria | 17/25/58% | 0-1 (0.9-1.9) | 1-2 | 2 | ✅ |
+| Jun 21 | Belgium vs Iran | Belgium | 49/27/23% | 1-1 (1.6-1.0) | 0-0 | 2 | ❌ |
+| Jun 21 | New Zealand vs Egypt | Egypt | 22/27/52% | 0-1 (1.0-1.7) | 1-3 | 3 | ✅ |
+| Jun 21 | Spain vs Saudi Arabia | Spain | 91/8/2% | 4-0 (4.5-0.4) | 4-0 | 0 🎯 | ✅ |
+| Jun 21 | Uruguay vs Cape Verde | Uruguay | 77/18/6% | 2-0 (2.8-0.6) | 2-2 | 2 | ❌ |
+| Jun 20 | Germany vs Ivory Coast | Germany | 63/24/12% | 2-0 (2.1-0.8) | 2-1 | 1 | ✅ |
+| Jun 20 | Ecuador vs Curaçao | Ecuador | 87/11/2% | 3-0 (3.9-0.4) | 0-0 | 3 | ❌ |
+| Jun 20 | Netherlands vs Sweden | Netherlands | 68/22/10% | 2-0 (2.3-0.7) | 5-1 | 4 | ✅ |
+| Jun 20 | Tunisia vs Japan | Japan | 8/19/73% | 0-2 (0.7-2.6) | 0-4 | 2 | ✅ |
+| Jun 19 | Scotland vs Morocco | Morocco | 17/25/58% | 0-1 (0.9-1.9) | 0-1 | 0 🎯 | ✅ |
+| Jun 19 | Brazil vs Haiti | Brazil | 84/13/3% | 3-0 (3.4-0.5) | 3-0 | 0 🎯 | ✅ |
+| Jun 19 | United States vs Australia | United States | 38/30/32% | 1-1 (1.4-1.2) | 2-0 | 2 | ✅ |
+| Jun 19 | Turkey vs Paraguay | Turkey | 46/28/26% | 1-1 (1.5-1.1) | 0-1 | 1 | ❌ |
+| Jun 18 | Czech Republic vs South Africa | Czech Republic | 59/25/16% | 1-0 (1.9-0.9) | 1-1 | 1 | ❌ |
+| Jun 18 | Mexico vs South Korea | Mexico | 54/26/20% | 1-0 (1.8-1.0) | 1-0 | 0 🎯 | ✅ |
+| Jun 18 | Switzerland vs Bosnia and Herzegovina | Switzerland | 76/18/6% | 2-0 (2.8-0.6) | 4-1 | 3 | ✅ |
+| Jun 18 | Canada vs Qatar | Canada | 85/12/3% | 3-0 (3.6-0.5) | 6-0 | 3 | ✅ |
+| Jun 17 | Portugal vs DR Congo | Portugal | 76/18/6% | 2-0 (2.8-0.6) | 1-1 | 2 | ❌ |
+| Jun 17 | Uzbekistan vs Colombia | Colombia | 10/21/69% | 0-2 (0.7-2.3) | 1-3 | 2 | ✅ |
+| Jun 17 | England vs Croatia | England | 51/27/22% | 1-1 (1.7-1.0) | 4-2 | 4 | ✅ |
+| Jun 17 | Ghana vs Panama | Panama | 13/25/62% | 0-2 (0.8-2.1) | 1-0 | 3 | ❌ |
+| Jun 16 | France vs Senegal | France | 66/23/11% | 2-0 (2.2-0.8) | 3-1 | 2 | ✅ |
+| Jun 16 | Iraq vs Norway | Norway | 9/20/71% | 0-2 (0.7-2.5) | 1-4 | 3 | ✅ |
+| Jun 16 | Argentina vs Algeria | Argentina | 72/19/8% | 2-0 (2.5-0.7) | 3-0 | 1 | ✅ |
+| Jun 16 | Austria vs Jordan | Austria | 60/25/15% | 1-0 (2.0-0.9) | 3-1 | 3 | ✅ |
+| Jun 15 | Belgium vs Egypt | Belgium | 63/24/13% | 2-0 (2.1-0.8) | 1-1 | 2 | ❌ |
+| Jun 15 | Iran vs New Zealand | Iran | 65/24/11% | 2-0 (2.2-0.8) | 2-2 | 2 | ❌ |
+| Jun 15 | Spain vs Cape Verde | Spain | 93/5/2% | 5-0 (5.0-0.3) | 0-0 | 5 | ❌ |
+| Jun 15 | Saudi Arabia vs Uruguay | Uruguay | 8/20/72% | 0-2 (0.7-2.5) | 1-1 | 2 | ❌ |
+| Jun 14 | Germany vs Curaçao | Germany | 88/10/2% | 4-0 (4.0-0.4) | 7-1 | 4 | ✅ |
+| Jun 14 | Ivory Coast vs Ecuador | Ecuador | 14/25/61% | 0-2 (0.8-2.0) | 1-0 | 3 | ❌ |
+| Jun 14 | Netherlands vs Japan | Netherlands | 36/30/35% | 1-1 (1.3-1.3) | 2-2 | 2 | ❌ |
+| Jun 14 | Sweden vs Tunisia | Sweden | 42/29/29% | 1-1 (1.5-1.2) | 5-1 | 4 | ✅ |
+| Jun 13 | Qatar vs Switzerland | Switzerland | 3/12/85% | 0-3 (0.5-3.6) | 1-1 | 3 | ❌ |
+| Jun 13 | Brazil vs Morocco | Brazil | 46/28/26% | 1-1 (1.5-1.1) | 1-1 | 0 🎯 | ❌ |
+| Jun 13 | Haiti vs Scotland | Scotland | 15/25/60% | 0-1 (0.8-2.0) | 0-1 | 0 🎯 | ✅ |
+| Jun 13 | Australia vs Turkey | Turkey | 25/28/48% | 1-1 (1.1-1.6) | 2-0 | 2 | ❌ |
+| Jun 12 | Canada vs Bosnia and Herzegovina | Canada | 75/18/7% | 2-0 (2.7-0.6) | 1-1 | 2 | ❌ |
+| Jun 12 | United States vs Paraguay | United States | 36/30/34% | 1-1 (1.3-1.3) | 4-1 | 3 | ✅ |
+| Jun 11 | Mexico vs South Africa | Mexico | 75/16/9% | 2-0 (2.0-0.6) | 2-0 | 0 🎯 | ✅ |
+| Jun 11 | South Korea vs Czech Republic | South Korea | 44/23/33% | 1-1 (1.2-1.2) | 2-1 | 1 | ✅ |
 
 **Locked for upcoming matches:**
 
 | Date | Match | Winner | H/D/A % | Score (xG) |
 |---|---|---|---|---|
-| Jul 11 | Norway vs England | England | 22/22/57% | 0-1 (0.9–1.5) |
-| Jul 11 | Argentina vs Switzerland | Argentina | 58/22/20% | 1-0 (1.5–0.8) |
+| Jul 11 | Norway vs England | England | 22/22/57% | 0-1 (0.9-1.5) |
+| Jul 11 | Argentina vs Switzerland | Argentina | 58/22/20% | 1-0 (1.5-0.8) |
 
 <!-- TRACKER:END -->
 
 ### Championship odds
 
 <!-- TITLE:START -->
-The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-07-11. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
+The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-07-12. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
 
 | # | Team | Title | Final | Semis |
 |---|---|---|---|---|

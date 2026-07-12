@@ -1,5 +1,5 @@
 {
-"note": "Head-to-head multiclass Brier (lower is better) on 2026 matches with both a locked model prediction and a captured bookmaker price. Market probabilities are de-vigged closing 1X2 odds where available, otherwise the captured live snapshot. The rigorous historical version is the 99-match 2018/2022 closing-line comparison, which came out at parity.",
+"note": "Head-to-head multiclass Brier (lower is better) on 2026 matches with both a locked model prediction and a captured bookmaker price. Market probabilities are the de-vigged average 1X2 odds from data/odds_live.csv, the snapshot captured, not necessarily the closing line. Small sample: read the running gap, not a verdict. The rigorous version is the 99-match 2018/2022 closing-line comparison, which came out at parity.",
 "matches": 98,
 "model": 0.5068,
 "market": 0.4592,
