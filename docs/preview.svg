@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<title id="title">World Cup Predictor</title>
+<desc id="desc">Logo card on GitHub's dark canvas: a three-bar win/draw/loss mark, the wordmark World Cup Predictor, and two subtitle lines about parity with the closing line and the held-out results.</desc>
+<rect width="1200" height="630" fill="#0d1117"/>
+<rect x="560" y="178" width="22" height="88" fill="#E08A63"/>
+<rect x="590" y="220" width="22" height="46" fill="#9C5A3C"/>
+<rect x="620" y="204" width="22" height="62" fill="#E08A63"/>
+<text x="600" y="360" text-anchor="middle" font-family="-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-weight="700" letter-spacing="-1" font-size="62" fill="#F2F0E9">World Cup Predictor</text>
+<text x="600" y="414" text-anchor="middle" font-family="-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="24" fill="#8b949e">An honest model, at parity with the bookmaker&#8217;s closing line</text>
+<text x="600" y="452" text-anchor="middle" font-family="-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="19" fill="#6e7681">49,000 matches since 1872<tspan fill="#E08A63">   &#183;   </tspan>Brier 0.5441 on 320 held out<tspan fill="#E08A63">   &#183;   </tspan>15 ideas tested, 3 shipped</text>
+</svg>
