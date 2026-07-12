@@ -5,8 +5,8 @@
       "idea": "Cross-confederation strength correction",
       "reason": "a per-confederation-pair goal-difference residual added to inter-confederation matchups",
       "delta": -0.005, "ci_lo": -0.012, "ci_hi": 0.005,
-      "kind": "rejected", "verdict": "absorbed by the value prior",
-      "note": "Improved Brier by -0.016 on the bare goal model, but collapses to -0.005 (CI spans zero, one tournament reverses) on the production model. Rich squads already cluster in strong confederations, so the value prior absorbs about two-thirds of the effect."
+      "kind": "rejected", "verdict": "rejected on the expanded surface",
+      "note": "Improved Brier by -0.016 on the bare goal model, but collapses to -0.005 (CI spans zero, one tournament reverses) on the production model, where rich squads already cluster in strong confederations and the value prior absorbs about two-thirds of the effect. Phase 1 re-gated it on a 2,180-match surface (five World Cups plus continental finals), where it is not merely absorbed but actively harmful: 0.0020 worse at scale 0.5 and 0.0047 at scale 1.0, worst on the 494 inter-confederation matches it targets (0.0089 then 0.0209 worse). See research/phase1_results.md."
     },
     {
       "idea": "Favourite recalibration",
@@ -19,8 +19,8 @@
       "idea": "Stronger recent-form nudge (lambda 0.60)",
       "reason": "a form coefficient well above the shipped 0.20, found by a leave-one-tournament-out sweep",
       "delta": -0.0048, "ci_lo": -0.0096, "ci_hi": 0.0004,
-      "kind": "near_miss", "verdict": "near miss - left on the table",
-      "note": "Lowers pooled held-out Brier from 0.5441 to 0.5393 and improves four of five World Cups, but 2022 regresses and the paired CI just grazes zero. Kept the conservative 0.20."
+      "kind": "rejected", "verdict": "rejected on the expanded surface",
+      "note": "Lowers pooled Brier from 0.5441 to 0.5393 on the 320 World Cup matches and improves four of five, but 2022 regresses and the paired CI grazes zero. Phase 1 re-gated it on a 2,180-match surface, where the World Cup gain reverses: lambda 0.60 is 0.0064 worse than the shipped 0.20 (paired 95% interval [+0.0026, +0.0103], entirely on the worse side), and 0.20 is the surface optimum. The 320-match optimum was overfitting. See research/phase1_results.md."
     },
     {
       "idea": "Real published World Cup squads",

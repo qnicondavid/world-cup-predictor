@@ -22,5 +22,11 @@ research/export_predictions_realsquad.csv
 research/export_proxy_3wc.csv
 research/export_real_3wc.csv
 
+# Phase 1 expanded re-gate exports: regenerable via --expanded-export / --expanded-export-confed
+research/expanded_predictions_*.csv
+
+# Local planning and prompt notes (model research + promotion); not part of the project
+notes/
+
 # Local planning and prompt notes (model research + promotion); not part of the project
 notes/

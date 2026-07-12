@@ -252,9 +252,9 @@ Every banked idea in one place first, then the write-ups. Δ Brier is the change
 
 | Idea | Δ Brier | 95% CI | Verdict | Detail |
 |---|---|---|---|---|
-| Cross-confederation strength correction | -0.0050 | [-0.0120, +0.0050] | absorbed by the value prior | [detail](#more-negative-findings-from-goal-model-research) |
+| Cross-confederation strength correction | -0.0050 | [-0.0120, +0.0050] | rejected: worsens the expanded surface | [detail](#more-negative-findings-from-goal-model-research) |
 | Favourite recalibration | not gated | [-0.0130, +0.0010] | not adopted | [detail](#more-negative-findings-from-goal-model-research) |
-| Stronger recent-form nudge (lambda 0.60) | -0.0048 | [-0.0096, +0.0004] | near miss, left on the table (2022 regresses) | [detail](#recent-form) |
+| Stronger recent-form nudge (lambda 0.60) | -0.0048 | [-0.0096, +0.0004] | rejected: reverses on the expanded surface | [detail](#recent-form) |
 | Real published World Cup squads | +0.0026 | [-0.0017, +0.0070] | not adopted | [detail](#squad-market-value) |
 | Half-life retune (~3 years) | -0.0030 | n/a | inside the noise floor | [detail](#more-negative-findings-from-goal-model-research) |
 | Match-importance weighting | +0.0013 | [-0.0015, +0.0041] | not adopted | [detail](#more-negative-findings-from-goal-model-research) |
@@ -301,9 +301,14 @@ and did not clear the bar:
   lambda 0.60, well above the shipped 0.20, lowering pooled held-out Brier from 0.5441
   to 0.5393 and improving four of five tournaments. But the paired block-bootstrap CI
   is [-0.0004, +0.0096], grazing zero, and 2022 regresses, so it just misses the gate.
-  The stronger nudge is left on the table and the conservative 0.20 kept. Reproduce
-  with `--form-tune-loto`, then `--form-export` and `verify.py --paired
-  export_predictions_form.csv export_predictions_formlambda.csv`. Not adopted.
+  That 320-match near miss did not survive Phase 1. Re-gated on a pre-registered
+  2,180-match surface (the five World Cups plus 65 continental-final editions since
+  2000), the World Cup gain reverses: lambda 0.60 is 0.0064 worse than the shipped
+  0.20, paired 95 percent interval [+0.0026, +0.0103], entirely on the worse side,
+  while 0.20 sits at the surface optimum and form-off ties it. The World Cup optimum
+  was overfitting to 320 matches. Reproduce the sweep with `--form-tune-loto`, or the
+  surface re-gate with `--expanded-export=0.60` then `verify.py --expanded-paired`;
+  full detail in research/phase1_results.md. Rejected.
 - **Real World Cup squads in place of the value proxy**: the shipped prior sums
   the 26 most valuable players per nation; this used the actual squads (23
   players, 26 in 2022) for all five tournaments, taken from Wikipedia and valued
@@ -335,10 +340,14 @@ verify.py --score), the gain collapsed to about -0.005 with a 95% CI of
 [-0.012, +0.005] that spans zero, and one tournament reversed sign. The
 squad-value prior and confederation strength are partly redundant, since rich
 squads cluster in the strong confederations, so the prior already absorbs
-roughly two-thirds of the effect. Not adopted on the production model, where
-the residual sits inside the noise. The export bridge and verification harness
-(research/verify.py) built to settle this are kept, since every future idea is
-judged the same way.
+roughly two-thirds of the effect. Phase 1 then re-gated it on a pre-registered
+2,180-match surface, and there it is not merely absorbed but actively harmful:
+0.0020 worse at scale 0.5 and 0.0047 worse at scale 1.0, both paired intervals
+excluding zero on the worse side, and worst of all on the 494 inter-confederation
+matches it targets, 0.0089 then 0.0209 worse. Rejected. The export bridge and
+verification harness (research/verify.py) built to settle this are kept, since
+every future idea is judged the same way; the full re-gate is in
+research/phase1_results.md.
 
 Three later ideas were tested the same way and also did not clear the gate.
 **Favourite recalibration** (a leave-one-tournament-out map that sharpens the
@@ -459,7 +468,9 @@ to) and improving in all five tournaments. The coefficient (0.20) was set by jud
 a later leave-one-tournament-out sweep (`--form-tune-loto`) found a clean interior
 optimum near 0.60 that lowers pooled held-out Brier to 0.5393 and improves four of five
 tournaments, but its paired CI [-0.0004, +0.0096] grazes zero (2022 regresses), so the
-stronger nudge just misses the gate and the conservative 0.20 is kept (see negative
+stronger nudge just misses the gate on those 320 matches, and a pre-registered
+re-gate on a 2,180-match surface then reversed it (lambda 0.60 worse by 0.0064),
+so the conservative 0.20 is kept and is now the surface optimum (see negative
 findings). It is shipped and wired into the live tracker, so daily predictions carry it. One caveat: the nudge moves the
 probabilities, not the expected goals, so the most-likely-score column still
 comes from the raw model. That raw scoreline carries its own measured bias:
