@@ -42,10 +42,12 @@ the tables below automatically.
 <!-- TRACKER:START -->
 Δ is the total goal difference from the actual result (🎯 = exact), and Brier is multiclass.
 
-**Record: 66/98 picks correct (67.3%), multiclass Brier 0.507, mean goal error 1.9** (uniform guess = 0.667)
+**Record: 68/100 picks correct (68.0%), multiclass Brier 0.502, mean goal error 1.9** (uniform guess = 0.667)
 
 | Date | Match | Winner | H/D/A % | Score (xG) | Result | Δ | Hit |
 |---|---|---|---|---|---|---|---|
+| Jul 11 | Norway vs England | England | 22/22/57% | 0-1 (0.9-1.5) | 1-2 | 2 | ✅ |
+| Jul 11 | Argentina vs Switzerland | Argentina | 58/22/20% | 1-0 (1.5-0.8) | 3-1 | 3 | ✅ |
 | Jul 10 | Spain vs Belgium | Spain | 57/21/21% | 1-0 (1.5-1.0) | 2-1 | 2 | ✅ |
 | Jul 9 | France vs Morocco | France | 49/25/26% | 1-0 (1.1-0.9) | 2-0 | 1 | ✅ |
 | Jul 7 | Argentina vs Egypt | Argentina | 71/19/10% | 1-0 (1.6-0.5) | 3-2 | 4 | ✅ |
@@ -149,8 +151,8 @@ the tables below automatically.
 
 | Date | Match | Winner | H/D/A % | Score (xG) |
 |---|---|---|---|---|
-| Jul 11 | Norway vs England | England | 22/22/57% | 0-1 (0.9-1.5) |
-| Jul 11 | Argentina vs Switzerland | Argentina | 58/22/20% | 1-0 (1.5-0.8) |
+| Jul 14 | France vs Spain | Spain | 32/24/44% | 1-1 (1.1-1.2) |
+| Jul 15 | England vs Argentina | Argentina | 33/25/42% | 0-1 (1.0-1.1) |
 
 <!-- TRACKER:END -->
 
@@ -161,12 +163,10 @@ The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-
 
 | # | Team | Title | Final | Semis |
 |---|---|---|---|---|
-| 1 | France | 30.4% | 50.2% | 100.0% |
-| 2 | Spain | 30.4% | 49.8% | 100.0% |
-| 3 | Argentina | 24.7% | 51.0% | 75.6% |
-| 4 | England | 9.3% | 27.3% | 62.2% |
-| 5 | Norway | 3.1% | 12.3% | 37.8% |
-| 6 | Switzerland | 2.1% | 9.4% | 24.4% |
+| 1 | Argentina | 33.0% | 63.5% | 0.0% |
+| 2 | Spain | 26.8% | 50.2% | 0.0% |
+| 3 | France | 26.1% | 49.8% | 0.0% |
+| 4 | England | 14.1% | 36.5% | 0.0% |
 
 <!-- TITLE:END -->
 
