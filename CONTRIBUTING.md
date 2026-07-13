@@ -2,7 +2,7 @@
 
 Thanks for taking an interest. This project has one unusual rule that shapes
 everything else: a change ships only if it clears an out-of-sample gate, and most
-proposed changes do not. Fifteen ideas are documented as rejected in the README;
+proposed changes do not. Sixteen ideas are documented as rejected in the README;
 three survived. A carefully measured failure, with its confidence interval, is a
 genuinely useful contribution here, not a wasted pull request.
 
