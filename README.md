@@ -403,6 +403,13 @@ the same, because the form nudge already carries in-tournament information, so t
 fit-once headline is kept as the cleaner and fully reproducible number
 (research/phase3_results.md).
 
+One research idea was checked and not attempted: measuring form in expected goals
+instead of raw goals. The only licensable xG source, StatsBomb open data, covers
+tournaments but carries no international friendlies or qualifiers in any year, which
+are exactly the matches a last-five recent-form window is built from, so the feature
+cannot be constructed or validated on public data. It is parked as not feasible
+(research/phase3_results.md).
+
 Across the campaign three changes survived this gate: the strengthened value
 prior, the recent-form nudge, and a draw-transfer calibration, together moving the
 held-out Brier from 0.5717 to 0.5441. The first two mostly bought resolution,

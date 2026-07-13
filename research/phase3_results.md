@@ -106,3 +106,15 @@ Reproduction:
     mvn -q compile
     mvn -q exec:java "-Dexec.mainClass=com.david.worldcup.Main" "-Dexec.args=--refit-export"
     python research/verify.py --expanded-paired research/expanded_predictions_l020.csv research/refit_predictions_wc.csv
+
+## Candidate 6: expected-goals form (data-gated, not feasible)
+
+Candidate 6 proposed measuring recent form in shot quality (expected goals for and against) rather than raw goals, since xG is less noisy per match. It was flagged data-gated from the start: attempt it only if a clean, licensable xG dataset covers enough of the backtest to validate the swap.
+
+The feasibility check settles it, and quickly. An xG-based recent-form feature needs per-match xG for each team's last five matches before a prediction. For a national team those are overwhelmingly friendlies and qualifiers. The one licensable open source, StatsBomb open data, covers only tournament competitions: the 2018 and 2022 World Cups, Euro 2020 and 2024, Copa America 2024, and the 2023 Africa Cup of Nations, plus some older World Cups. It contains no international friendlies and no qualifiers, in any year. So the recent-form window cannot be built from it: the matches that fill that window are exactly the ones with no open xG.
+
+Within-tournament xG (a team's group-stage shot quality to inform a knockout prediction) is the only thing open data could support, and it is too thin and too narrow to be a general form channel: two or three matches, only for knockout games, only in the six tournaments covered, and a different feature than the shipped last-five-matches form. It cannot be validated as a swap for the production feature.
+
+The data that would cover friendlies and qualifiers comes from commercial providers (Opta, FotMob and similar), which are not clearly redistributable and, by the project's own rule, cannot feed a shipped model that must stay reproducible from public data.
+
+Verdict: not feasible with licensable data, and parked. No feature was built and no gate was run, because the input the feature needs does not exist in a form the project can use or ship. This is the honest end of the xG idea until an open international xG source covering friendlies and qualifiers appears. The feasibility check cost an afternoon, not the weeks of data work the plan warned against.
