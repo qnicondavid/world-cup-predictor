@@ -215,6 +215,28 @@ public final class TournamentSimulator {
     }
 
     private void runKnockoutOnce(List<String[]> slots, Random random, Map<String, int[]> tally) {
+        // Every team in the starting frontier has, by definition, already reached
+        // the round that frontier represents. The stage loop below only tallies
+        // rounds reached AFTER this frontier is played out, so it misses the
+        // frontier's own round: when the remaining fixtures already are the two
+        // semifinals, playing them yields a field of two (the finalists) and the
+        // "round.size() == 4" branch never fires, leaving every semiShare at zero.
+        // Credit the frontier up front using the same field-size-to-stage mapping,
+        // so the starting round is counted whichever round the simulation begins
+        // from. Larger starting fields (round of 16, quarterfinals, ...) have no
+        // dedicated stage slot, so they fall through and those runs are unchanged.
+        Set<String> frontier = new HashSet<>();
+        for (String[] s : slots) {
+            for (String t : s) {
+                frontier.add(t);
+            }
+        }
+        if (frontier.size() == 4) {
+            frontier.forEach(t -> tally.get(t)[2]++);
+        } else if (frontier.size() == 2) {
+            frontier.forEach(t -> tally.get(t)[1]++);
+        }
+
         List<String> round = new ArrayList<>();
         for (String[] s : slots) {
             round.add(s.length == 1 ? s[0] : play(s[0], s[1], random));
