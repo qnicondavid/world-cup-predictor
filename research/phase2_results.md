@@ -62,3 +62,19 @@ Every weight worsens the pre-registered surface, monotonically, with the interva
 One honest caveat on the ladder design, recorded because it shaped the outcome. The rungs were ordered overall, positional, goalkeeper, which is most-correlated-with-value first: kill test 1 measured the overall aggregate at 0.905 correlation with market value and the goalkeeper aggregate at only 0.668. So the ladder gated the one genuinely value-independent channel last, behind two near-duplicates of the prior already shipped, and the stop rule halted on the weakest rung before reaching the strongest. Rung 1 failing is therefore weak evidence about the goalkeeper channel, which is tested next under its own separate pre-registration (research/ea_gk_preregistration.md), justified by the kill test rather than by this result and reported whatever it shows.
 
 Reproduce: mvn -q compile, then the --ea-export runs, then python research/verify.py --expanded-paired research/ea_predictions_zero.csv research/ea_predictions_r1wNN.csv.
+
+## Candidate 3, EA ratings: the goalkeeper test, and the close
+
+Per research/ea_gk_preregistration.md, a single freshly pre-registered term was tested next: the defence prior receives w_g times the standardized best-goalkeeper overall, with no other EA term, gated on the same 768-match EA surface, grid w_g in {0.0, 0.1, 0.2, 0.3}. This was the one EA channel the kill tests found genuinely independent of value (goalkeeper correlation 0.668 against overall 0.905), and the overall-first ladder never reached it.
+
+It does not clear either. On the EA surface the goalkeeper term is neutral to slightly worse at every weight, every interval including zero, so condition 1 fails (deltas as EA minus baseline Brier, positive is worse):
+
+| goalkeeper weight | EA surface delta (95% CI) | World Cup 2018+2022 delta |
+|---|---|---|
+| 0.1 | +0.0007 [-0.0003, +0.0019] | -0.0006 |
+| 0.2 | +0.0010 [-0.0010, +0.0033] | -0.0018 |
+| 0.3 | +0.0014 [-0.0015, +0.0049] | -0.0038 |
+
+The World Cup column is the honest and interesting part, and it is the second time the pattern appears: the goalkeeper term helps the World Cups, more strongly than the overall term did and growing monotonically with weight, from -0.0006 at 0.1 to -0.0038 at 0.3. On the 128 World Cup matches, EA goalkeeper ratings carry real information the value prior misses, exactly what kill test 1 predicted from the goalkeeper aggregate's low correlation with value. What kills it is that the pre-registered surface is dominated by continental finals, where goalkeeper coverage is thin and the World Cup signal does not reproduce, so the net does not certify.
+
+Verdict, and the close of the EA idea. Both pre-registered tests failed: the overall and positional ladder significantly worsened the surface, and the isolated goalkeeper term is neutral to worse on it. The EA squad-quality prior does not ship. The honest summary is not that EA ratings are worthless but that their one genuinely value-independent signal, the goalkeeper, helps World Cup prediction and does not survive dilution across the broader surface chosen for statistical power. Moving the goalpost to the World Cup subset that flatters it is exactly what the pre-registration forbids, so the idea is closed here, with the World Cup signal on the record as a real but uncertifiable near-miss. The machinery (the committed data/ea_ratings.csv aggregate, the additive multi-signal ValueAdjuster, the --ea-export gate) is kept, so a future edition with wider continental coverage, or a fresh World Cup-only pre-registration if that is ever judged the right surface, can revisit it without rebuilding anything. Reproduce: --ea-export=gk0X0:0:0:0:0.X, then verify.py --expanded-paired against research/ea_predictions_zero.csv.

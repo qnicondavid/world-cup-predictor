@@ -420,6 +420,22 @@ are exactly the matches a last-five recent-form window is built from, so the fea
 cannot be constructed or validated on public data. It is parked as not feasible
 (research/phase3_results.md).
 
+The most ambitious data experiment was EA Sports FC player ratings as a second
+squad-quality signal beside market value (notes/model/EA_RATINGS_PLAN.md,
+research/phase2_results.md). It was the only idea in the campaign to pass the cheap kill
+tests: the EA overall rating correlates 0.905 with standardized log squad value and the
+goalkeeper rating only 0.668, so it carries information the value prior misses, and teams
+EA rates above their value beat the model's expectation on 2018 and 2022. Built into the
+prior as a default-off multi-signal blend and gated leave-one-tournament-out on a
+768-match EA-covered surface (the 2018 and 2022 World Cups plus continental finals 2015
+to 2023), it did not clear. The overall term worsened the surface; a separately
+pre-registered goalkeeper-only term was neutral to slightly worse on it. Both, though,
+helped the World Cups specifically, the goalkeeper term by up to 0.0038, which is the
+honest residue: the one signal genuinely independent of value helps World Cup prediction
+but does not survive dilution across the broader surface chosen for statistical power.
+Not shipped; the committed data aggregate and the multi-signal prior are kept for a
+future edition with wider coverage.
+
 Across the campaign three changes survived this gate: the strengthened value
 prior, the recent-form nudge, and a draw-transfer calibration, together moving the
 held-out Brier from 0.5717 to 0.5441. The first two mostly bought resolution,
