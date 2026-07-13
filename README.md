@@ -11,7 +11,7 @@ before kickoff, and scored against real results as the tournament unfolds. The
 harder question behind the project was whether the probabilities are sharp enough
 to beat a bookmaker's closing line. Tested against real closing odds from two
 past World Cups, the model comes out level with the line: a small edge after
-calibration, but well inside the margin of error, so not a demonstrated one. Fifteen other ideas that looked promising were tested and rejected out of sample, and they stay documented alongside the three that shipped. How
+calibration, but well inside the margin of error, so not a demonstrated one. Sixteen other ideas that looked promising were tested and rejected out of sample, and they stay documented alongside the three that shipped. How
 it gets there, and where it stops, is the rest of this README.
 
 **Live demo: [qnicondavid.github.io/world-cup-predictor](https://qnicondavid.github.io/world-cup-predictor/)**
@@ -27,7 +27,7 @@ Every headline claim maps to its number, where it is proven, and the honesty lab
 | Elo engine on the same 320 matches | 184/320 (57.5%), binary Brier 0.148 | [Track record on past World Cups](#track-record-on-past-world-cups) | held-out result |
 | Squad market-value prior lift | 0.6123 to 0.5907 on 2022, fully out of sample | [Squad market value](#squad-market-value) | held-out result |
 | Draw-transfer calibration | 0.5506 to 0.5441, all five held-out | [Draw-transfer calibration](#draw-transfer-calibration) | held-out result |
-| Ideas tested and rejected | 15 documented, none adopted | [More negative findings](#more-negative-findings-from-goal-model-research) | not adopted |
+| Ideas tested and rejected | 16 documented, none adopted | [More negative findings](#more-negative-findings-from-goal-model-research) | not adopted |
 | Live 2026 record (small sample) | tracked daily in the table below, still a small sample | [Live results](#live-results) | in progress |
 | Model vs market consensus, live 2026 | the de-vigged cross-book average is ahead so far, but it is sharper than any single book, so treat the 2018/2022 parity as the calibrated read | [Against the closing line](#against-the-closing-line) | in progress |
 
@@ -255,6 +255,7 @@ Every banked idea in one place first, then the write-ups. Δ Brier is the change
 | Cross-confederation strength correction | -0.0050 | [-0.0120, +0.0050] | rejected: worsens the expanded surface | [detail](#more-negative-findings-from-goal-model-research) |
 | Favourite recalibration | not gated | [-0.0130, +0.0010] | not adopted | [detail](#more-negative-findings-from-goal-model-research) |
 | Stronger recent-form nudge (lambda 0.60) | -0.0048 | [-0.0096, +0.0004] | rejected: reverses on the expanded surface | [detail](#recent-form) |
+| Opponent-adjusted recent-form residual | -0.0020 | [-0.0042, +0.0001] | near miss, does not clear the gate | [detail](#more-negative-findings-from-goal-model-research) |
 | Real published World Cup squads | +0.0026 | [-0.0017, +0.0070] | not adopted | [detail](#squad-market-value) |
 | Half-life retune (~3 years) | -0.0030 | n/a | inside the noise floor | [detail](#more-negative-findings-from-goal-model-research) |
 | Match-importance weighting | +0.0013 | [-0.0015, +0.0041] | not adopted | [detail](#more-negative-findings-from-goal-model-research) |
@@ -362,6 +363,22 @@ did not transfer between tournaments and cost resolution out of sample, so the
 harder 2006-2014 backfill was not pursued; the collectors live in
 research/fetch_lineups.py and research/lineup_value.py as a record of the
 attempt.
+
+The most recent test, and the closest any rejected idea has come, is an
+opponent-adjusted recent-form residual (Phase 3, research/phase3_results.md). The
+shipped form nudge averages raw goals conceded over the last five matches, which is
+confounded by schedule strength; this variant measures each side's recent defence
+against what the fitted model expected it to concede against that opponent. On the
+2,180-match expanded surface it beats the shipped raw feature at the same nudge
+strength by 0.0017, with a 95 percent interval of [0.0004, 0.0030] that clears zero,
+the first candidate to manage that, and the gain concentrates in intra-confederation
+matches where recent form is comparable. It still does not ship. Leave-one-tournament-out
+selection over the nudge grid lands on a stronger coefficient (0.40) whose interval
+grazes zero, and the World Cup 320 guard trips (2006 regresses past the noise floor at
+0.20, 2022 blows out at higher coefficients). The opponent-adjustment is the right idea
+and the honest pooled improvement is real but tiny (0.5623 to 0.5617), too small to
+certify at the operating point the data selects. The form channel is closed with this
+result on the record.
 
 Across the campaign three changes survived this gate: the strengthened value
 prior, the recent-form nudge, and a draw-transfer calibration, together moving the
