@@ -348,7 +348,11 @@ excluding zero on the worse side, and worst of all on the 494 inter-confederatio
 matches it targets, 0.0089 then 0.0209 worse. Rejected. The export bridge and
 verification harness (research/verify.py) built to settle this are kept, since
 every future idea is judged the same way; the full re-gate is in
-research/phase1_results.md.
+research/phase1_results.md. The in-fit version of the same idea, estimating the offsets
+jointly with the ratings rather than after them, was ruled out without building it: a
+free per-confederation-pair probability offset, which is more expressive than any in-fit
+rating offset, only worsens the production model out of sample (research/phase2_results.md),
+so there is nothing left for the in-fit fit to gain.
 
 Three later ideas were tested the same way and also did not clear the gate.
 **Favourite recalibration** (a leave-one-tournament-out map that sharpens the
