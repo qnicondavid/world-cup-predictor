@@ -35,6 +35,7 @@ research/refit_predictions_wc.csv
 # Candidate 3 EA Sports FC raw player dumps: raw stays out of the repo, only the
 # derived per-team aggregates (data/ea_ratings.csv) get committed
 data/ea_raw/
+archive.zip
 
 # Local planning and prompt notes (model research + promotion); not part of the project
 notes/
