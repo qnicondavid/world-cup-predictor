@@ -12,6 +12,7 @@ import com.david.worldcup.goals.Calibration;
 import com.david.worldcup.goals.Confederations;
 import com.david.worldcup.goals.DixonColesModel;
 import com.david.worldcup.goals.ValueAdjuster;
+import com.david.worldcup.goals.EaWeights;
 import com.david.worldcup.goals.FormAdjuster;
 import com.david.worldcup.goals.FormResidualAdjuster;
 import com.david.worldcup.goals.EloDrawBaselineModel;
@@ -31,6 +32,7 @@ import com.david.worldcup.model.Fixture;
 import com.david.worldcup.model.Match;
 import com.david.worldcup.rest.RestBacktest;
 import com.david.worldcup.sim.TournamentSimulator;
+import com.david.worldcup.value.EaRatingsTable;
 import com.david.worldcup.value.MarketValueTable;
 import com.david.worldcup.tracker.PredictionLedger;
 import com.david.worldcup.tracker.Tracker;
@@ -142,6 +144,8 @@ public final class Main {
             runExpandedExportFormResid(matches, arguments);
         } else if (arguments.contains("--probe-export")) {
             runProbeExport(matches);
+        } else if (arguments.stream().anyMatch(a -> a.startsWith("--ea-export"))) {
+            runEaExport(matches, arguments);
         } else if (arguments.stream().anyMatch(a -> a.startsWith("--expanded-export"))) {
             runExpandedExport(matches, arguments);
         } else if (arguments.contains("--refit-export")) {
@@ -1373,6 +1377,110 @@ public final class Main {
         ValueTuner.Prepared p = tuner.prepare(matches, window, isTest);
         var strength = values.isEmpty() ? p.base()
                 : ValueAdjuster.adjust(p.base(), p.counts(), values, p.asof(), ValueWeights.DEFAULT);
+        DixonColesModel model = new DixonColesModel(strength);
+        int rows = 0;
+        for (Match m : p.test()) {
+            DrawModel.Probabilities pr =
+                    model.probabilities(m.homeTeam(), m.awayTeam(), m.neutralVenue());
+            String actual = switch (m.outcome()) {
+                case HOME_WIN -> "home";
+                case DRAW    -> "draw";
+                case AWAY_WIN -> "away";
+            };
+            DrawModel.Probabilities adjusted = Calibration.transferDraw(
+                    form.adjust(m.homeTeam(), m.awayTeam(), m.date(), pr));
+            writeExportRow(pw, label, m, adjusted, actual);
+            rows++;
+        }
+        return rows;
+    }
+
+    /**
+     * EA Sports FC ratings export (additive, default-off research path): runs the production
+     * Dixon-Coles + value-prior + EA-ratings-prior + form + draw-transfer pipeline over the
+     * World Cup 2018 and 2022 windows plus the continental-final windows from 2015 to 2023,
+     * writing per-match predictions for the Python scorer. This never touches the shipped
+     * value-only export; with every EA weight at zero it reproduces {@link ValueAdjuster#adjust}
+     * exactly, via {@link ValueAdjuster#adjustWithEa}.
+     *
+     * <p>Usage: {@code --ea-export=<tag>:<wOverall>:<wAtk>:<wDef>:<wGk>}, for example
+     * {@code --ea-export=ovr020:0.20:0:0:0}. The tag names the output file; any weight token
+     * that is missing or blank defaults to zero.
+     */
+    private static void runEaExport(List<Match> matches, List<String> arguments) throws IOException {
+        String tag = "default";
+        double wOverall = 0.0;
+        double wAtk = 0.0;
+        double wDef = 0.0;
+        double wGk = 0.0;
+        for (String a : arguments) {
+            if (a.startsWith("--ea-export=")) {
+                String[] parts = a.substring("--ea-export=".length()).split(":");
+                if (parts.length > 0 && !parts[0].isBlank()) {
+                    tag = parts[0].trim();
+                }
+                if (parts.length > 1 && !parts[1].isBlank()) {
+                    wOverall = Double.parseDouble(parts[1].trim());
+                }
+                if (parts.length > 2 && !parts[2].isBlank()) {
+                    wAtk = Double.parseDouble(parts[2].trim());
+                }
+                if (parts.length > 3 && !parts[3].isBlank()) {
+                    wDef = Double.parseDouble(parts[3].trim());
+                }
+                if (parts.length > 4 && !parts[4].isBlank()) {
+                    wGk = Double.parseDouble(parts[4].trim());
+                }
+            }
+        }
+        System.out.printf(Locale.ROOT,
+                "=== EA ratings export: tag %s, weights overall %.2f atk %.2f def %.2f gk %.2f ===%n",
+                tag, wOverall, wAtk, wDef, wGk);
+
+        FormAdjuster form = new FormAdjuster(matches);
+        MarketValueTable values = MarketValueTable.load(Path.of("data/market_values.csv"));
+        EaRatingsTable ea = EaRatingsTable.load(Path.of("data/ea_ratings.csv"));
+        ValueTuner tuner = new ValueTuner(12, values);
+        EaWeights ew = new EaWeights(wOverall, wAtk, wDef, wGk);
+
+        Path outPath = Path.of("research", "ea_predictions_" + tag + ".csv");
+        int rows = 0;
+        try (PrintWriter pw = new PrintWriter(new FileWriter(outPath.toFile()))) {
+            pw.println("tournament,home,away,date,p_home,p_draw,p_away,actual");
+
+            for (Backtest.Window w : Backtest.WORLD_CUPS) {
+                if (w.from().getYear() == 2018 || w.from().getYear() == 2022) {
+                    rows += writeEaWindow(pw, matches, tuner, values, ea, form, ew,
+                            w, Match::isWorldCupFinals, "WC" + w.from().getYear());
+                }
+            }
+            for (Backtest.TournamentWindow tw : Backtest.continentalFinalWindows(matches, 2000)) {
+                int y = tw.window().from().getYear();
+                if (y >= 2015 && y <= 2023) {
+                    rows += writeEaWindow(pw, matches, tuner, values, ea, form, ew,
+                            tw.window(), (Match m) -> m.tournament().equals(tw.tournament()),
+                            tw.window().label());
+                }
+            }
+        }
+        System.out.printf(Locale.ROOT, "Written %s%n  %d rows total%n", outPath.toAbsolutePath(), rows);
+    }
+
+    /**
+     * Scores one (window, test predicate, label) triple into {@code pw} using the production
+     * value-prior pipeline extended with the additive EA ratings prior
+     * ({@link ValueAdjuster#adjustWithEa}), returning the number of rows written. Mirrors
+     * {@link #writeExpandedWindow} exactly except for the EA prior step; it does not change
+     * {@link #writeExpandedWindow} or any shipped export path.
+     */
+    private static int writeEaWindow(PrintWriter pw, List<Match> matches, ValueTuner tuner,
+                                     MarketValueTable values, EaRatingsTable ea, FormAdjuster form,
+                                     EaWeights ew, Backtest.Window window,
+                                     java.util.function.Predicate<Match> isTest, String label) {
+        ValueTuner.Prepared p = tuner.prepare(matches, window, isTest);
+        var strength = values.isEmpty() ? p.base()
+                : ValueAdjuster.adjustWithEa(p.base(), p.counts(), values, ea, p.asof(),
+                        ValueWeights.DEFAULT, ew);
         DixonColesModel model = new DixonColesModel(strength);
         int rows = 0;
         for (Match m : p.test()) {

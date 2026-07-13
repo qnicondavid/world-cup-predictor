@@ -32,6 +32,9 @@ research/probe_results.txt
 # Phase 3 Candidate 7 regime check: regenerable refit-per-match-day export
 research/refit_predictions_wc.csv
 
+# EA ratings gate exports: regenerable via --ea-export
+research/ea_predictions_*.csv
+
 # Candidate 3 EA Sports FC raw player dumps: raw stays out of the repo, only the
 # derived per-team aggregates (data/ea_ratings.csv) get committed
 data/ea_raw/
