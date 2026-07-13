@@ -25,6 +25,10 @@ research/export_real_3wc.csv
 # Phase 1 expanded re-gate exports: regenerable via --expanded-export / --expanded-export-confed
 research/expanded_predictions_*.csv
 
+# Phase 3 Candidate 5 probe: regenerable feature export and run output (probe.py is committed)
+research/probe_features.csv
+research/probe_results.txt
+
 # Local planning and prompt notes (model research + promotion); not part of the project
 notes/
 

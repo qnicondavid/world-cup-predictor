@@ -55,3 +55,33 @@ Candidate 4 does not ship, and the form channel is closed as the plan pre-commit
     python research/verify.py --expanded-paired research/expanded_predictions_l020.csv research/expanded_predictions_formresid_l020.csv
 
 The identity check must pass before any gate number is trusted. The bootstrap is seeded, so every interval reproduces exactly, and the paired deltas were confirmed in a second environment against the same CSV files.
+
+## Candidate 5: learned residual probe
+
+Candidate 5 is a detector, not a shippable change. It asks one question: after the value prior, the form nudge, and the draw transfer, does any structure remain that a flexible learner could exploit? If the answer is no, the model class is exhausted and further feature work is not worth the risk.
+
+Method: for each of the seventy surface tournaments, a small gradient-boosted classifier (sklearn HistGradientBoostingClassifier, depth 3) is trained leave-one-tournament-out on every other tournament's matches and scored on the held-out one. Its inputs are the production model's own locked predictions (p_home, p_draw, p_away) plus twelve pre-kickoff features: the expected-goal rate gap and total, the squad value gap, the opponent-adjusted form residual from Candidate 4, the confederation pairing, the rest-days difference, and neutrality. Because the probe is handed the production probabilities themselves, any improvement it finds is by construction structure the production model missed.
+
+Leakage discipline: folding is by tournament, so no match from a held-out tournament appears in its own training slice (confirmed on all seventy folds). A label-shuffle canary runs the identical loop with the training labels permuted; a leakage-free pipeline makes the canary collapse toward the base rate, far worse than the real probe. Every feature is computed from the per-window fit or from strictly-prior history, never from the match's own result.
+
+| Measure | Multiclass Brier |
+|---|---|
+| Production model | 0.5623 |
+| Base rate (global class frequencies) | 0.6433 |
+| Probe, leave-one-tournament-out | 0.5880 |
+| Leakage canary (shuffled labels) | 0.6829 |
+
+The probe does not beat production. It does not even match it: 0.5880 against 0.5623, worse by 0.0258. Given the production model's own predictions as inputs, a flexible learner with twelve extra features and thousands of training matches per fold adds noise, not signal, out of sample. The canary lands at 0.6829, above the base rate and well clear of the probe, and per-tournament isolation held everywhere, so the null is clean rather than a fold-construction artifact.
+
+The feature attribution (SHAP, fit on all rows, for interpretation only) leans on the rate gap, total, and value gap, which are the production model's own core signals. The confederation features it was handed, is_inter and home_confed, rank in the middle but yield no out-of-sample gain, the same verdict Phase 1 reached by a different route: the value prior already absorbs the confederation signal.
+
+Verdict: no exploitable residual structure. The probe is not shipped, both because its held-out Brier is worse than production and because the project does not ship a black box a tournament-scale evaluation cannot justify. Its value was the search, and the search came back empty, which is the strongest available evidence that this model class is squeezed dry.
+
+Reproduction:
+
+    mvn -q compile
+    mvn -q exec:java "-Dexec.mainClass=com.david.worldcup.Main" "-Dexec.args=--probe-export"
+    pip install --break-system-packages scikit-learn shap pandas
+    python research/probe.py
+
+The probe is seeded, so the numbers reproduce exactly, and the headline Brier figures were confirmed in a second environment.

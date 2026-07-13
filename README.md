@@ -380,6 +380,20 @@ and the honest pooled improvement is real but tiny (0.5623 to 0.5617), too small
 certify at the operating point the data selects. The form channel is closed with this
 result on the record.
 
+Phase 3 then closed with a direct test of whether any structure remains at all. A
+learned residual probe (research/phase3_results.md) trained a gradient-boosted model
+leave-one-tournament-out on the production model's own locked predictions plus twelve
+pre-kickoff features: the rate gap, total goals, value gap, the opponent-adjusted form
+residual, confederation pairing, rest-days difference, and neutrality. Handed the
+production probabilities as inputs, it could not match the production model out of
+sample, let alone beat it: held-out multiclass Brier 0.5880 against production's 0.5623.
+A label-shuffle canary landed at 0.6829, near the base-rate floor and far above the
+probe, and per-tournament isolation held on all seventy folds, so the null is clean
+rather than an artifact. The attribution leaned on the rate gap, total, and value gap,
+the model's own core signals, and the confederation features it was handed produced no
+out-of-sample gain, the same verdict Phase 1 reached by a different route. There is no
+exploitable structure left for this model class to capture.
+
 Across the campaign three changes survived this gate: the strengthened value
 prior, the recent-form nudge, and a draw-transfer calibration, together moving the
 held-out Brier from 0.5717 to 0.5441. The first two mostly bought resolution,

@@ -41,6 +41,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -138,6 +139,8 @@ public final class Main {
             runExpandedExportConfed(matches, arguments);
         } else if (arguments.stream().anyMatch(a -> a.startsWith("--expanded-export-formresid"))) {
             runExpandedExportFormResid(matches, arguments);
+        } else if (arguments.contains("--probe-export")) {
+            runProbeExport(matches);
         } else if (arguments.stream().anyMatch(a -> a.startsWith("--expanded-export"))) {
             runExpandedExport(matches, arguments);
         } else if (arguments.contains("--values-tune")) {
@@ -1459,6 +1462,162 @@ public final class Main {
             rows++;
         }
         return rows;
+    }
+
+    /**
+     * Probe export: research feature surface for downstream analysis, over the same World Cup
+     * and continental-final windows as {@link #runExpandedExport} at lambda 0.20 (the shipped
+     * production surface, 2,180 matches). Writes {@code research/probe_features.csv} with the
+     * shipped production probabilities (raw {@link FormAdjuster} at lambda 0.20 plus
+     * {@code Calibration.transferDraw}) alongside a set of additional research features:
+     * expected-goal-rate gap and total from the per-window {@link TeamStrength}, a market-value
+     * log-ratio gap, the opponent-adjusted form-residual gap from {@link FormResidualAdjuster},
+     * static confederation metadata, and a strictly-prior rest-days difference. Every feature is
+     * computable before kickoff: the per-window fit is trained on strictly-prior matches, the
+     * value lookup is as-of the match date, the residual and rest-days figures only look at
+     * matches strictly before {@code m.date()}, and confederation is static metadata. This does
+     * not touch any shipped export path.
+     */
+    private static void runProbeExport(List<Match> matches) throws IOException {
+        System.out.println("=== Probe export: research feature surface over World Cup + continental finals ===");
+        FormAdjuster prodForm = new FormAdjuster(matches);
+        FormResidualAdjuster residForm = new FormResidualAdjuster(matches);
+        MarketValueTable values = MarketValueTable.load(Path.of("data/market_values.csv"));
+        ValueTuner tuner = new ValueTuner(12, values);
+        Map<String, String> cmap = Confederations.buildConfedMap(matches);
+
+        Map<String, java.util.List<java.time.LocalDate>> lastDates = new java.util.HashMap<>();
+        for (Match m : matches) {
+            lastDates.computeIfAbsent(m.homeTeam(), k -> new java.util.ArrayList<>()).add(m.date());
+            lastDates.computeIfAbsent(m.awayTeam(), k -> new java.util.ArrayList<>()).add(m.date());
+        }
+        for (java.util.List<java.time.LocalDate> dates : lastDates.values()) {
+            java.util.Collections.sort(dates);
+        }
+
+        Path outPath = Path.of("research", "probe_features.csv");
+        int worldCupRows = 0;
+        int continentalRows = 0;
+        try (PrintWriter pw = new PrintWriter(new FileWriter(outPath.toFile()))) {
+            pw.println("tournament,home,away,date,p_home,p_draw,p_away,rate_gap,total,value_gap,"
+                    + "form_resid_gap,home_confed,away_confed,is_inter,rest_days_diff,neutral,outcome");
+
+            // World Cup surface: same windows, filter and labels as runExpandedExport.
+            for (Backtest.Window w : Backtest.WORLD_CUPS) {
+                String label = "WC" + w.from().getYear();
+                worldCupRows += writeProbeWindow(pw, matches, tuner, values, prodForm, residForm,
+                        cmap, lastDates, w, Match::isWorldCupFinals, label);
+            }
+            // Continental-final surface added on top, same enumeration as runExpandedExport.
+            for (Backtest.TournamentWindow tw : Backtest.continentalFinalWindows(matches, 2000)) {
+                String label = tw.window().label();
+                continentalRows += writeProbeWindow(pw, matches, tuner, values, prodForm, residForm,
+                        cmap, lastDates, tw.window(), (Match m) -> m.tournament().equals(tw.tournament()), label);
+            }
+        }
+        int total = worldCupRows + continentalRows;
+        System.out.printf(Locale.ROOT,
+                "Written %s%n  %d rows total (%d World Cup, %d continental)%n",
+                outPath.toAbsolutePath(), total, worldCupRows, continentalRows);
+    }
+
+    /**
+     * Scores one (window, test predicate, label) triple into {@code pw} with the probe feature
+     * set, returning the number of rows written. The production probabilities (columns p_home,
+     * p_draw, p_away) come from the same pipeline as {@link #writeExpandedWindow} (value-adjusted
+     * strength, Dixon-Coles, {@code prodForm.adjust}, {@code Calibration.transferDraw}); the
+     * research features are computed alongside from the same per-window strength and strictly-
+     * prior history, without altering the production probabilities in any way.
+     */
+    private static int writeProbeWindow(PrintWriter pw, List<Match> matches, ValueTuner tuner,
+                                        MarketValueTable values, FormAdjuster prodForm,
+                                        FormResidualAdjuster residForm, Map<String, String> cmap,
+                                        Map<String, java.util.List<java.time.LocalDate>> lastDates,
+                                        Backtest.Window window, java.util.function.Predicate<Match> isTest,
+                                        String label) {
+        ValueTuner.Prepared p = tuner.prepare(matches, window, isTest);
+        var strength = values.isEmpty() ? p.base()
+                : ValueAdjuster.adjust(p.base(), p.counts(), values, p.asof(), ValueWeights.DEFAULT);
+        DixonColesModel model = new DixonColesModel(strength);
+        int rows = 0;
+        for (Match m : p.test()) {
+            DrawModel.Probabilities pr =
+                    model.probabilities(m.homeTeam(), m.awayTeam(), m.neutralVenue());
+            DrawModel.Probabilities prod = Calibration.transferDraw(
+                    prodForm.adjust(m.homeTeam(), m.awayTeam(), m.date(), pr));
+
+            double lh = strength.lambdaHome(m.homeTeam(), m.awayTeam(), m.neutralVenue());
+            double la = strength.lambdaAway(m.homeTeam(), m.awayTeam(), m.neutralVenue());
+            double rateGap = lh - la;
+            double total = lh + la;
+
+            java.util.OptionalDouble vh = values.valueAsOf(m.homeTeam(), m.date());
+            java.util.OptionalDouble va = values.valueAsOf(m.awayTeam(), m.date());
+            String valueGap = "";
+            if (vh.isPresent() && va.isPresent() && vh.getAsDouble() > 0 && va.getAsDouble() > 0) {
+                valueGap = String.format(Locale.ROOT, "%.6f",
+                        Math.log(vh.getAsDouble()) - Math.log(va.getAsDouble()));
+            }
+
+            Double residGap = residForm.featureGap(m.homeTeam(), m.awayTeam(), m.date(), strength);
+            String formResidGap = residGap == null ? "" : String.format(Locale.ROOT, "%.6f", residGap);
+
+            String homeConfed = cmap.getOrDefault(m.homeTeam(), "");
+            String awayConfed = cmap.getOrDefault(m.awayTeam(), "");
+            int isInter = (!homeConfed.isEmpty() && !awayConfed.isEmpty() && !homeConfed.equals(awayConfed))
+                    ? 1 : 0;
+
+            java.time.LocalDate homePrev = priorMatchDate(lastDates.get(m.homeTeam()), m.date());
+            java.time.LocalDate awayPrev = priorMatchDate(lastDates.get(m.awayTeam()), m.date());
+            String restDaysDiff = "";
+            if (homePrev != null && awayPrev != null) {
+                long homeRest = ChronoUnit.DAYS.between(homePrev, m.date());
+                long awayRest = ChronoUnit.DAYS.between(awayPrev, m.date());
+                restDaysDiff = Long.toString(homeRest - awayRest);
+            }
+
+            int neutral = m.neutralVenue() ? 1 : 0;
+            String outcome = switch (m.outcome()) {
+                case HOME_WIN -> "home";
+                case DRAW    -> "draw";
+                case AWAY_WIN -> "away";
+            };
+
+            pw.printf(Locale.ROOT, "%s,%s,%s,%s,%.6f,%.6f,%.6f,%.6f,%.6f,%s,%s,%s,%s,%d,%s,%d,%s%n",
+                    label,
+                    m.homeTeam().replace(",", ";"),
+                    m.awayTeam().replace(",", ";"),
+                    m.date(),
+                    prod.homeWin(), prod.draw(), prod.awayWin(),
+                    rateGap, total,
+                    valueGap, formResidGap,
+                    homeConfed, awayConfed,
+                    isInter,
+                    restDaysDiff,
+                    neutral,
+                    outcome);
+            rows++;
+        }
+        return rows;
+    }
+
+    /**
+     * Finds the greatest date strictly before {@code before} in an ascending-sorted date list, or
+     * {@code null} if the list is null or has no such date. Used for the probe export's rest-days
+     * feature, which only looks at matches strictly prior to the one being predicted.
+     */
+    private static java.time.LocalDate priorMatchDate(java.util.List<java.time.LocalDate> dates,
+                                                       java.time.LocalDate before) {
+        if (dates == null) {
+            return null;
+        }
+        for (int i = dates.size() - 1; i >= 0; i--) {
+            java.time.LocalDate d = dates.get(i);
+            if (d.isBefore(before)) {
+                return d;
+            }
+        }
+        return null;
     }
 
     /**

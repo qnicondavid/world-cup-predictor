@@ -114,4 +114,17 @@ public final class FormResidualAdjuster {
         double z = h + a + d;
         return new DrawModel.Probabilities(h / z, d / z, a / z);
     }
+
+    /**
+     * Raw opponent-adjusted defensive-residual gap between two teams strictly before
+     * {@code date} (home residual minus away residual), or {@code null} if either side lacks
+     * {@link #WINDOW} prior matches. This is the underlying feature behind {@link #adjust}
+     * exposed directly for feature export; it does not change {@link #adjust}'s behaviour.
+     */
+    public Double featureGap(String home, String away, LocalDate date, TeamStrength strength) {
+        Double h = recentResidual(home, date, strength);
+        Double a = recentResidual(away, date, strength);
+        if (h == null || a == null) return null;
+        return h - a;
+    }
 }
