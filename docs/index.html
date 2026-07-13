@@ -1133,7 +1133,7 @@ function renderLiveMarket(d) {
   }
   const body = document.querySelector("#lmTable tbody");
   if (body && !(d.rows || []).length) body.innerHTML = `<tr><td colspan="5" style="color:var(--muted)">no captured market odds yet</td></tr>`;
-  else if (body) body.innerHTML = (d.rows || []).map(r =>
+  else if (body) body.innerHTML = (d.rows || []).slice().reverse().map(r =>
     `<tr><td>${fmtDay(r.date)}</td><td>${esc(r.home)} v ${esc(r.away)}</td>
       <td class="num">${r.model.toFixed(3)}</td><td class="num">${r.market.toFixed(3)}</td>
       <td><span class="lm-chip ${r.sharper === "model" ? "model" : ""}">${r.sharper === "model" ? "model" : "market"}</span></td></tr>`).join("");
