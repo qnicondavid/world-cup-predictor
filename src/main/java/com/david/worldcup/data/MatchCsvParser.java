@@ -94,8 +94,16 @@ public final class MatchCsvParser {
             if (isInteger(fields.get(3)) && isInteger(fields.get(4))) {
                 return Optional.empty(); // has a score, so it's a result not a fixture
             }
+            String home = fields.get(1);
+            String away = fields.get(2);
+            if (isPlaceholderTeam(home) || isPlaceholderTeam(away)) {
+                // Undecided knockout fixtures (the final and third-place playoff) are
+                // seeded "NA" until the semifinals are played. Skip them: the model
+                // cannot rate a team that does not exist yet.
+                return Optional.empty();
+            }
             return Optional.of(new Fixture(
-                    date, fields.get(1), fields.get(2), fields.get(5),
+                    date, home, away, fields.get(5),
                     Boolean.parseBoolean(fields.get(8))));
         } catch (DateTimeParseException e) {
             return Optional.empty();
@@ -109,6 +117,11 @@ public final class MatchCsvParser {
         } catch (NumberFormatException e) {
             return false;
         }
+    }
+
+    /** martj42 seeds not-yet-decided fixtures (final, third place) with "NA" team names. */
+    private static boolean isPlaceholderTeam(String team) {
+        return team == null || team.isBlank() || team.equalsIgnoreCase("NA");
     }
 
     /**
