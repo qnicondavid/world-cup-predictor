@@ -3,9 +3,10 @@
 
 The project's core question is whether the model's probabilities are sharper than
 a bookmaker's, not whether they make money. For every 2026 match with both a locked
-model prediction (docs/data/tracker.json) and a captured bookmaker price
-(data/odds_live.csv), this de-vigs the market's average 1X2 odds and scores the
-model's multiclass Brier against the market's on the actual result. It writes
+model prediction (docs/data/tracker.json) and a captured market price
+(data/odds_2026.csv, a de-vigged cross-book consensus averaged across books, takes
+precedence over the data/odds_live.csv snapshots), this scores the model's multiclass
+Brier against the market's on the actual result. It writes
 docs/data/live_market.json for the site.
 
 Caveats baked into the output: the sample is tiny, and the market probabilities come
@@ -91,10 +92,12 @@ def main():
     n = len(rows)
     out = {
         "note": ("Head-to-head multiclass Brier (lower is better) on 2026 matches with both a locked "
-                 "model prediction and a captured bookmaker price. Market probabilities are the de-vigged "
-                 "average 1X2 odds from data/odds_live.csv, the snapshot captured, not necessarily the "
-                 "closing line. Small sample: read the running gap, not a verdict. The rigorous version is "
-                 "the 99-match 2018/2022 closing-line comparison, which came out at parity."),
+                 "model prediction and a captured market price. The market is a de-vigged cross-book "
+                 "consensus: data/odds_2026.csv (averaged across books, measured overround near 1.0) takes "
+                 "precedence, with data/odds_live.csv snapshots as fallback. That consensus is structurally "
+                 "sharper than any single bookmaker's bettable line, so read the running gap as directional, "
+                 "not a verdict. The calibrated read is the 99-match 2018/2022 single-book closing-line "
+                 "comparison in the README, which came out at parity."),
         "matches": n,
         "model": round(ms / n, 4) if n else None,
         "market": round(ks / n, 4) if n else None,
