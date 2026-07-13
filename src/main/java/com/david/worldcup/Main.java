@@ -13,6 +13,7 @@ import com.david.worldcup.goals.Confederations;
 import com.david.worldcup.goals.DixonColesModel;
 import com.david.worldcup.goals.ValueAdjuster;
 import com.david.worldcup.goals.FormAdjuster;
+import com.david.worldcup.goals.FormResidualAdjuster;
 import com.david.worldcup.goals.EloDrawBaselineModel;
 import com.david.worldcup.goals.EloPoissonModel;
 import com.david.worldcup.goals.EnsembleModel;
@@ -135,6 +136,8 @@ public final class Main {
             runExpandedWindows(matches);
         } else if (arguments.stream().anyMatch(a -> a.startsWith("--expanded-export-confed"))) {
             runExpandedExportConfed(matches, arguments);
+        } else if (arguments.stream().anyMatch(a -> a.startsWith("--expanded-export-formresid"))) {
+            runExpandedExportFormResid(matches, arguments);
         } else if (arguments.stream().anyMatch(a -> a.startsWith("--expanded-export"))) {
             runExpandedExport(matches, arguments);
         } else if (arguments.contains("--values-tune")) {
@@ -1376,6 +1379,82 @@ public final class Main {
             };
             DrawModel.Probabilities adjusted = Calibration.transferDraw(
                     form.adjust(m.homeTeam(), m.awayTeam(), m.date(), pr));
+            writeExportRow(pw, label, m, adjusted, actual);
+            rows++;
+        }
+        return rows;
+    }
+
+    /**
+     * Opponent-adjusted form-residual expanded export (Phase 3 Candidate 4): the production
+     * LOTO pipeline (Dixon-Coles + value prior + draw transfer) with the shipped raw-goals-against
+     * form nudge swapped for {@link FormResidualAdjuster} at a chosen lambda, over the World Cup
+     * and continental-final windows. The lambda is parsed from
+     * {@code --expanded-export-formresid=0.60} (default 0.20 when no value is given).
+     *
+     * <p>At lambda 0 no nudge is applied, so the output is byte-identical to
+     * {@code research/expanded_predictions_l000.csv} (form off). Leakage-safe: the residual uses
+     * each window's own value-adjusted strength, fit before the tournament. Does not touch any
+     * shipped export path.
+     */
+    private static void runExpandedExportFormResid(List<Match> matches, List<String> arguments) throws IOException {
+        double lambda = 0.20;
+        for (String a : arguments) {
+            if (a.startsWith("--expanded-export-formresid=")) {
+                lambda = Double.parseDouble(a.substring("--expanded-export-formresid=".length()));
+            }
+        }
+        System.out.printf(Locale.ROOT,
+                "=== Expanded export (opponent-adjusted form residual at lambda %.2f) over World Cup + continental finals ===%n",
+                lambda);
+        FormResidualAdjuster form = new FormResidualAdjuster(matches, lambda);
+        MarketValueTable values = MarketValueTable.load(Path.of("data/market_values.csv"));
+        ValueTuner tuner = new ValueTuner(12, values);
+
+        long lambdaBps = Math.round(lambda * 100);
+        Path outPath = Path.of("research",
+                String.format(Locale.ROOT, "expanded_predictions_formresid_l%03d.csv", lambdaBps));
+
+        int total = 0;
+        try (PrintWriter pw = new PrintWriter(new FileWriter(outPath.toFile()))) {
+            pw.println("tournament,home,away,date,p_home,p_draw,p_away,actual");
+            for (Backtest.Window w : Backtest.WORLD_CUPS) {
+                total += writeFormResidWindow(pw, matches, tuner, values, form,
+                        w, Match::isWorldCupFinals, "WC" + w.from().getYear());
+            }
+            for (Backtest.TournamentWindow tw : Backtest.continentalFinalWindows(matches, 2000)) {
+                total += writeFormResidWindow(pw, matches, tuner, values, form,
+                        tw.window(), (Match m) -> m.tournament().equals(tw.tournament()), tw.window().label());
+            }
+        }
+        System.out.printf(Locale.ROOT, "Written %s%n  %d rows total%n", outPath.toAbsolutePath(), total);
+    }
+
+    /**
+     * Scores one (window, test predicate, label) triple with the opponent-adjusted form residual
+     * pipeline, returning the number of rows written. Identical to {@link #writeExpandedWindow}
+     * except the form nudge comes from {@link FormResidualAdjuster#adjust}, which needs the
+     * per-window strength to compute expected goals conceded.
+     */
+    private static int writeFormResidWindow(PrintWriter pw, List<Match> matches, ValueTuner tuner,
+                                            MarketValueTable values, FormResidualAdjuster form,
+                                            Backtest.Window window,
+                                            java.util.function.Predicate<Match> isTest, String label) {
+        ValueTuner.Prepared p = tuner.prepare(matches, window, isTest);
+        var strength = values.isEmpty() ? p.base()
+                : ValueAdjuster.adjust(p.base(), p.counts(), values, p.asof(), ValueWeights.DEFAULT);
+        DixonColesModel model = new DixonColesModel(strength);
+        int rows = 0;
+        for (Match m : p.test()) {
+            DrawModel.Probabilities pr =
+                    model.probabilities(m.homeTeam(), m.awayTeam(), m.neutralVenue());
+            String actual = switch (m.outcome()) {
+                case HOME_WIN -> "home";
+                case DRAW    -> "draw";
+                case AWAY_WIN -> "away";
+            };
+            DrawModel.Probabilities adjusted = Calibration.transferDraw(
+                    form.adjust(m.homeTeam(), m.awayTeam(), m.date(), strength, pr));
             writeExportRow(pw, label, m, adjusted, actual);
             rows++;
         }
