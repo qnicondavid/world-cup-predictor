@@ -81,6 +81,7 @@ public final class Tracker {
 
         return fixtures.stream()
                 .filter(Fixture::isWorldCupFinals)
+                .filter(fx -> isPredictableTeam(fx.homeTeam()) && isPredictableTeam(fx.awayTeam()))
                 .filter(fx -> !fx.date().isBefore(today))
                 .filter(fx -> !alreadyLocked.contains(key(fx.date(), fx.homeTeam(), fx.awayTeam())))
                 .map(fx -> {
@@ -402,6 +403,16 @@ public final class Tracker {
         return readme.substring(0, start + startMarker.length())
                 + "\n" + newSection + "\n"
                 + readme.substring(end);
+    }
+
+    /**
+     * martj42 seeds not-yet-decided knockout fixtures (the final and third-place
+     * playoff) with "NA" team names until the semifinals are played. Skip those:
+     * the model cannot rate a team that does not exist yet, and locking one throws
+     * an ArrayIndexOutOfBoundsException in the ratings lookup.
+     */
+    private static boolean isPredictableTeam(String team) {
+        return team != null && !team.isBlank() && !team.equalsIgnoreCase("NA");
     }
 
     private static String key(LocalDate date, String home, String away) {
