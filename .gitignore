@@ -29,6 +29,9 @@ research/expanded_predictions_*.csv
 research/probe_features.csv
 research/probe_results.txt
 
+# Phase 3 Candidate 7 regime check: regenerable refit-per-match-day export
+research/refit_predictions_wc.csv
+
 # Local planning and prompt notes (model research + promotion); not part of the project
 notes/
 

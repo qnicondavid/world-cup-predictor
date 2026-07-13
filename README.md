@@ -394,6 +394,15 @@ the model's own core signals, and the confederation features it was handed produ
 out-of-sample gain, the same verdict Phase 1 reached by a different route. There is no
 exploitable structure left for this model class to capture.
 
+A final consistency check closed Phase 3. The live tracker refits the ratings before
+each match day, while the backtest fits once per tournament, so the headline could in
+principle misrepresent the live regime. Measured directly, it does not: the refit
+regime scores 0.5446 on the held-out World Cups against the fit-once 0.5441, a paired
+delta of -0.0004 with a 95 percent interval that spans zero. The two are statistically
+the same, because the form nudge already carries in-tournament information, so the
+fit-once headline is kept as the cleaner and fully reproducible number
+(research/phase3_results.md).
+
 Across the campaign three changes survived this gate: the strengthened value
 prior, the recent-form nudge, and a draw-transfer calibration, together moving the
 held-out Brier from 0.5717 to 0.5441. The first two mostly bought resolution,

@@ -85,3 +85,24 @@ Reproduction:
     python research/probe.py
 
 The probe is seeded, so the numbers reproduce exactly, and the headline Brier figures were confirmed in a second environment.
+
+## Candidate 7: regime alignment (refit per match day)
+
+Candidate 7 is a consistency check, not a Brier candidate. The live tracker refits the ratings before each match day as results arrive, while the backtest fits once per tournament. The question is whether the headline held-out Brier, measured under the fit-once regime, fairly represents the regime the live model actually runs.
+
+Method: a per-match-day refit over the five World Cups (--refit-export). For each World Cup match day, the ratings are refit on every match strictly before that day, including earlier tournament days, then that day's matches are predicted with the shipped value prior, form nudge, and draw transfer. The output is scored against the fit-once production predictions on the same 320 matches.
+
+| Regime | World Cup 320 Brier |
+|---|---|
+| Fit once per tournament (headline) | 0.5441 |
+| Refit before each match day (live) | 0.5446 |
+
+The two regimes are statistically indistinguishable. The paired delta is -0.0004 (the refit is a hair worse), with a tournament-block bootstrap 95 percent interval of [-0.0050, +0.0024] that spans zero. Three of the five World Cups improve slightly under refitting and one is flat; only 2022 regresses, by 0.009, where early group-stage upsets made the refits chase noise rather than signal. This reproduces the plan's earlier Python measurement, now on the production Java chain: in-tournament information is already captured by the form nudge, so refitting the ratings on top adds nothing out of sample.
+
+Decision: not adopted. The refit regime is neutral and a touch worse, so re-baselining the whole project's headline from 0.5441 to 0.5446 would trade a cleaner, simpler, fully reproducible number for a noisier one with no accuracy gain. The fit-once 0.5441 stays the headline, and this measurement is the record that it fairly represents the live regime. The live tracker keeps refitting per match day as before; only the backtest headline is left unchanged.
+
+Reproduction:
+
+    mvn -q compile
+    mvn -q exec:java "-Dexec.mainClass=com.david.worldcup.Main" "-Dexec.args=--refit-export"
+    python research/verify.py --expanded-paired research/expanded_predictions_l020.csv research/refit_predictions_wc.csv

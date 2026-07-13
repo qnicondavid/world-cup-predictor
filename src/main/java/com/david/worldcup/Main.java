@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeSet;
 import java.io.PrintWriter;
 import java.io.FileWriter;
 
@@ -143,6 +144,8 @@ public final class Main {
             runProbeExport(matches);
         } else if (arguments.stream().anyMatch(a -> a.startsWith("--expanded-export"))) {
             runExpandedExport(matches, arguments);
+        } else if (arguments.contains("--refit-export")) {
+            runRefitExport(matches);
         } else if (arguments.contains("--values-tune")) {
             runValuesTune(matches);
         } else if (arguments.contains("--values-tune-loto")) {
@@ -1368,6 +1371,78 @@ public final class Main {
                                            Backtest.Window window,
                                            java.util.function.Predicate<Match> isTest, String label) {
         ValueTuner.Prepared p = tuner.prepare(matches, window, isTest);
+        var strength = values.isEmpty() ? p.base()
+                : ValueAdjuster.adjust(p.base(), p.counts(), values, p.asof(), ValueWeights.DEFAULT);
+        DixonColesModel model = new DixonColesModel(strength);
+        int rows = 0;
+        for (Match m : p.test()) {
+            DrawModel.Probabilities pr =
+                    model.probabilities(m.homeTeam(), m.awayTeam(), m.neutralVenue());
+            String actual = switch (m.outcome()) {
+                case HOME_WIN -> "home";
+                case DRAW    -> "draw";
+                case AWAY_WIN -> "away";
+            };
+            DrawModel.Probabilities adjusted = Calibration.transferDraw(
+                    form.adjust(m.homeTeam(), m.awayTeam(), m.date(), pr));
+            writeExportRow(pw, label, m, adjusted, actual);
+            rows++;
+        }
+        return rows;
+    }
+
+    /**
+     * Refit-per-match-day backtest export (research, not shipped): measures the LIVE regime,
+     * where the ratings are refit before each World Cup match day as results arrive, instead of
+     * once per tournament as the production export does ({@link #runExpandedExport}). Reuses the
+     * same scoring pipeline (ValueAdjuster.adjust, DixonColesModel, FormAdjuster.adjust,
+     * Calibration.transferDraw) and the shared {@link #writeExportRow} CSV writer, so rows are
+     * directly comparable, key for key, against {@code research/expanded_predictions_l020.csv}
+     * for a paired Brier comparison. This checks the live regime is Brier-neutral versus the
+     * fit-once regime; it changes no shipped behaviour.
+     */
+    private static void runRefitExport(List<Match> matches) throws IOException {
+        System.out.println("=== Refit-per-match-day export: refit ratings before each World Cup match day ===");
+        FormAdjuster form = new FormAdjuster(matches);
+        MarketValueTable values = MarketValueTable.load(Path.of("data/market_values.csv"));
+        ValueTuner tuner = new ValueTuner(12, values);
+
+        Path outPath = Path.of("research", "refit_predictions_wc.csv");
+        int totalRows = 0;
+        try (PrintWriter pw = new PrintWriter(new FileWriter(outPath.toFile()))) {
+            pw.println("tournament,home,away,date,p_home,p_draw,p_away,actual");
+
+            for (Backtest.Window w : Backtest.WORLD_CUPS) {
+                String label = "WC" + w.from().getYear();
+                TreeSet<LocalDate> matchDays = new TreeSet<>();
+                for (Match m : matches) {
+                    if (m.isWorldCupFinals()
+                            && !m.date().isBefore(w.from())
+                            && !m.date().isAfter(w.until())) {
+                        matchDays.add(m.date());
+                    }
+                }
+                for (LocalDate d : matchDays) {
+                    totalRows += writeRefitDay(pw, matches, tuner, values, form, label, d);
+                }
+            }
+        }
+        System.out.printf(Locale.ROOT, "Written %s%n  %d rows total (expect 320 across the five World Cups)%n",
+                outPath.toAbsolutePath(), totalRows);
+    }
+
+    /**
+     * Refits the ratings on everything strictly before match day {@code d} (via
+     * {@code ValueTuner.prepare} with a single-day window), then scores every World Cup match
+     * played on {@code d} with that refit, leakage-safe. Multiple matches can share a match day
+     * (group stage); they are all predicted with the same refit-before-d strength, which is the
+     * correct live regime (refit before the match day, predict all of that day's matches).
+     */
+    private static int writeRefitDay(PrintWriter pw, List<Match> matches, ValueTuner tuner,
+                                     MarketValueTable values, FormAdjuster form,
+                                     String label, LocalDate d) {
+        Backtest.Window dayWindow = new Backtest.Window(label, d, d);
+        ValueTuner.Prepared p = tuner.prepare(matches, dayWindow, Match::isWorldCupFinals);
         var strength = values.isEmpty() ? p.base()
                 : ValueAdjuster.adjust(p.base(), p.counts(), values, p.asof(), ValueWeights.DEFAULT);
         DixonColesModel model = new DixonColesModel(strength);
