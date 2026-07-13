@@ -328,7 +328,13 @@ and did not clear the bar:
   nothing. The parsed squads
   are in `data/wc_squads.csv` (3,775 players); `research/build_realsquad_values.py`
   rebuilds the value table, and the gate swaps `data/market_values_realsquad.csv`
-  in for `market_values.csv` before `verify.py --paired`. Not adopted.
+  in for `market_values.csv` before `verify.py --paired`. Not adopted. A related check
+  on the value data itself, an attack-versus-defence value split and a squad-age term
+  built from the Transfermarkt positions, was tested the same way and also found nothing
+  that transfers: the split and age carry information the total value misses (they are
+  not the 0.99 wall), but neither predicts the held-out outcome residual, pooled
+  correlations near zero with signs that flip across 2014, 2018 and 2022
+  (research/phase2_results.md).
 
 A seventh idea showed real structure but was absorbed by the value prior. A
 cross-confederation strength correction estimates a per-confederation-pair
