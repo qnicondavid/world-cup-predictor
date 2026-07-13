@@ -88,8 +88,8 @@ public final class ValueAdjuster {
      * value-implied prior) is reproduced exactly. On top of it, for every team that goes through
      * the value prior branch, a coverage-scaled combination of standardised EA squad-rating
      * aggregates (mean top-26 overall, attack-side overall, defence-side overall, best
-     * goalkeeper overall) is added to that team's prior attack and prior defence before the same
-     * shrinkage blend and recentre. Coverage is 0 for a squad with fewer than 5 rated players and
+     * goalkeeper overall, and the penetration composite atk_pen on the attack side) is added to
+     * that team's prior attack and prior defence before the same shrinkage blend and recentre. Coverage is 0 for a squad with fewer than 5 rated players and
      * 1 at 15 or more, so a thin EA snapshot contributes little.
      *
      * <p>With {@code eaWeights} equal to {@link EaWeights#ZERO}, or {@code ea} null or empty,
@@ -134,6 +134,9 @@ public final class ValueAdjuster {
         Map<String, Double> zAtkByTeam = standardiseEa(ea, asof, EaRatingsTable::atkAsOf);
         Map<String, Double> zDefByTeam = standardiseEa(ea, asof, EaRatingsTable::defAsOf);
         Map<String, Double> zGkByTeam = standardiseEa(ea, asof, EaRatingsTable::gkAsOf);
+        Map<String, Double> zAtkPenByTeam = standardiseEa(ea, asof, EaRatingsTable::atkPenAsOf);
+        Map<String, Double> zSpThreatByTeam = standardiseEa(ea, asof, EaRatingsTable::spThreatAsOf);
+        Map<String, Double> zSpVulnByTeam = standardiseEa(ea, asof, EaRatingsTable::spVulnAsOf);
 
         Set<String> teams = new TreeSet<>(fit.attack().keySet());
         teams.addAll(fit.defence().keySet());
@@ -158,11 +161,15 @@ public final class ValueAdjuster {
             double zAtk = zAtkByTeam.getOrDefault(team, 0.0);
             double zDef = zDefByTeam.getOrDefault(team, 0.0);
             double zGk = zGkByTeam.getOrDefault(team, 0.0);
+            double zAtkPen = zAtkPenByTeam.getOrDefault(team, 0.0);
+            double zSpThreat = zSpThreatByTeam.getOrDefault(team, 0.0);
+            double zSpVuln = zSpVulnByTeam.getOrDefault(team, 0.0);
             double cov = (ea == null || ea.isEmpty()) ? 0.0
                     : eaWeights.coverage(ea.nRatedAsOf(team, asof).orElse(0));
-            priorAttack += cov * (eaWeights.wOverall() * zOvr + eaWeights.wAtk() * zAtk);
+            priorAttack += cov * (eaWeights.wOverall() * zOvr + eaWeights.wAtk() * zAtk
+                    + eaWeights.wAtkPen() * zAtkPen + eaWeights.wSp() * zSpThreat);
             priorDefence += -cov * (eaWeights.wOverall() * zOvr + eaWeights.wDef() * zDef
-                    + eaWeights.wGk() * zGk);
+                    + eaWeights.wGk() * zGk + eaWeights.wSp() * zSpVuln);
 
             double w = weights.shrinkageFor(matchCounts.getOrDefault(team, 0));
             attack.put(team, (1 - w) * fittedAttack + w * priorAttack);

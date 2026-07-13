@@ -27,7 +27,8 @@ import java.util.TreeSet;
  * <p>Sub-aggregate cells ({@code atk_top}, {@code def_top}, {@code gk_top}, {@code age_mean})
  * can be empty strings when a squad snapshot lacks enough players in that group. Those cells are
  * stored as {@code Double.NaN} and every lookup treats NaN the same as absent. {@code age_mean}
- * is ignored; only the first five aggregate columns are kept.
+ * is ignored; the five original aggregate columns plus the penetration composite
+ * ({@code atk_pen}, the 14th field) are kept.
  *
  * <p>The source data (per-edition player ratings) is aggregated into per-squad totals out of
  * band; this class only consumes the result. If the file is missing the table is simply empty
@@ -41,6 +42,9 @@ public final class EaRatingsTable {
     private static final int IDX_ATK = 2;
     private static final int IDX_DEF = 3;
     private static final int IDX_GK = 4;
+    private static final int IDX_ATK_PEN = 5;
+    private static final int IDX_SP_THREAT = 6;
+    private static final int IDX_SP_VULN = 7;
 
     private final Map<String, NavigableMap<LocalDate, double[]>> byTeam;
 
@@ -71,6 +75,9 @@ public final class EaRatingsTable {
                         parseCellOrNaN(f.get(4)),
                         parseCellOrNaN(f.get(5)),
                         parseCellOrNaN(f.get(6)),
+                        f.size() > 13 ? parseCellOrNaN(f.get(13)) : Double.NaN,
+                        f.size() > 9 ? parseCellOrNaN(f.get(9)) : Double.NaN,
+                        f.size() > 10 ? parseCellOrNaN(f.get(10)) : Double.NaN,
                 };
                 byTeam.computeIfAbsent(team, k -> new TreeMap<>()).put(asOf, row);
             } catch (DateTimeParseException ignored) {
@@ -128,6 +135,21 @@ public final class EaRatingsTable {
     /** Most recent best-goalkeeper overall, if any. */
     public OptionalDouble gkAsOf(String team, LocalDate date) {
         return columnAsOf(team, date, IDX_GK);
+    }
+
+    /** Most recent penetration composite (atk_pen, the 14th CSV field), if any. */
+    public OptionalDouble atkPenAsOf(String team, LocalDate date) {
+        return columnAsOf(team, date, IDX_ATK_PEN);
+    }
+
+    /** Most recent set-piece attacking threat composite (sp_threat, the 10th CSV field), if any. */
+    public OptionalDouble spThreatAsOf(String team, LocalDate date) {
+        return columnAsOf(team, date, IDX_SP_THREAT);
+    }
+
+    /** Most recent set-piece defensive vulnerability composite (sp_vuln, the 11th CSV field), if any. */
+    public OptionalDouble spVulnAsOf(String team, LocalDate date) {
+        return columnAsOf(team, date, IDX_SP_VULN);
     }
 
     /** Most recent rated-squad size for {@code team} on or before {@code date}, if any. */

@@ -6,18 +6,21 @@ package com.david.worldcup.goals;
  * role {@link ValueWeights#valueScale} plays for market value: each weight maps a one standard
  * deviation gap in the standardised aggregate to that many log goals of effect.
  *
- * <p>All four weights default to zero via {@link #ZERO}, so the EA prior is opt-in and additive
+ * <p>All six weights default to zero via {@link #ZERO}, so the EA prior is opt-in and additive
  * only. It never changes {@link ValueAdjuster#adjust}.
  *
  * @param wOverall weight on the standardised top-26 mean overall (ovr_top26)
  * @param wAtk     weight on the standardised attack-side mean overall (atk_top)
  * @param wDef     weight on the standardised defence-side mean overall (def_top)
  * @param wGk      weight on the standardised best-goalkeeper overall (gk_top)
+ * @param wAtkPen  weight on the standardised penetration composite (atk_pen), attack side only
+ * @param wSp      shared weight on the set-piece pair: z(sp_threat) on attack, z(sp_vuln) on defence
  */
-public record EaWeights(double wOverall, double wAtk, double wDef, double wGk) {
+public record EaWeights(double wOverall, double wAtk, double wDef, double wGk, double wAtkPen,
+                        double wSp) {
 
     /** No EA pull at all: every added term in {@link ValueAdjuster#adjustWithEa} is zero. */
-    public static final EaWeights ZERO = new EaWeights(0, 0, 0, 0);
+    public static final EaWeights ZERO = new EaWeights(0, 0, 0, 0, 0, 0);
 
     /** Rated-squad size at or below which coverage is 0 (the aggregate builder's own floor). */
     private static final double COV_ZERO = 5;

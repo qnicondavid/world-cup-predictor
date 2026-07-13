@@ -1403,8 +1403,8 @@ public final class Main {
      * value-only export; with every EA weight at zero it reproduces {@link ValueAdjuster#adjust}
      * exactly, via {@link ValueAdjuster#adjustWithEa}.
      *
-     * <p>Usage: {@code --ea-export=<tag>:<wOverall>:<wAtk>:<wDef>:<wGk>}, for example
-     * {@code --ea-export=ovr020:0.20:0:0:0}. The tag names the output file; any weight token
+     * <p>Usage: {@code --ea-export=<tag>:<wOverall>:<wAtk>:<wDef>:<wGk>:<wAtkPen>:<wSp>}, for example
+     * {@code --ea-export=ovr020:0.20:0:0:0:0:0}. The tag names the output file; any weight token
      * that is missing or blank defaults to zero.
      */
     private static void runEaExport(List<Match> matches, List<String> arguments) throws IOException {
@@ -1413,6 +1413,8 @@ public final class Main {
         double wAtk = 0.0;
         double wDef = 0.0;
         double wGk = 0.0;
+        double wAtkPen = 0.0;
+        double wSp = 0.0;
         for (String a : arguments) {
             if (a.startsWith("--ea-export=")) {
                 String[] parts = a.substring("--ea-export=".length()).split(":");
@@ -1431,17 +1433,23 @@ public final class Main {
                 if (parts.length > 4 && !parts[4].isBlank()) {
                     wGk = Double.parseDouble(parts[4].trim());
                 }
+                if (parts.length > 5 && !parts[5].isBlank()) {
+                    wAtkPen = Double.parseDouble(parts[5].trim());
+                }
+                if (parts.length > 6 && !parts[6].isBlank()) {
+                    wSp = Double.parseDouble(parts[6].trim());
+                }
             }
         }
         System.out.printf(Locale.ROOT,
-                "=== EA ratings export: tag %s, weights overall %.2f atk %.2f def %.2f gk %.2f ===%n",
-                tag, wOverall, wAtk, wDef, wGk);
+                "=== EA ratings export: tag %s, weights overall %.2f atk %.2f def %.2f gk %.2f atkpen %.2f sp %.2f ===%n",
+                tag, wOverall, wAtk, wDef, wGk, wAtkPen, wSp);
 
         FormAdjuster form = new FormAdjuster(matches);
         MarketValueTable values = MarketValueTable.load(Path.of("data/market_values.csv"));
         EaRatingsTable ea = EaRatingsTable.load(Path.of("data/ea_ratings.csv"));
         ValueTuner tuner = new ValueTuner(12, values);
-        EaWeights ew = new EaWeights(wOverall, wAtk, wDef, wGk);
+        EaWeights ew = new EaWeights(wOverall, wAtk, wDef, wGk, wAtkPen, wSp);
 
         Path outPath = Path.of("research", "ea_predictions_" + tag + ".csv");
         int rows = 0;
