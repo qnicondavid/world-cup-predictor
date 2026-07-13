@@ -44,3 +44,21 @@ Kill test 1, the correlation wall. Across the 64 World Cup 2018 and 2022 squads 
 Kill test 2, residual predictiveness. Teams EA rates above their market value do systematically beat the production model's expectation. The rating-minus-value differential correlates +0.114 with the model's held-out outcome residual pooled over 128 matches, and positive in both tournaments (0.16 in 2018, 0.05 in 2022). The correlation is modest and, on 128 matches, not significant on its own, but the sign is stable, which is the plan's pass criterion, deliberately a direction check rather than a significance test at this sample size.
 
 Verdict: pass, both tests, the first idea in the campaign to clear the cheap gate. This is a green light to build, not a ship decision. The signal is real and independent of value, the goalkeeper channel most of all, and points the right way out of sample in both folds, but it is small and uncertified. The next step is the pipeline the plan describes: build the committed per-team aggregate (data/ea_ratings.csv), generalise the value prior to a multi-signal blend in ValueAdjuster, and run the pre-registered feature ladder on the real leave-one-tournament-out gate, where a modest true effect either certifies or joins the negative-findings ledger. Reproduce the kill tests with `python research/ea_ratings_kill_tests.py` (needs the raw dump in data/ea_raw/, which stays out of the repo).
+
+## Candidate 3, EA ratings: the ladder gate
+
+The kill tests were a green light to build. Following research/ea_ratings_preregistration.md, the EA prior was built into ValueAdjuster as an additive, default-off multi-signal blend, and confirmed byte-identical to the shipped value prior at zero EA weight: the zero-weight export reproduces the value-only predictions to 0.00e+00. The gate ran leave-one-tournament-out on the 768-match EA-covered surface (World Cups 2018 and 2022 plus continental finals 2015 to 2023).
+
+Rung 1, the single EA-overall term applied symmetrically, failed. Against the value-only baseline on the EA surface (deltas as EA minus baseline Brier, so positive is worse):
+
+| EA-overall weight | EA surface delta (95% CI) | World Cup 2018+2022 delta |
+|---|---|---|
+| 0.1 | +0.0019 worse [+0.0001, +0.0040] | -0.0012 better |
+| 0.2 | +0.0043 worse [+0.0011, +0.0080] | -0.0007 better |
+| 0.3 | +0.0076 worse [+0.0028, +0.0131] | +0.0012 worse |
+
+Every weight worsens the pre-registered surface, monotonically, with the interval excluding zero on the worse side. The overall term helps the World Cups slightly, matching the kill test, but hurts the continental finals enough that the net is a significant worsening. Condition 1 of the ship rule, an improvement on the EA surface with the interval clear of zero, fails. Per the frozen rule (run in order, stop at the first rung that fails to beat the one below), the ladder stops at rung 1 and the EA overall prior does not ship. The World Cup subset improvement is not a ship signal; the pre-registered metric is the full EA surface, which worsened, and reading the flattering 128-match stratum as a success would be exactly the goalpost-moving the pre-registration exists to prevent.
+
+One honest caveat on the ladder design, recorded because it shaped the outcome. The rungs were ordered overall, positional, goalkeeper, which is most-correlated-with-value first: kill test 1 measured the overall aggregate at 0.905 correlation with market value and the goalkeeper aggregate at only 0.668. So the ladder gated the one genuinely value-independent channel last, behind two near-duplicates of the prior already shipped, and the stop rule halted on the weakest rung before reaching the strongest. Rung 1 failing is therefore weak evidence about the goalkeeper channel, which is tested next under its own separate pre-registration (research/ea_gk_preregistration.md), justified by the kill test rather than by this result and reported whatever it shows.
+
+Reproduce: mvn -q compile, then the --ea-export runs, then python research/verify.py --expanded-paired research/ea_predictions_zero.csv research/ea_predictions_r1wNN.csv.
