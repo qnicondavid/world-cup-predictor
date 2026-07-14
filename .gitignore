@@ -5,6 +5,7 @@ target/
 .DS_Store
 __pycache__/
 *.pyc
+PROMOTION_PLAN.md
 research/export_predictions_value.csv
 research/export_predictions_importance.csv
 research/export_predictions_importance_value.csv

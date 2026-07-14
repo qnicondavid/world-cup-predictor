@@ -11,7 +11,7 @@ before kickoff, and scored against real results as the tournament unfolds. The
 harder question behind the project was whether the probabilities are sharp enough
 to beat a bookmaker's closing line. Tested against real closing odds from two
 past World Cups, the model comes out level with the line: a small edge after
-calibration, but well inside the margin of error, so not a demonstrated one. Sixteen other ideas that looked promising were tested and rejected out of sample, and they stay documented alongside the three that shipped. How
+calibration, but well inside the margin of error, so not a demonstrated one. Seventeen other ideas that looked promising were tested and rejected out of sample, and they stay documented alongside the three that shipped. How
 it gets there, and where it stops, is the rest of this README.
 
 **Live demo: [qnicondavid.github.io/world-cup-predictor](https://qnicondavid.github.io/world-cup-predictor/)**
@@ -27,7 +27,7 @@ Every headline claim maps to its number, where it is proven, and the honesty lab
 | Elo engine on the same 320 matches | 184/320 (57.5%), binary Brier 0.148 | [Track record on past World Cups](#track-record-on-past-world-cups) | held-out result |
 | Squad market-value prior lift | 0.6123 to 0.5907 on 2022, fully out of sample | [Squad market value](#squad-market-value) | held-out result |
 | Draw-transfer calibration | 0.5506 to 0.5441, all five held-out | [Draw-transfer calibration](#draw-transfer-calibration) | held-out result |
-| Ideas tested and rejected | 16 documented, none adopted | [More negative findings](#more-negative-findings-from-goal-model-research) | not adopted |
+| Ideas tested and rejected | 17 documented, none adopted | [More negative findings](#more-negative-findings-from-goal-model-research) | not adopted |
 | Live 2026 record (small sample) | tracked daily in the table below, still a small sample | [Live results](#live-results) | in progress |
 | Model vs market consensus, live 2026 | the de-vigged cross-book average is ahead so far, but it is sharper than any single book, so treat the 2018/2022 parity as the calibrated read | [Against the closing line](#against-the-closing-line) | in progress |
 
@@ -694,3 +694,10 @@ API exists, so download where you have network access, not from CI):
 - [salimt/football-datasets](https://github.com/salimt/football-datasets) and the
   Kaggle mirror [davidcariboo/player-scores](https://www.kaggle.com/datasets/davidcariboo/player-scores)
   are alternatives.
+
+Player ratings for the unshipped EA experiment come from the community Kaggle
+dataset [stefanoleone992/fifa-23-complete-player-dataset](https://www.kaggle.com/datasets/stefanoleone992/fifa-23-complete-player-dataset)
+(EA Sports FC / FIFA ratings, © Electronic Arts). Only the derived per-team
+aggregate `data/ea_ratings.csv` is committed; the raw per-player dump stays out of
+the repo (`data/ea_raw/` is gitignored) and is not among the MIT-reusable datasets
+listed above.

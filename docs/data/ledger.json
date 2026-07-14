@@ -112,6 +112,13 @@
       "delta": null, "ci_lo": null, "ci_hi": null,
       "kind": "probe", "verdict": "no-go (feasibility probe)",
       "note": "On the leakage-clean 2018 and 2022 absences the depleted teams overperformed the model (France lost Benzema, Pogba and Kante and still reached the final), so a cut points the wrong way: net -0.33 points across 21 depleted-team matches. Not pursued to a full gate."
+    },
+    {
+      "idea": "EA Sports FC player ratings as a second squad-quality signal",
+      "reason": "EA overall and goalkeeper ratings folded into the value prior as a default-off multi-signal blend",
+      "delta": null, "ci_lo": null, "ci_hi": null,
+      "kind": "rejected", "verdict": "passed the kill tests, did not clear the gate",
+      "note": "The most ambitious data experiment, and the only one to pass the cheap kill tests: EA overall correlates 0.905 with standardized log squad value and the goalkeeper rating only 0.668, so it carries information the value prior misses. Gated leave-one-tournament-out on a 768-match EA-covered surface (2018 and 2022 World Cups plus continental finals 2015-2023): the overall term worsened the surface and a pre-registered goalkeeper-only term was neutral to slightly worse, though both helped the World Cups specifically (the goalkeeper term by up to 0.0038). Not shipped; the committed per-team aggregate and multi-signal prior are parked for a future edition with wider coverage. See research/phase2_results.md."
     }
   ]
 }
