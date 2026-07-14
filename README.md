@@ -662,7 +662,7 @@ mvn compile exec:java -Dexec.args="--values-tune" # grid-search the market-value
 mvn compile exec:java -Dexec.args="--values-tune-loto" # leave-one-tournament-out re-tune of those weights
 mvn compile exec:java -Dexec.args="--calibrate"  # reliability / log-loss audit + temperature fit
 mvn compile exec:java -Dexec.args="--bets"       # value bets vs bookmaker odds (mock odds)
-mvn compile exec:java -Dexec.args="--verify-export" # write held-out predictions to research/export_predictions.csv
+mvn compile exec:java -Dexec.args="--verify-export" # write held-out predictions to research/export_predictions_form.csv (production 0.5441) and _value.csv (value-prior stage 0.5566)
 mvn compile exec:java -Dexec.args="--draw-curve"  # reproduce DrawModel's draw-rate curve from data (since 1980)
 ```
 

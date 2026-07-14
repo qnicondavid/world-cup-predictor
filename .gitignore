@@ -5,7 +5,7 @@ target/
 .DS_Store
 __pycache__/
 *.pyc
-research/export_predictions.csv
+research/export_predictions_value.csv
 research/export_predictions_importance.csv
 research/export_predictions_importance_value.csv
 research/export_predictions_formlambda.csv

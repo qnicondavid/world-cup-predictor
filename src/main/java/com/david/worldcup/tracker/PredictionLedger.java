@@ -5,8 +5,10 @@ import com.david.worldcup.elo.DrawModel;
 import com.david.worldcup.model.Match;
 
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -178,7 +180,31 @@ public final class PredictionLedger {
                     goals(p.xgAway()),
                     p.lockedOn().toString())).append('\n');
         }
-        Files.writeString(file, sb.toString());
+        writeStringAtomic(file, sb.toString());
+    }
+
+    /**
+     * Write {@code content} to {@code target} atomically: to a sibling temp file in the same
+     * directory, then renamed over the target, so a reader (or a cloud sync client such as
+     * OneDrive) never observes a half-written ledger. Falls back to a plain replace only if the
+     * filesystem refuses an atomic move; even then the content is complete before the move, so no
+     * truncated ledger is ever exposed. Mirrors {@code Main.writeStringAtomic}.
+     */
+    private static void writeStringAtomic(Path target, String content) throws IOException {
+        Path dir = target.toAbsolutePath().getParent();
+        Files.createDirectories(dir);
+        Path tmp = Files.createTempFile(dir, target.getFileName().toString() + ".", ".tmp");
+        try {
+            Files.writeString(tmp, content);
+            try {
+                Files.move(tmp, target,
+                        StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } finally {
+            Files.deleteIfExists(tmp);
+        }
     }
 
     private static String goals(double value) {

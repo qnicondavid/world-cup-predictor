@@ -1245,7 +1245,7 @@ public final class Main {
         // a pure no-op here, so research/export_predictions_form.csv reproduces unchanged.
         ValueTuner tuner = new ValueTuner(12, MarketValueTable.load(Path.of("data/market_values.csv")));
         writeExportCsvs(matches, tuner,
-                Path.of("research/export_predictions.csv"),
+                Path.of("research/export_predictions_value.csv"),
                 Path.of("research/export_predictions_form.csv"));
     }
 
