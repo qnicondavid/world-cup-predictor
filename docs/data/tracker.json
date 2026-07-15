@@ -109,9 +109,9 @@
     {"date": "Jul 15", "home": "England", "away": "Argentina", "pick": "Argentina", "pHome": 0.3266, "pDraw": 0.2510, "pAway": 0.4224, "predScore": "0-1"}
   ],
   "titleOdds": [
-    {"team": "Spain", "title": 59.1700, "final": 100.0000, "semis": 0.0000},
-    {"team": "Argentina", "title": 28.9200, "final": 62.9700, "semis": 0.0000},
-    {"team": "England", "title": 11.9100, "final": 37.0300, "semis": 0.0000},
+    {"team": "Spain", "title": 59.1700, "final": 100.0000, "semis": 100.0000},
+    {"team": "Argentina", "title": 28.9200, "final": 62.9700, "semis": 62.9700},
+    {"team": "England", "title": 11.9100, "final": 37.0300, "semis": 37.0300},
     {"team": "Mexico", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
     {"team": "South Africa", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
     {"team": "South Korea", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
