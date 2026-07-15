@@ -148,10 +148,19 @@ public final class TournamentSimulator {
 
         List<TeamOdds> odds = new ArrayList<>();
         for (var e : tally.entrySet()) {
+            // Reaching a later stage implies reaching every earlier one, so the shares
+            // must stay monotonic: semis >= final >= title. The per-run play loop counts
+            // cumulatively, but the frontier pre-credit (and a team seeded straight into
+            // the final, e.g. a semifinal winner once its semi is played) can record a
+            // later stage without its earlier ones, leaving the impossible final > semis.
+            // Clamp the counts so a finalist is always counted as a semifinalist too.
+            int title = e.getValue()[0];
+            int finalReached = Math.max(e.getValue()[1], title);
+            int semisReached = Math.max(e.getValue()[2], finalReached);
             odds.add(new TeamOdds(e.getKey(),
-                    (double) e.getValue()[0] / runs,
-                    (double) e.getValue()[1] / runs,
-                    (double) e.getValue()[2] / runs));
+                    (double) title / runs,
+                    (double) finalReached / runs,
+                    (double) semisReached / runs));
         }
         odds.sort(Comparator.comparingDouble(TeamOdds::titleShare).reversed());
         return odds;
