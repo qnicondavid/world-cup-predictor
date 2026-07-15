@@ -183,10 +183,10 @@
   .dc-chart { position: relative; height: 300px; margin: 8px 0 2px; }
 
   .ladder { margin: 4px 0 2px; }
-  .lad-head { display: grid; grid-template-columns: 140px 1fr 52px 52px 52px; gap: 10px;
+  .lad-head { display: grid; grid-template-columns: 140px 1fr 52px 52px; gap: 10px;
     margin-bottom: 7px; font-size: 0.68rem; color: var(--muted); }
   .lad-head .r { text-align: right; }
-  .lad-row { display: grid; grid-template-columns: 140px 1fr 52px 52px 52px; gap: 10px;
+  .lad-row { display: grid; grid-template-columns: 140px 1fr 52px 52px; gap: 10px;
     align-items: center; margin-bottom: 7px; }
   .lad-team { font-size: 0.85rem; color: #cfd8e3; }
   .lad-bar { position: relative; height: 18px; background: transparent; border-radius: 3px; }
@@ -357,13 +357,11 @@
 
       <section class="panel" id="champ">
         <h2>Championship odds</h2>
-        <p class="tagline">For each side still in, the chance of reaching the semi-finals, the final, and
-          winning the title. The nested bar darkens from the semis (lightest) through the final to the
-          title (solid).</p>
+        <p class="tagline">For each side still in, the chance of reaching the final and winning the
+          title. The nested bar darkens from the final (lighter) to the title (solid).</p>
         <div class="lad-head">
           <span></span>
           <span></span>
-          <span class="r"><span class="sw semis"></span>Semis</span>
           <span class="r"><span class="sw final"></span>Final</span>
           <span class="r"><span class="sw title"></span>Title</span>
         </div>
@@ -629,17 +627,16 @@ function render(d) {
   // Only teams still able to win: drop eliminated sides (0% title odds) from the odds table/chart.
   const odds = (d.titleOdds || []).filter(o => o.title > 0).slice().sort((a, b) => b.title - a.title);
 
-  // Route to the title: live teams by title odds, reading the semis/final fields too. The nested
-  // bar runs from the chance of reaching the semis (lightest) to winning the title (solid).
+  // Route to the title: live teams by title odds, reading the final field too. The nested
+  // bar runs from the chance of reaching the final (lighter) to winning the title (solid).
   const ladder = document.getElementById("ladderRows");
   if (ladder) {
-    const lscale = Math.max(...odds.map(o => o.semis), 1) * 1.05;
+    const lscale = Math.max(...odds.map(o => o.final), 1) * 1.05;
     const seg = (cls, v) => `<span class="lad-seg ${cls}" style="width:${(v / lscale * 100).toFixed(1)}%"></span>`;
     ladder.innerHTML = odds.map(o =>
       `<div class="lad-row">
          <div class="lad-team">${esc(o.team)}</div>
-         <div class="lad-bar">${seg("semis", o.semis)}${seg("final", o.final)}${seg("title", o.title)}</div>
-         <div class="lad-val dim">${o.semis.toFixed(1)}%</div>
+         <div class="lad-bar">${seg("final", o.final)}${seg("title", o.title)}</div>
          <div class="lad-val dim">${o.final.toFixed(1)}%</div>
          <div class="lad-val ttl">${o.title.toFixed(1)}%</div>
        </div>`).join("");
