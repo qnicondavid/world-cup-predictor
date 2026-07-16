@@ -1077,9 +1077,31 @@ public final class Main {
         List<Fixture> remainingWorldCup = fixtures.stream()
                 .filter(Fixture::isWorldCupFinals)
                 .toList();
+        // The third-place playoff is the remaining fixture between the two teams that both lost
+        // their most recent World Cup match (the beaten semifinalists). Its winner takes third,
+        // not the title, so drop it from the championship bracket; otherwise the simulator counts
+        // both losers as live title contenders. The match is still locked and scored elsewhere.
+        java.util.Map<String, Match> lastPlayed = new java.util.HashMap<>();
+        for (Match m : played2026) {
+            for (String t : List.of(m.homeTeam(), m.awayTeam())) {
+                Match prev = lastPlayed.get(t);
+                if (prev == null || m.date().isAfter(prev.date())) {
+                    lastPlayed.put(t, m);
+                }
+            }
+        }
+        java.util.function.Predicate<String> beaten = t -> {
+            Match m = lastPlayed.get(t);
+            return m != null && (m.homeTeam().equals(t)
+                    ? m.homeScore() < m.awayScore()
+                    : m.awayScore() < m.homeScore());
+        };
+        List<Fixture> titleBracket = remainingWorldCup.stream()
+                .filter(f -> !(beaten.test(f.homeTeam()) && beaten.test(f.awayTeam())))
+                .toList();
         int runs = 10_000;
         List<TournamentSimulator.TeamOdds> odds =
-                new TournamentSimulator(elo).simulate(played2026, remainingWorldCup, runs, 2026L);
+                new TournamentSimulator(elo).simulate(played2026, titleBracket, runs, 2026L);
         readme = Tracker.replaceSection(readme,
                 Tracker.TITLE_SECTION_START, Tracker.TITLE_SECTION_END,
                 Tracker.renderTitleOdds(odds, 16, today, runs));
