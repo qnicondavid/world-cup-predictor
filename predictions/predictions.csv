@@ -99,3 +99,5 @@ match_date,home_team,away_team,neutral,p_home,p_draw,p_away,xg_home,xg_away,lock
 2026-07-11,Argentina,Switzerland,true,0.5761,0.2202,0.2036,1.4996,0.7988,2026-07-08
 2026-07-14,France,Spain,true,0.3245,0.2362,0.4393,1.0894,1.1945,2026-07-13
 2026-07-15,England,Argentina,true,0.3266,0.2510,0.4224,0.9762,1.0852,2026-07-13
+2026-07-18,France,England,true,0.4404,0.2400,0.3196,1.1250,1.0944,2026-07-16
+2026-07-19,Spain,Argentina,true,0.4614,0.2440,0.2946,1.0879,1.0493,2026-07-16

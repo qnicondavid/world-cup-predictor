@@ -42,10 +42,11 @@ the tables below automatically.
 <!-- TRACKER:START -->
 Δ is the total goal difference from the actual result (🎯 = exact), and Brier is multiclass.
 
-**Record: 69/101 picks correct (68.3%), multiclass Brier 0.502, mean goal error 1.9** (uniform guess = 0.667)
+**Record: 70/102 picks correct (68.6%), multiclass Brier 0.502, mean goal error 1.9** (uniform guess = 0.667)
 
 | Date | Match | Winner | H/D/A % | Score (xG) | Result | Δ | Hit |
 |---|---|---|---|---|---|---|---|
+| Jul 15 | England vs Argentina | Argentina | 33/25/42% | 0-1 (1.0-1.1) | 1-2 | 2 | ✅ |
 | Jul 14 | France vs Spain | Spain | 32/24/44% | 1-1 (1.1-1.2) | 0-2 | 2 | ✅ |
 | Jul 11 | Norway vs England | England | 22/22/57% | 0-1 (0.9-1.5) | 1-2 | 2 | ✅ |
 | Jul 11 | Argentina vs Switzerland | Argentina | 58/22/20% | 1-0 (1.5-0.8) | 3-1 | 3 | ✅ |
@@ -152,20 +153,22 @@ the tables below automatically.
 
 | Date | Match | Winner | H/D/A % | Score (xG) |
 |---|---|---|---|---|
-| Jul 15 | England vs Argentina | Argentina | 33/25/42% | 0-1 (1.0-1.1) |
+| Jul 18 | France vs England | France | 44/24/32% | 1-1 (1.1-1.1) |
+| Jul 19 | Spain vs Argentina | Spain | 46/24/29% | 1-1 (1.1-1.0) |
 
 <!-- TRACKER:END -->
 
 ### Championship odds
 
 <!-- TITLE:START -->
-The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-07-15. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
+The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-07-16. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
 
 | # | Team | Title | Final | Semis |
 |---|---|---|---|---|
-| 1 | Spain | 59.2% | 100.0% | 100.0% |
-| 2 | Argentina | 28.9% | 63.0% | 63.0% |
-| 3 | England | 11.9% | 37.0% | 37.0% |
+| 1 | Spain | 33.2% | 50.7% | 100.0% |
+| 2 | Argentina | 32.1% | 49.3% | 100.0% |
+| 3 | France | 21.9% | 58.0% | 100.0% |
+| 4 | England | 12.7% | 42.0% | 100.0% |
 
 <!-- TITLE:END -->
 
