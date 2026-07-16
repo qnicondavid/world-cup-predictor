@@ -111,10 +111,8 @@
     {"date": "Jul 19", "home": "Spain", "away": "Argentina", "pick": "Spain", "pHome": 0.4614, "pDraw": 0.2440, "pAway": 0.2946, "predScore": "1-1"}
   ],
   "titleOdds": [
-    {"team": "Spain", "title": 33.2300, "final": 50.7500, "semis": 100.0000},
-    {"team": "Argentina", "title": 32.1300, "final": 49.2500, "semis": 100.0000},
-    {"team": "France", "title": 21.9100, "final": 58.0400, "semis": 100.0000},
-    {"team": "England", "title": 12.7300, "final": 41.9600, "semis": 100.0000},
+    {"team": "Spain", "title": 51.1800, "final": 100.0000, "semis": 100.0000},
+    {"team": "Argentina", "title": 48.8200, "final": 100.0000, "semis": 100.0000},
     {"team": "Mexico", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
     {"team": "South Africa", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
     {"team": "South Korea", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
@@ -126,6 +124,8 @@
     {"team": "Qatar", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
     {"team": "Switzerland", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
     {"team": "Brazil", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
-    {"team": "Morocco", "title": 0.0000, "final": 0.0000, "semis": 0.0000}
+    {"team": "Morocco", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
+    {"team": "Haiti", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
+    {"team": "Scotland", "title": 0.0000, "final": 0.0000, "semis": 0.0000}
   ]
 }

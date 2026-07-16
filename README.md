@@ -165,10 +165,8 @@ The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-
 
 | # | Team | Title | Final | Semis |
 |---|---|---|---|---|
-| 1 | Spain | 33.2% | 50.7% | 100.0% |
-| 2 | Argentina | 32.1% | 49.3% | 100.0% |
-| 3 | France | 21.9% | 58.0% | 100.0% |
-| 4 | England | 12.7% | 42.0% | 100.0% |
+| 1 | Spain | 51.2% | 100.0% | 100.0% |
+| 2 | Argentina | 48.8% | 100.0% | 100.0% |
 
 <!-- TITLE:END -->
 
