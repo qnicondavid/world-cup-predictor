@@ -1,9 +1,9 @@
 {
 "note": "Head-to-head multiclass Brier (lower is better) on 2026 matches with both a locked model prediction and a captured market price. The market is a de-vigged cross-book consensus: data/odds_2026.csv (averaged across books, measured overround near 1.0) takes precedence, with data/odds_live.csv snapshots as fallback. That consensus is structurally sharper than any single bookmaker's bettable line, so read the running gap as directional, not a verdict. The calibrated read is the 99-match 2018/2022 single-book closing-line comparison in the README, which came out at parity.",
-"matches": 102,
-"model": 0.5019,
-"market": 0.4619,
-"modelWins": 39,
+"matches": 103,
+"model": 0.504,
+"market": 0.4659,
+"modelWins": 40,
 "rows": [
 {
 "date": "2026-06-11",
@@ -921,6 +921,15 @@
 "result": "1-2",
 "model": 0.5033,
 "market": 0.6971,
+"sharper": "model"
+},
+{
+"date": "2026-07-18",
+"home": "France",
+"away": "England",
+"result": "4-6",
+"model": 0.7145,
+"market": 0.88,
 "sharper": "model"
 }
 ]

@@ -1,7 +1,7 @@
 {
-  "updated": "2026-07-18",
+  "updated": "2026-07-19",
   "model": "Dixon-Coles + market-value prior",
-  "record": {"correct": 70, "evaluated": 102, "brier": 0.5019},
+  "record": {"correct": 70, "evaluated": 103, "brier": 0.5040},
   "resolved": [
     {"date": "Jun 12", "home": "Canada", "away": "Bosnia and Herzegovina", "pick": "Canada", "pHome": 0.7508, "pDraw": 0.1841, "pAway": 0.0650, "predScore": "2-0", "result": "1-1", "hit": false},
     {"date": "Jun 12", "home": "United States", "away": "Paraguay", "pick": "United States", "pHome": 0.3595, "pDraw": 0.2978, "pAway": 0.3427, "predScore": "1-1", "result": "4-1", "hit": true},
@@ -103,16 +103,17 @@
     {"date": "Jul 11", "home": "Argentina", "away": "Switzerland", "pick": "Argentina", "pHome": 0.5761, "pDraw": 0.2202, "pAway": 0.2036, "predScore": "1-0", "result": "3-1", "hit": true},
     {"date": "Jul 14", "home": "France", "away": "Spain", "pick": "Spain", "pHome": 0.3245, "pDraw": 0.2362, "pAway": 0.4393, "predScore": "1-1", "result": "0-2", "hit": true},
     {"date": "Jul 15", "home": "England", "away": "Argentina", "pick": "Argentina", "pHome": 0.3266, "pDraw": 0.2510, "pAway": 0.4224, "predScore": "0-1", "result": "1-2", "hit": true},
+    {"date": "Jul 18", "home": "France", "away": "England", "pick": "France", "pHome": 0.4404, "pDraw": 0.2400, "pAway": 0.3196, "predScore": "1-1", "result": "4-6", "hit": false},
     {"date": "Jun 11", "home": "Mexico", "away": "South Africa", "pick": "Mexico", "pHome": 0.7519, "pDraw": 0.1552, "pAway": 0.0928, "predScore": "2-0", "result": "2-0", "hit": true},
     {"date": "Jun 11", "home": "South Korea", "away": "Czech Republic", "pick": "South Korea", "pHome": 0.4382, "pDraw": 0.2286, "pAway": 0.3332, "predScore": "1-1", "result": "2-1", "hit": true}
   ],
   "upcoming": [
-    {"date": "Jul 18", "home": "France", "away": "England", "pick": "France", "pHome": 0.4404, "pDraw": 0.2400, "pAway": 0.3196, "predScore": "1-1"},
     {"date": "Jul 19", "home": "Spain", "away": "Argentina", "pick": "Spain", "pHome": 0.4614, "pDraw": 0.2440, "pAway": 0.2946, "predScore": "1-1"}
   ],
   "titleOdds": [
-    {"team": "Spain", "title": 51.1800, "final": 100.0000, "semis": 100.0000},
-    {"team": "Argentina", "title": 48.8200, "final": 100.0000, "semis": 100.0000},
+    {"team": "England", "title": 36.8000, "final": 100.0000, "semis": 100.0000},
+    {"team": "Spain", "title": 32.9000, "final": 51.8900, "semis": 51.8900},
+    {"team": "Argentina", "title": 30.3000, "final": 48.1100, "semis": 48.1100},
     {"team": "Mexico", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
     {"team": "South Africa", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
     {"team": "South Korea", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
@@ -125,7 +126,6 @@
     {"team": "Switzerland", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
     {"team": "Brazil", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
     {"team": "Morocco", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
-    {"team": "Haiti", "title": 0.0000, "final": 0.0000, "semis": 0.0000},
-    {"team": "Scotland", "title": 0.0000, "final": 0.0000, "semis": 0.0000}
+    {"team": "Haiti", "title": 0.0000, "final": 0.0000, "semis": 0.0000}
   ]
 }
