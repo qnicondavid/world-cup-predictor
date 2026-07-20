@@ -42,10 +42,11 @@ the tables below automatically.
 <!-- TRACKER:START -->
 Δ is the total goal difference from the actual result (🎯 = exact), and Brier is multiclass.
 
-**Record: 70/103 picks correct (68.0%), multiclass Brier 0.504, mean goal error 2.0** (uniform guess = 0.667)
+**Record: 71/104 picks correct (68.3%), multiclass Brier 0.503, mean goal error 2.0** (uniform guess = 0.667)
 
 | Date | Match | Winner | H/D/A % | Score (xG) | Result | Δ | Hit |
 |---|---|---|---|---|---|---|---|
+| Jul 19 | Spain vs Argentina | Spain | 46/24/29% | 1-1 (1.1-1.0) | 1-0 | 1 | ✅ |
 | Jul 18 | France vs England | France | 44/24/32% | 1-1 (1.1-1.1) | 4-6 | 8 | ❌ |
 | Jul 15 | England vs Argentina | Argentina | 33/25/42% | 0-1 (1.0-1.1) | 1-2 | 2 | ✅ |
 | Jul 14 | France vs Spain | Spain | 32/24/44% | 1-1 (1.1-1.2) | 0-2 | 2 | ✅ |
@@ -150,24 +151,17 @@ the tables below automatically.
 | Jun 11 | Mexico vs South Africa | Mexico | 75/16/9% | 2-0 (2.0-0.6) | 2-0 | 0 🎯 | ✅ |
 | Jun 11 | South Korea vs Czech Republic | South Korea | 44/23/33% | 1-1 (1.2-1.2) | 2-1 | 1 | ✅ |
 
-**Locked for upcoming matches:**
-
-| Date | Match | Winner | H/D/A % | Score (xG) |
-|---|---|---|---|---|
-| Jul 19 | Spain vs Argentina | Spain | 46/24/29% | 1-1 (1.1-1.0) |
-
 <!-- TRACKER:END -->
 
 ### Championship odds
 
 <!-- TITLE:START -->
-The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-07-19. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
+The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-07-20. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
 
 | # | Team | Title | Final | Semis |
 |---|---|---|---|---|
-| 1 | England | 36.8% | 100.0% | 100.0% |
-| 2 | Spain | 32.9% | 51.9% | 51.9% |
-| 3 | Argentina | 30.3% | 48.1% | 48.1% |
+| 1 | Spain | 59.7% | 100.0% | 100.0% |
+| 2 | Argentina | 40.3% | 100.0% | 100.0% |
 
 <!-- TITLE:END -->
 
