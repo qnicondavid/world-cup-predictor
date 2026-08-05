@@ -156,7 +156,7 @@ the tables below automatically.
 ### Championship odds
 
 <!-- TITLE:START -->
-The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-08-04. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
+The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-08-05. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
 
 | # | Team | Title | Final | Semis |
 |---|---|---|---|---|
