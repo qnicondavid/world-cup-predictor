@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-23",
+  "updated": "2026-08-24",
   "model": "Dixon-Coles + market-value prior",
   "record": {"correct": 71, "evaluated": 104, "brier": 0.5033},
   "resolved": [
