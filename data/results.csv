@@ -49518,4 +49518,31 @@ date,home_team,away_team,home_score,away_score,tournament,city,country,neutral
 2026-07-14,France,Spain,0,2,FIFA World Cup,Arlington,United States,TRUE
 2026-07-15,England,Argentina,1,2,FIFA World Cup,Atlanta,United States,TRUE
 2026-07-18,France,England,4,6,FIFA World Cup,Miami Gardens,United States,TRUE
+2026-07-18,Vietnam,Myanmar,4,0,Friendly,Thai Nguyen,Vietnam,FALSE
 2026-07-19,Spain,Argentina,1,0,FIFA World Cup,East Rutherford,United States,TRUE
+2026-07-24,Cambodia,Singapore,1,2,ASEAN Championship,Phnom Penh,Cambodia,FALSE
+2026-07-24,Timor-Leste,Vietnam,0,7,ASEAN Championship,Chonburi,Thailand,TRUE
+2026-07-25,Myanmar,Malaysia,1,2,ASEAN Championship,Yangon,Myanmar,FALSE
+2026-07-25,Laos,Thailand,0,5,ASEAN Championship,Vientiane,Laos,FALSE
+2026-07-27,Singapore,Timor-Leste,2,0,ASEAN Championship,Kallang,Singapore,FALSE
+2026-07-27,Indonesia,Cambodia,5,1,ASEAN Championship,Bogor,Indonesia,FALSE
+2026-07-28,Philippines,Myanmar,1,4,ASEAN Championship,Capas,Philippines,FALSE
+2026-07-28,Malaysia,Laos,4,0,ASEAN Championship,Kuala Lumpur,Malaysia,FALSE
+2026-07-31,Timor-Leste,Indonesia,0,3,ASEAN Championship,Chonburi,Thailand,TRUE
+2026-07-31,Vietnam,Singapore,0,0,ASEAN Championship,Hanoi,Vietnam,FALSE
+2026-08-01,Laos,Philippines,1,4,ASEAN Championship,Vientiane,Laos,FALSE
+2026-08-01,Thailand,Malaysia,2,0,ASEAN Championship,Bangkok,Thailand,FALSE
+2026-08-03,Cambodia,Timor-Leste,3,0,ASEAN Championship,Phnom Penh,Cambodia,FALSE
+2026-08-03,Indonesia,Vietnam,0,3,ASEAN Championship,Bogor,Indonesia,FALSE
+2026-08-04,Myanmar,Laos,7,2,ASEAN Championship,Yangon,Myanmar,FALSE
+2026-08-04,Philippines,Thailand,0,1,ASEAN Championship,Capas,Philippines,FALSE
+2026-08-07,Vietnam,Cambodia,3,1,ASEAN Championship,Hanoi,Vietnam,FALSE
+2026-08-07,Singapore,Indonesia,1,1,ASEAN Championship,Kallang,Singapore,FALSE
+2026-08-08,Thailand,Myanmar,2,0,ASEAN Championship,Bangkok,Thailand,FALSE
+2026-08-08,Malaysia,Philippines,1,0,ASEAN Championship,Kuala Lumpur,Malaysia,FALSE
+2026-08-15,Singapore,Thailand,1,3,ASEAN Championship,Kallang,Singapore,FALSE
+2026-08-16,Malaysia,Vietnam,0,2,ASEAN Championship,Kuala Lumpur,Malaysia,FALSE
+2026-08-18,Thailand,Singapore,1,2,ASEAN Championship,Bangkok,Thailand,FALSE
+2026-08-19,Vietnam,Malaysia,2,0,ASEAN Championship,Hanoi,Vietnam,FALSE
+2026-08-22,Thailand,Vietnam,0,2,ASEAN Championship,Bangkok,Thailand,FALSE
+2026-08-26,Vietnam,Thailand,2,2,ASEAN Championship,Hanoi,Vietnam,FALSE
