@@ -10,7 +10,7 @@
 "home": "Mexico",
 "away": "South Africa",
 "result": "2-0",
-"model": 0.0943,
+"model": 0.0935,
 "market": 0.1674,
 "sharper": "model"
 },
@@ -28,7 +28,7 @@
 "home": "South Korea",
 "away": "Czech Republic",
 "result": "2-1",
-"model": 0.4789,
+"model": 0.4792,
 "market": 0.5801,
 "sharper": "model"
 },

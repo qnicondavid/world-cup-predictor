@@ -148,7 +148,7 @@ the tables below automatically.
 | Jun 13 | Australia vs Turkey | Turkey | 25/28/48% | 1-1 (1.1-1.6) | 2-0 | 2 | ❌ |
 | Jun 12 | Canada vs Bosnia and Herzegovina | Canada | 75/18/7% | 2-0 (2.7-0.6) | 1-1 | 2 | ❌ |
 | Jun 12 | United States vs Paraguay | United States | 36/30/34% | 1-1 (1.3-1.3) | 4-1 | 3 | ✅ |
-| Jun 11 | Mexico vs South Africa | Mexico | 75/16/9% | 2-0 (2.0-0.6) | 2-0 | 0 🎯 | ✅ |
+| Jun 11 | Mexico vs South Africa | Mexico | 75/15/9% | 2-0 (2.0-0.6) | 2-0 | 0 🎯 | ✅ |
 | Jun 11 | South Korea vs Czech Republic | South Korea | 44/23/33% | 1-1 (1.2-1.2) | 2-1 | 1 | ✅ |
 
 <!-- TRACKER:END -->
@@ -156,12 +156,12 @@ the tables below automatically.
 ### Championship odds
 
 <!-- TITLE:START -->
-The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-10-07. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
+The model's championship odds from 10,000 Monte Carlo simulations, updated 2026-10-08. They inherit the simulator's simplifications (knockout bracket paired in schedule order, games as neutral with no draws), so read them as the model's view, not a hard forecast.
 
 | # | Team | Title | Final | Semis |
 |---|---|---|---|---|
-| 1 | Spain | 59.7% | 100.0% | 100.0% |
-| 2 | Argentina | 40.3% | 100.0% | 100.0% |
+| 1 | Spain | 62.5% | 100.0% | 100.0% |
+| 2 | Argentina | 37.5% | 100.0% | 100.0% |
 
 <!-- TITLE:END -->
 
